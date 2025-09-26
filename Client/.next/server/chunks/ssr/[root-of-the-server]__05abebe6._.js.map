@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 3, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"","debugId":null}},
+    {"offset": {"line": 15, "column": 0}, "map": {"version":3,"sources":["file:///E:/My%20WorkSpace/BizMate-AI/BizMate-AI/Client/src/app/%28auth%29/forgot-password/page.tsx"],"sourcesContent":["import React from 'react'\r\n\r\nconst ForgotPassword = () => {\r\n  return (\r\n    <div className='flex justify-center items-start'>\r\n      <div className='w-full mt-20 max-w-md bg-white rounded-lg shadow-sm min-h-[250px]'>\r\n\r\n      </div>\r\n    </div>\r\n  )\r\n}\r\n\r\nexport default ForgotPassword\r\n"],"names":[],"mappings":";;;;;;AAEA,MAAM,iBAAiB;IACrB,qBACE,8OAAC;QAAI,WAAU;kBACb,cAAA,8OAAC;YAAI,WAAU;;;;;;;;;;;AAKrB;uCAEe","debugId":null}}]
+}
