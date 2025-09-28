@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
-import TopBar from "./dashboard-components/TopBar";
-import FooterDashboard from "./dashboard-components/FooterDashboard";
+import TopBar from "./dashboard/TopBar";
+import FooterDashboard from "./dashboard/FooterDashboard";
 
 interface DashboardLayoutProps {
   children: ReactNode;
