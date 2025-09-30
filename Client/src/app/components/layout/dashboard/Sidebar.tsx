@@ -15,7 +15,7 @@ import {
   Mail,
   Zap,
 } from "lucide-react";
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useRef, useEffect } from "react";
 import { gsap } from "gsap";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -26,128 +26,96 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
-  const [activeItem, setActiveItem] = useState("dashboard");
   const sidebarRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
-  const menuItems = useMemo(
-    () => [
-      {
-        id: "dashboard",
-        label: "AI Dashboard",
-        icon: Bot,
-        color: "text-blue-400",
-        href: "/dashboard",
-      },
-      {
-        id: "chat",
-        label: "Compliance Assistant",
-        icon: MessageSquare,
-        color: "text-green-400",
-        href: "/dashboard/ai-chat",
-      },
-      {
-        id: "invoices",
-        label: "Smart Invoicing",
-        icon: FileText,
-        color: "text-purple-400",
-        href: "/dashboard/invoicing",
-      },
-      {
-        id: "reminders",
-        label: "AI Reminders",
-        icon: Calendar,
-        color: "text-orange-400",
-        href: "/dashboard/reminders",
-      },
-      {
-        id: "communication",
-        label: "Auto-Reply Hub",
-        icon: Mail,
-        color: "text-pink-400",
-        href: "/dashboard/communication",
-      },
-      {
-        id: "documents",
-        label: "Document Generator",
-        icon: Zap,
-        color: "text-yellow-400",
-        href: "/dashboard/documents",
-      },
-      {
-        id: "analytics",
-        label: "Business Analytics",
-        icon: BarChart,
-        color: "text-cyan-400",
-        href: "/dashboard/analytics",
-      },
-      {
-        id: "team",
-        label: "Team Management",
-        icon: Users,
-        color: "text-indigo-400",
-        href: "/dashboard/team",
-      },
-    ],
-    []
-  );
+  const menuItems = [
+    {
+      id: 1,
+      label: "AI Dashboard",
+      icon: Bot,
+      color: "text-blue-400",
+      href: "/dashboard",
+    },
+    {
+      id: 2,
+      label: "Compliance Assistant",
+      icon: MessageSquare,
+      color: "text-green-400",
+      href: "/dashboard/ai-chat",
+    },
+    {
+      id: 3,
+      label: "Smart Invoicing",
+      icon: FileText,
+      color: "text-purple-400",
+      href: "/dashboard/invoicing",
+    },
+    {
+      id: 4,
+      label: "AI Reminders",
+      icon: Calendar,
+      color: "text-orange-400",
+      href: "/dashboard/reminders",
+    },
+    {
+      id: 5,
+      label: "Auto-Reply Hub",
+      icon: Mail,
+      color: "text-pink-400",
+      href: "/dashboard/communication",
+    },
+    {
+      id: 6,
+      label: "Document Generator",
+      icon: Zap,
+      color: "text-yellow-400",
+      href: "/dashboard/documents",
+    },
+    {
+      id: 7,
+      label: "Business Analytics",
+      icon: BarChart,
+      color: "text-cyan-400",
+      href: "/dashboard/analytics",
+    },
+    {
+      id: 8,
+      label: "Team Management",
+      icon: Users,
+      color: "text-indigo-400",
+      href: "/dashboard/team",
+    },
+  ];
 
-  const secondaryItems = useMemo(
-    () => [
-      {
-        id: "notifications",
-        label: "Notifications",
-        icon: Bell,
-        href: "/dashboard/notifications",
-      },
-      {
-        id: "help",
-        label: "AI Help Center",
-        icon: HelpCircle,
-        href: "/dashboard/help",
-      },
-      {
-        id: "settings",
-        label: "Settings",
-        icon: Settings,
-        href: "/dashboard/settings",
-      },
-      {
-        id: "billing",
-        label: "Billing & Plans",
-        icon: Wallet,
-        href: "/dashboard/billing",
-      },
-    ],
-    []
-  );
+  const secondaryItems = [
+    {
+      id: 11,
+      label: "Notifications",
+      icon: Bell,
+      href: "/dashboard/notifications",
+    },
+    {
+      id: 12,
+      label: "AI Help Center",
+      icon: HelpCircle,
+      href: "/dashboard/help",
+    },
+    {
+      id: 13,
+      label: "Settings",
+      icon: Settings,
+      href: "/dashboard/settings",
+    },
+    {
+      id: 14,
+      label: "Billing & Plans",
+      icon: Wallet,
+      href: "/dashboard/billing",
+    },
+  ];
 
-  // Set active item based on current URL path
-  useEffect(() => {
-    const currentPath = pathname;
-
-    // Find the menu item that matches the current path
-    const activeMenuItem = menuItems.find(
-      (item) =>
-        currentPath === item.href || currentPath.startsWith(item.href + "/")
-    );
-
-    // Find the secondary item that matches the current path
-    const activeSecondaryItem = secondaryItems.find(
-      (item) =>
-        currentPath === item.href || currentPath.startsWith(item.href + "/")
-    );
-
-    if (activeMenuItem) {
-      setActiveItem(activeMenuItem.id);
-    } else if (activeSecondaryItem) {
-      setActiveItem(activeSecondaryItem.id);
-    } else if (currentPath === "/dashboard") {
-      setActiveItem("dashboard");
-    }
-  }, [pathname, menuItems, secondaryItems]);
-
-  // GSAP Animations for sidebar only
+  // GSAP Animations for sidebar
   useEffect(() => {
     if (!sidebarRef.current) return;
 
@@ -169,10 +137,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       });
     }
   }, [isOpen]);
-
-  const handleItemClick = (itemId: string) => {
-    setActiveItem(itemId);
-  };
 
   return (
     <>
@@ -228,9 +192,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
             <Link
               key={item.id}
               href={item.href}
-              onClick={() => handleItemClick(item.id)}
               className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 cursor-pointer group ${
-                activeItem === item.id
+                pathname === item.href
                   ? "bg-gradient-to-r from-[#1f4c78] to-[#2c5a8a] shadow-lg"
                   : "hover:bg-[#1f4c78] hover:bg-opacity-50"
               }`}
@@ -249,9 +212,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
             <Link
               key={item.id}
               href={item.href}
-              onClick={() => handleItemClick(item.id)}
               className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 cursor-pointer group ${
-                activeItem === item.id
+                pathname === item.href
                   ? "bg-gradient-to-r from-[#1f4c78] to-[#2c5a8a] shadow-lg"
                   : "hover:bg-[#1f4c78] hover:bg-opacity-50"
               }`}

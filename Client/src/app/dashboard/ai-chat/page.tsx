@@ -24,6 +24,7 @@ import {
   BellOff,
 } from "lucide-react";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
+import Button from "@/app/components/ui/Button";
 
 interface ChatMessage {
   id: string;
@@ -300,10 +301,10 @@ const ComplianceAssistancePage = () => {
                     <Bot className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-lg font-semibold text-slate-900">
+                    <h1 className="text-xl font-bold text-slate-900">
                       Compliance Assistant
                     </h1>
-                    <p className="text-xs text-slate-600 flex items-center gap-1">
+                    <p className="text-sm text-slate-600 flex items-center gap-1">
                       <Shield className="h-3 w-3 text-emerald-500" />
                       AI-powered UAE regulations expert
                     </p>
@@ -311,13 +312,13 @@ const ComplianceAssistancePage = () => {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <button className="flex items-center gap-1 px-3 py-1.5 text-slate-700 border border-slate-200 rounded-lg text-xs font-medium">
-                  <Languages className="h-3 w-3" />
+                <Button
+                  className="bg-white py-2 border border-gray-300 text-gray-700 hover:bg-gray-50"
+                  icon={<Languages className="h-3 w-3" />}
+                >
                   العربية
-                </button>
-                <button className="px-4 py-1.5 bg-[#1b2a49] text-white rounded-lg text-xs font-medium hover:bg-[#1b2a49]">
-                  Upgrade
-                </button>
+                </Button>
+                <Button className="py-2">Upgrade</Button>
               </div>
             </div>
           </div>
