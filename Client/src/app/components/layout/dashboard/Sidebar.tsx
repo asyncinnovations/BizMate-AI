@@ -60,17 +60,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     },
     {
       id: 5,
-      label: "Auto-Reply Hub",
-      icon: Mail,
-      color: "text-pink-400",
-      href: "/dashboard/communication",
-    },
-    {
-      id: 6,
       label: "Document Generator",
       icon: Zap,
       color: "text-yellow-400",
       href: "/dashboard/documents",
+    },
+    {
+      id: 6,
+      label: "Auto-Reply Hub",
+      icon: Mail,
+      color: "text-pink-400",
+      href: "/dashboard/communication",
     },
     {
       id: 7,

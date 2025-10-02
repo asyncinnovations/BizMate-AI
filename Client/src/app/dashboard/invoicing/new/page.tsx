@@ -160,12 +160,12 @@ const CreateInvoicePage: React.FC = () => {
     }
   };
 
-  // Apply AI notes suggestion
+  //Apply AI notes suggestions
   const applyNotesSuggestion = () => {
     handleInputChange("notes", aiSuggestions.notes);
   };
 
-  // Handler functions
+  //Handler Function
   const handleAddItem = () => {
     const newItem: InvoiceItem = {
       id: Date.now().toString(),
@@ -194,13 +194,16 @@ const CreateInvoicePage: React.FC = () => {
   const handleItemChange = (
     id: string,
     field: keyof InvoiceItem,
-    value: string | number
+    value: number | string
   ) => {
     setCurrentInvoice((prev) => ({
       ...prev,
       items: prev.items.map((item) => {
         if (item.id === id) {
-          const updatedItem = { ...item, [field]: value };
+          const updatedItem = {
+            ...item,
+            [field]: value,
+          };
 
           // Recalculate amount if quantity or price changes
           if (field === "quantity" || field === "price") {
@@ -227,15 +230,14 @@ const CreateInvoicePage: React.FC = () => {
     }
   };
 
+  //Handle Save Invoice
   const handleSaveInvoice = () => {
-    // In a real app, you would save to a database or state management
     const newInvoice: Invoice = {
       ...currentInvoice,
       id: Date.now().toString(),
       status: "saved",
     };
 
-    // For demo purposes, we'll just navigate to preview
     router.push(
       `/dashboard/invoicing/preview/${newInvoice.id}?data=${encodeURIComponent(
         JSON.stringify(newInvoice)

@@ -67,7 +67,8 @@ const InvoicePreviewPage: React.FC = () => {
           {
             id: "1",
             name: "Consulting Services",
-            description: "Professional business consultation and strategic planning services for Q4 2024",
+            description:
+              "Professional business consultation and strategic planning services for Q4 2024",
             quantity: 1,
             price: 1000,
             amount: 1000,
@@ -75,7 +76,8 @@ const InvoicePreviewPage: React.FC = () => {
           {
             id: "2",
             name: "Technical Implementation",
-            description: "System setup, configuration, and deployment of enterprise software solutions",
+            description:
+              "System setup, configuration, and deployment of enterprise software solutions",
             quantity: 2,
             price: 750,
             amount: 1500,
