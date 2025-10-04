@@ -138,7 +138,7 @@ const LoginPage = () => {
 
                   {/* Actions */}
                   <div className="flex flex-col gap-3">
-                    <button className="w-full py-2.5 px-4 text-sm rounded-lg shadow-sm hover:shadow-md transition-all duration-200 text-white bg-[#1b2a49] hover:bg-[#162038] font-medium">
+                    <button onClick={()=> router.push("/dashboard")} className="w-full py-2.5 px-4 text-sm rounded-lg shadow-sm hover:shadow-md transition-all duration-200 text-white bg-[#1b2a49] hover:bg-[#162038] font-medium">
                       <span className="flex items-center justify-center">
                         <svg
                           className="w-4 h-4 mr-2"
