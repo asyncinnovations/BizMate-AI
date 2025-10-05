@@ -1,8 +1,10 @@
 import React from "react";
 import Button from "@/app/components/ui/Button";
 import { FileText, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const RecentDocuments = () => {
+  const router = useRouter();
   const recentDocuments = [
     {
       title: "Service Agreement - Al Manara",
@@ -68,6 +70,7 @@ const RecentDocuments = () => {
         <Button
           className="w-full py-2 bg-gradient-to-r from-[#2E69A4] to-[#1B2A49]"
           icon={<Plus className="w-4 h-4" />}
+          onClick={() => router.push("/dashboard/documents")}
         >
           Generate New Document
         </Button>

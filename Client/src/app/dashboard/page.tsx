@@ -20,8 +20,10 @@ import ExpenseTracking from "./components/expense-tracking/ExpenseTracking";
 import BusinessHealth from "./components/business-health/BusinessHealth";
 import ClientManagement from "./components/client-management/ClientManagement";
 import AiInsights from "./components/ai-insights/AiInsights";
+import { useRouter } from "next/navigation";
 
 const Dashboard = () => {
+  const router = useRouter();
   const statsData = [
     {
       icon: <DollarSign />,
@@ -82,7 +84,10 @@ const Dashboard = () => {
               </p>
             </div>
             <div className="mt-4 md:mt-0">
-              <Button icon={<MessageCircle className="w-4 h-4" />}>
+              <Button
+                onClick={() => router.push("/dashboard/ai-chat")}
+                icon={<MessageCircle className="w-4 h-4" />}
+              >
                 Ask AI Assistant
               </Button>
             </div>
@@ -106,7 +111,10 @@ const Dashboard = () => {
                 Quick Actions
               </h3>
               <div className="grid grid-cols-2 gap-3">
-                <button className="flex flex-col items-center justify-center p-3 border border-gray-200 rounded-lg hover:border-[#2E69A4] hover:bg-blue-50 transition-colors group">
+                <button
+                  onClick={() => router.push("/dashboard/invoicing")}
+                  className="flex flex-col items-center justify-center p-3 border border-gray-200 rounded-lg hover:border-[#2E69A4] hover:bg-blue-50 transition-colors cursor-pointer group"
+                >
                   <div className="bg-blue-100 group-hover:bg-blue-200 rounded-full p-2 mb-2">
                     <Plus className="w-4 h-4 text-blue-600" />
                   </div>
@@ -115,7 +123,10 @@ const Dashboard = () => {
                   </span>
                 </button>
 
-                <button className="flex flex-col items-center justify-center p-3 border border-gray-200 rounded-lg hover:border-[#2E69A4] hover:bg-blue-50 transition-colors group">
+                <button
+                  onClick={() => router.push("/dashboard/reminders")}
+                  className="flex flex-col items-center justify-center p-3 border border-gray-200 rounded-lg hover:border-[#2E69A4] hover:bg-blue-50 transition-colors cursor-pointer group"
+                >
                   <div className="bg-green-100 group-hover:bg-green-200 rounded-full p-2 mb-2">
                     <Calendar className="w-4 h-4 text-green-600" />
                   </div>
@@ -124,7 +135,10 @@ const Dashboard = () => {
                   </span>
                 </button>
 
-                <button className="flex flex-col items-center justify-center p-3 border border-gray-200 rounded-lg hover:border-[#2E69A4] hover:bg-blue-50 transition-colors group">
+                <button
+                  onClick={() => router.push("/dashboard/documents")}
+                  className="flex flex-col items-center justify-center p-3 border border-gray-200 rounded-lg hover:border-[#2E69A4] hover:bg-blue-50 transition-colors cursor-pointer group"
+                >
                   <div className="bg-purple-100 group-hover:bg-purple-200 rounded-full p-2 mb-2">
                     <FileText className="w-4 h-4 text-purple-600" />
                   </div>
@@ -133,7 +147,10 @@ const Dashboard = () => {
                   </span>
                 </button>
 
-                <button className="flex flex-col items-center justify-center p-3 border border-gray-200 rounded-lg hover:border-[#2E69A4] hover:bg-blue-50 transition-colors group">
+                <button
+                  onClick={() => router.push("/dashboard/ai-chat")}
+                  className="flex flex-col items-center justify-center p-3 border border-gray-200 rounded-lg hover:border-[#2E69A4] hover:bg-blue-50 transition-colors cursor-pointer group"
+                >
                   <div className="bg-indigo-100 group-hover:bg-indigo-200 rounded-full p-2 mb-2">
                     <Target className="w-4 h-4 text-indigo-600" />
                   </div>

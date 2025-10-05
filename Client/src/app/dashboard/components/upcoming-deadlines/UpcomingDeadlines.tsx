@@ -1,8 +1,10 @@
 import React from "react";
 import { Calendar, AlertTriangle, Users, Building2 } from "lucide-react";
 import Button from "@/app/components/ui/Button";
+import { useRouter } from "next/navigation";
 
 const UpcomingDeadlines = () => {
+  const router = useRouter();
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 h-full">
       <div className="flex items-center justify-between mb-6">
@@ -47,7 +49,12 @@ const UpcomingDeadlines = () => {
         </div>
       </div>
 
-      <Button className="w-full mt-6 py-2">View All Reminders</Button>
+      <Button
+        onClick={() => router.push("/dashboard/reminders")}
+        className="w-full mt-6 py-2"
+      >
+        View All Reminders
+      </Button>
     </div>
   );
 };
