@@ -21,6 +21,7 @@ import BusinessHealth from "./components/business-health/BusinessHealth";
 import ClientManagement from "./components/client-management/ClientManagement";
 import AiInsights from "./components/ai-insights/AiInsights";
 import { useRouter } from "next/navigation";
+import PageHeader from "../components/page-header/PageHeader";
 
 const Dashboard = () => {
   const router = useRouter();
@@ -74,25 +75,18 @@ const Dashboard = () => {
   return (
     <DashboardLayout>
       <div className="min-h-scree p-6 mb-4">
-        {/* Header Section */}
-        <div className="mb-0">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold">Welcome back, Farhan!</h1>
-              <p className="text-gray-600">
-                Here&apos;s what&apos;s happening with your business today
-              </p>
-            </div>
-            <div className="mt-4 md:mt-0">
-              <Button
-                onClick={() => router.push("/dashboard/ai-chat")}
-                icon={<MessageCircle className="w-4 h-4" />}
-              >
-                Ask AI Assistant
-              </Button>
-            </div>
-          </div>
-        </div>
+        {/* Header */}
+        <PageHeader
+          title="Welcome back, Farhan!"
+          description="Here's what's happening with your business today"
+          buttons={[
+            {
+              text: "Ask AI Assistant",
+              onClick: () => router.push("/dashboard/ai-chat"),
+              icon: <MessageCircle size={20} />,
+            },
+          ]}
+        />
 
         {/* Key Metrics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

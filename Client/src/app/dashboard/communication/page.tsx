@@ -29,6 +29,7 @@ import Modal from "@/app/components/ui/Modal";
 import ReplyCard from "@/app/components/auto-reply-card/ReplyCard";
 import SocialAccounts from "@/app/components/social_accounts/SocialAccounts";
 import Button from "@/app/components/ui/Button";
+import PageHeader from "@/app/components/page-header/PageHeader";
 
 // Type definitions
 interface Reply {
@@ -262,41 +263,25 @@ export default function AutoReplyHub() {
       <div className="min-h-screen bg-[#F4F7FA] p-6 mb-4">
         <div className="w-full">
           {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-3xl font-bold text-[#1B2A49]">
-                    AI Communication Hub
-                  </h1>
-                  <div className="flex items-center gap-1 px-3 py-1 bg-purple-100 rounded-full">
-                    <Sparkles size={14} className="text-purple-600" />
-                    <span className="text-xs font-semibold text-purple-600">
-                      AI Powered
-                    </span>
-                  </div>
-                </div>
-                <p className="text-[#344767]">
-                  Intelligent auto-replies powered by advanced machine learning
-                </p>
-              </div>
-              <div className="flex gap-3">
-                <Button
-                  onClick={() => setShowAnalytics(!showAnalytics)}
-                  icon={<BarChart3 size={20} />}
-                >
-                  Analytics
-                </Button>
-                <Button
-                  onClick={() => setShowTrainModal(true)}
-                  icon={<Brain size={20} />}
-                  className="bg-[#F6A821] hover:bg-[#e29819]"
-                >
-                  Train AI
-                </Button>
-              </div>
-            </div>
-          </div>
+          <PageHeader
+            title="AI Communication Hub"
+            description="Intelligent auto-replies powered by advanced machine learning"
+            showAIBadge={true}
+            icon={<MessageSquare size={24} />}
+            buttons={[
+              {
+                text: "Analytics",
+                onClick: () => setShowAnalytics(!showAnalytics),
+                icon: <BarChart3 size={20} />,
+              },
+              {
+                text: "Train AI",
+                onClick: () => setShowTrainModal(true),
+                icon: <Brain size={20} />,
+                className: "bg-[#F6A821] hover:bg-[#e29819]",
+              },
+            ]}
+          />
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

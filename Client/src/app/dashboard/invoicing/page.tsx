@@ -23,6 +23,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Button from "@/app/components/ui/Button";
 import { getStatusBadge } from "@/lib/statusBadge";
+import PageHeader from "@/app/components/page-header/PageHeader";
 
 // TypeScript interfaces
 interface InvoiceItem {
@@ -244,40 +245,26 @@ const InvoiceListPage: React.FC = () => {
       <div className="min-h-screen p-6 mb-4">
         <div className="w-full">
           {/* Page Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-            <div className="relative">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-gradient-to-br from-[#1B2A49] to-[#2D4A7C] rounded-xl">
-                  <Sparkles className="w-6 h-6 text-white" />
-                </div>
-                <h1 className="text-3xl font-bold bg-gradient-to-br from-[#1B2A49] to-[#2D4A7C] bg-clip-text text-transparent">
-                  AI Invoicing
-                </h1>
-                <span className="px-3 py-1 bg-gradient-to-r from-[#1B2A49] to-[#2D4A7C] text-white text-sm font-medium rounded-full flex items-center gap-1">
-                  <Bot className="w-3 h-3" />
-                  Powered by AI
-                </span>
-              </div>
-              <p className="text-[#344767] max-w-2xl">
-                Intelligent invoice management with automated tracking, smart
-                predictions, and AI-powered optimization
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3 mt-4 md:mt-0">
-              <Button
-                onClick={() => router.push("/dashboard/invoicing/new")}
-                icon={<Plus className="w-4 h-4" />}
-              >
-                New AI Invoice
-              </Button>
-              <Button
-                icon={<Brain className="w-4 h-4" />}
-                className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 shadow-sm hover:shadow transition-all duration-200"
-              >
-                AI Insights
-              </Button>
-            </div>
-          </div>
+          <PageHeader
+            title="AI Invoicing"
+            description="Intelligent invoice management with automated tracking, smart
+                predictions, and AI-powered optimization"
+            icon={<Sparkles size={24} />}
+            showAIBadge={true}
+            buttons={[
+              {
+                text: "New AI Invoice",
+                onClick: () => router.push("/dashboard/invoicing/new"),
+                icon: <Plus size={20} />,
+              },
+              {
+                text: "AI Insights",
+                onClick: () => {},
+                icon: <Brain size={20} />,
+                className: "bg-[#F6A821] hover:bg-[#e29819]",
+              },
+            ]}
+          />
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

@@ -26,6 +26,7 @@ import {
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import Modal from "@/app/components/ui/Modal";
 import Button from "@/app/components/ui/Button";
+import PageHeader from "@/app/components/page-header/PageHeader";
 
 // Type definitions
 interface TeamMember {
@@ -227,41 +228,30 @@ export default function TeamManagement() {
       <div className="min-h-screen bg-[#F4F7FA] p-6 mb-4">
         <div className="w-full">
           {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-3xl font-bold text-[#1B2A49]">
-                    Team Management
-                  </h1>
-                  <div className="flex items-center gap-1 px-3 py-1 bg-purple-100 rounded-full">
-                    <Sparkles size={14} className="text-purple-600" />
-                    <span className="text-xs font-semibold text-purple-600">
-                      AI Powered
-                    </span>
-                  </div>
-                </div>
-                <p className="text-[#344767]">
-                  Manage your team members and AI assistant permissions
-                </p>
-              </div>
-              <div className="flex gap-3">
-                <Button
-                  className="border-2 border-[#2E69A4] bg-transparent text-[#2E69A4] hover:bg-blue-50 transition-colors"
-                  onClick={() => setShowPermissionsModal(true)}
-                  icon={<Shield size={20} />}
-                >
-                  Permissions
-                </Button>
-                <Button
-                  onClick={() => setShowInviteModal(true)}
-                  icon={<UserPlus size={20} />}
-                >
-                  Invite Member
-                </Button>
-              </div>
-            </div>
-          </div>
+          <PageHeader
+            title="Team Management"
+            description="Manage your team members and AI assistant permissions"
+            showAIBadge={true}
+            icon={<UserPlus size={24} />}
+            buttons={[
+              {
+                text: "Permissions",
+                onClick: () => {
+                  setShowPermissionsModal(true);
+                },
+                icon: <Shield size={20} />,
+                className:
+                  "border-2 border-[#2E69A4] bg-transparent text-[#2E69A4] hover:bg-blue-50 transition-colors",
+              },
+              {
+                text: "Invite Member",
+                onClick: () => {
+                  setShowInviteModal(true);
+                },
+                icon: <UserPlus size={20} />,
+              },
+            ]}
+          />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
             {/* Main Content */}
