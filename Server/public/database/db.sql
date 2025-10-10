@@ -1,13 +1,14 @@
 -- Users Table
 -- Stores all users (admin, business owner, team members).
 CREATE TABLE users (
-    user_id SERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
+    uuid UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
     full_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     phone VARCHAR(20) UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(50) NOT NULL, -- 'admin', 'business_owner', 'team_member'
-    language_preference VARCHAR(10) DEFAULT 'en', -- 'en', 'ar', 'hi'
+    role VARCHAR(50) NOT NULL CHECK (role IN ('admin', 'business_owner', 'team_member')),
+    language_preference VARCHAR(10) DEFAULT 'en' CHECK (language_preference IN ('en', 'ar', 'hi')),
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
