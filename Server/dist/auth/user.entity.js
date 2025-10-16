@@ -24,6 +24,10 @@ let AuthUsers = class AuthUsers {
     email;
     phone;
     password_hash;
+    company_name;
+    license_number;
+    vat_id;
+    idustry;
     role;
     language_preference;
     created_at;
@@ -54,6 +58,22 @@ __decorate([
     (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: false }),
     __metadata("design:type", String)
 ], AuthUsers.prototype, "password_hash", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: true }),
+    __metadata("design:type", String)
+], AuthUsers.prototype, "company_name", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: true }),
+    __metadata("design:type", String)
+], AuthUsers.prototype, "license_number", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: true }),
+    __metadata("design:type", String)
+], AuthUsers.prototype, "vat_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: true }),
+    __metadata("design:type", String)
+], AuthUsers.prototype, "idustry", void 0);
 __decorate([
     (0, typeorm_1.Column)({
         type: "enum",

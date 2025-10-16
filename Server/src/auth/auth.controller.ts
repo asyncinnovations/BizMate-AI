@@ -13,6 +13,10 @@ export class AuthController {
       password: string;
       full_name: string;
       phone: any;
+      company_name: string;
+      license_number: any;
+      vat_id: any;
+      idustry: any;
       role: any;
     }
   ) {
@@ -21,6 +25,10 @@ export class AuthController {
       body.password,
       body.full_name,
       body.phone,
+      body.company_name,
+      body.license_number,
+      body.vat_id,
+      body.idustry,
       body.role
     );
   }

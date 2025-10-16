@@ -59,7 +59,7 @@ let AuthService = class AuthService {
         this.usersRepo = usersRepo;
         this.jwtService = jwtService;
     }
-    async signup(email, password, full_name, phone, role) {
+    async signup(email, password, full_name, phone, company_name, license_number, vat_id, idustry, role) {
         const existing = await this.usersRepo.findOne({ where: { email } });
         if (existing)
             throw new common_1.BadRequestException("Email already exists");
@@ -69,6 +69,10 @@ let AuthService = class AuthService {
             password_hash: hashed,
             full_name,
             phone,
+            company_name,
+            license_number,
+            vat_id,
+            idustry,
             role,
         });
         await this.usersRepo.save(user);

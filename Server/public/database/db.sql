@@ -8,10 +8,19 @@ CREATE TABLE users (
     phone VARCHAR(20) UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     role VARCHAR(50) NOT NULL CHECK (role IN ('admin', 'business_owner', 'team_member')),
+    company_name VARCHAR(255) NULL,
+    license_number VARCHAR(255) NULL,
+    vat_id VARCHAR(255) NULL,
+    idustry VARCHAR(255) NULL,
     language_preference VARCHAR(10) DEFAULT 'en' CHECK (language_preference IN ('en', 'ar', 'hi')),
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
+ALTER TABLE users
+ADD COLUMN company_name VARCHAR(255) NULL,
+ADD COLUMN license_number VARCHAR(255) NULL,
+ADD COLUMN vat_id VARCHAR(255) NULL,
+ADD COLUMN industry VARCHAR(255) NULL;
 -- Businesses Table
 -- Stores business/company details for each user.
 CREATE TABLE businesses (

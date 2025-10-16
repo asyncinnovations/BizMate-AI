@@ -5,7 +5,7 @@ export declare class AuthService {
     private usersRepo;
     private jwtService;
     constructor(usersRepo: Repository<AuthUsers>, jwtService: JwtService);
-    signup(email: string, password: string, full_name: string, phone: any, role: any): Promise<{
+    signup(email: string, password: string, full_name: string, phone: any, company_name: string, license_number: any, vat_id: any, idustry: any, role: any): Promise<{
         message: string;
     }>;
     login(email: string, password: string): Promise<{

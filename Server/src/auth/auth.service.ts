@@ -22,6 +22,10 @@ export class AuthService {
     password: string,
     full_name: string,
     phone: any,
+    company_name: string,
+    license_number: any,
+    vat_id: any,
+    idustry: any,
     role: any
   ) {
     const existing = await this.usersRepo.findOne({ where: { email } });
@@ -33,6 +37,10 @@ export class AuthService {
       password_hash: hashed,
       full_name,
       phone,
+      company_name,
+      license_number,
+      vat_id,
+      idustry,
       role,
     });
     await this.usersRepo.save(user);

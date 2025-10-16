@@ -31,6 +31,15 @@ export class AuthUsers {
   @Column({ type: "varchar", length: 255, nullable: false })
   password_hash: string;
 
+  @Column({ type: "varchar", length: 255, nullable: true })
+  company_name: string;
+  @Column({ type: "varchar", length: 255, nullable: true })
+  license_number: string;
+  @Column({ type: "varchar", length: 255, nullable: true })
+  vat_id: string;
+  @Column({ type: "varchar", length: 255, nullable: true })
+  idustry: string;
+
   @Column({
     type: "enum",
     enum: UserRole,

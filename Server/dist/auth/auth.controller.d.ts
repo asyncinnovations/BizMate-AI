@@ -7,6 +7,10 @@ export declare class AuthController {
         password: string;
         full_name: string;
         phone: any;
+        company_name: string;
+        license_number: any;
+        vat_id: any;
+        idustry: any;
         role: any;
     }): Promise<{
         message: string;
