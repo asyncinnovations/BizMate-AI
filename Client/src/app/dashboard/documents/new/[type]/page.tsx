@@ -104,13 +104,14 @@ export default function DocumentFormPage() {
   };
 
   const handlePreview = () => {
-    if (validateForm()) {
-      router.push(
-        `/dashboard/documents/preview/${documentType}?data=${encodeURIComponent(
-          JSON.stringify(formData)
-        )}`
-      );
-    }
+    // if (validateForm()) {
+    //   router.push(
+    //     `/dashboard/documents/preview/${documentType}?data=${encodeURIComponent(
+    //       JSON.stringify(formData)
+    //     )}`
+    //   );
+    // }
+    console.log(formData);
   };
 
   return (
@@ -266,6 +267,7 @@ export default function DocumentFormPage() {
                 </button>
 
                 <button
+                  type="button"
                   onClick={handlePreview}
                   className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-[#1B2A49] text-white rounded-lg hover:bg-[#1B2A49]/90 transition-colors font-semibold"
                 >
