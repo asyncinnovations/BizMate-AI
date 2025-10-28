@@ -18,6 +18,7 @@ import {
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import StatCard from "@/app/components/stat-card/StatCard";
 import PageHeader from "@/app/components/page-header/PageHeader";
+import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
 
 interface DocumentTemplate {
   id: string;
@@ -157,171 +158,173 @@ export default function DocumentGeneratorMain() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="min-h-screen p-6 mb-4">
-        {/* Header */}
-        <PageHeader
-          title="AI Document Generator"
-          description="Create professional, UAE-compliant documents in minutes with AI assistance"
-          showAIBadge={true}
-          icon={<Sparkles size={24} />}
-        />
+    <ProtectedRoute>
+      <DashboardLayout>
+        <div className="min-h-screen p-6 mb-4">
+          {/* Header */}
+          <PageHeader
+            title="AI Document Generator"
+            description="Create professional, UAE-compliant documents in minutes with AI assistance"
+            showAIBadge={true}
+            icon={<Sparkles size={24} />}
+          />
 
-        {/* Stats Cards - Using Reusable StatCard Component */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {statsData.map((stat, index) => (
-            <StatCard key={index} {...stat} />
-          ))}
-        </div>
+          {/* Stats Cards - Using Reusable StatCard Component */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {statsData.map((stat, index) => (
+              <StatCard key={index} {...stat} />
+            ))}
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
-          {/* Left Side Wrapper Container */}
-          <div className="lg:col-span-2">
-            {/* Document Templates Grid Container */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-[#E1E8F5]">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-[#1B2A49]">
-                  Document Templates
-                </h2>
-                <span className="text-sm text-[#344767]">
-                  {templates.length} templates found
-                </span>
-              </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
+            {/* Left Side Wrapper Container */}
+            <div className="lg:col-span-2">
+              {/* Document Templates Grid Container */}
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-[#E1E8F5]">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-[#1B2A49]">
+                    Document Templates
+                  </h2>
+                  <span className="text-sm text-[#344767]">
+                    {templates.length} templates found
+                  </span>
+                </div>
 
-              {/* Templates Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {templates.map((template) => (
-                  <div
-                    key={template.id}
-                    onClick={() => handleTemplateClick(template.id)}
-                    className="bg-white rounded-xl p-6 shadow-sm border border-[#E1E8F5] hover:shadow-md transition-all cursor-pointer group hover:border-[#2E69A4]"
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="w-14 h-14 bg-gradient-to-br from-[#1B2A49] to-[#2E69A4] rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform">
-                        {template.icon}
+                {/* Templates Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {templates.map((template) => (
+                    <div
+                      key={template.id}
+                      onClick={() => handleTemplateClick(template.id)}
+                      className="bg-white rounded-xl p-6 shadow-sm border border-[#E1E8F5] hover:shadow-md transition-all cursor-pointer group hover:border-[#2E69A4]"
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="w-14 h-14 bg-gradient-to-br from-[#1B2A49] to-[#2E69A4] rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                          {template.icon}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1 text-[#F6A821] text-xs font-semibold bg-[#F6A821]/10 px-2 py-1 rounded">
+                            <TrendingUp className="w-3 h-3" />
+                            {template.popularity}%
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1 text-[#F6A821] text-xs font-semibold bg-[#F6A821]/10 px-2 py-1 rounded">
-                          <TrendingUp className="w-3 h-3" />
-                          {template.popularity}%
+
+                      <h3 className="text-[#1B2A49] font-bold text-lg mb-2 group-hover:text-[#2E69A4] transition-colors">
+                        {template.title}
+                      </h3>
+                      <p className="text-[#344767] text-sm mb-4 line-clamp-2">
+                        {template.description}
+                      </p>
+
+                      <div className="flex items-center justify-between pt-4 border-t border-[#E1E8F5]">
+                        <div className="flex items-center gap-2 text-[#344767] text-sm">
+                          <Clock className="w-4 h-4" />
+                          <span>{template.estimatedTime}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[#2E69A4] font-semibold group-hover:gap-3 transition-all">
+                          <span className="text-sm">Create</span>
+                          <ArrowRight className="w-4 h-4" />
                         </div>
                       </div>
                     </div>
+                  ))}
+                </div>
 
-                    <h3 className="text-[#1B2A49] font-bold text-lg mb-2 group-hover:text-[#2E69A4] transition-colors">
-                      {template.title}
+                {templates.length === 0 && (
+                  <div className="bg-white rounded-xl p-12 shadow-sm border border-[#E1E8F5] text-center">
+                    <FileText className="w-16 h-16 text-[#344767]/30 mx-auto mb-4" />
+                    <h3 className="text-[#1B2A49] font-semibold text-lg mb-2">
+                      No templates found
                     </h3>
-                    <p className="text-[#344767] text-sm mb-4 line-clamp-2">
-                      {template.description}
+                    <p className="text-[#344767]">
+                      Try adjusting your search or filter criteria
                     </p>
+                  </div>
+                )}
+              </div>
+            </div>
 
-                    <div className="flex items-center justify-between pt-4 border-t border-[#E1E8F5]">
-                      <div className="flex items-center gap-2 text-[#344767] text-sm">
-                        <Clock className="w-4 h-4" />
-                        <span>{template.estimatedTime}</span>
+            {/* Right Side Container */}
+            <div className="space-y-6 sticky top-2 h-[80vh]">
+              {/* Recent Documents */}
+              <div className="bg-white rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.08)] border border-[#E5EAF2]">
+                <div className="flex items-center justify-between mb-5">
+                  <h3 className="text-[#1B2A49] font-semibold text-lg tracking-tight">
+                    Recent Documents
+                  </h3>
+                  <button
+                    onClick={() => router.push("/dashboard/documents/history")}
+                    className="text-[#2E69A4] text-sm font-medium hover:underline hover:text-[#184d82] transition-colors"
+                  >
+                    View All
+                  </button>
+                </div>
+
+                <div className="divide-y divide-[#EDEFF3]">
+                  {recentDocuments.map((doc, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 py-3 px-2 hover:bg-[#F9FAFB] rounded-lg transition-all cursor-pointer group"
+                    >
+                      {/* Icon */}
+                      <div className="w-10 h-10 bg-[#F3F6FB] rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-[#E9F1FB] transition-colors">
+                        <FileText className="w-5 h-5 text-[#2E69A4]" />
                       </div>
-                      <div className="flex items-center gap-2 text-[#2E69A4] font-semibold group-hover:gap-3 transition-all">
-                        <span className="text-sm">Create</span>
-                        <ArrowRight className="w-4 h-4" />
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[#1B2A49] font-medium text-sm truncate group-hover:text-[#2E69A4] transition-colors">
+                          {doc.name}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs text-[#6B7280]">
+                            {doc.date}
+                          </span>
+                          <span className="text-xs font-medium text-[#2563EB] bg-[#E9F1FB] px-2 py-0.5 rounded-full">
+                            {doc.type}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-
-              {templates.length === 0 && (
-                <div className="bg-white rounded-xl p-12 shadow-sm border border-[#E1E8F5] text-center">
-                  <FileText className="w-16 h-16 text-[#344767]/30 mx-auto mb-4" />
-                  <h3 className="text-[#1B2A49] font-semibold text-lg mb-2">
-                    No templates found
-                  </h3>
-                  <p className="text-[#344767]">
-                    Try adjusting your search or filter criteria
-                  </p>
+                  ))}
                 </div>
-              )}
-            </div>
-          </div>
 
-          {/* Right Side Container */}
-          <div className="space-y-6 sticky top-2 h-[80vh]">
-            {/* Recent Documents */}
-            <div className="bg-white rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.08)] border border-[#E5EAF2]">
-              <div className="flex items-center justify-between mb-5">
-                <h3 className="text-[#1B2A49] font-semibold text-lg tracking-tight">
-                  Recent Documents
-                </h3>
+                {/* Footer Button */}
                 <button
                   onClick={() => router.push("/dashboard/documents/history")}
-                  className="text-[#2E69A4] text-sm font-medium hover:underline hover:text-[#184d82] transition-colors"
+                  className="w-full mt-5 py-2.5 border border-[#D7E3F2] text-[#2E69A4] font-semibold text-sm rounded-lg hover:bg-[#F4F7FA] transition-colors"
                 >
-                  View All
+                  View All Documents
                 </button>
               </div>
 
-              <div className="divide-y divide-[#EDEFF3]">
-                {recentDocuments.map((doc, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-3 py-3 px-2 hover:bg-[#F9FAFB] rounded-lg transition-all cursor-pointer group"
-                  >
-                    {/* Icon */}
-                    <div className="w-10 h-10 bg-[#F3F6FB] rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-[#E9F1FB] transition-colors">
-                      <FileText className="w-5 h-5 text-[#2E69A4]" />
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[#1B2A49] font-medium text-sm truncate group-hover:text-[#2E69A4] transition-colors">
-                        {doc.name}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-[#6B7280]">
-                          {doc.date}
-                        </span>
-                        <span className="text-xs font-medium text-[#2563EB] bg-[#E9F1FB] px-2 py-0.5 rounded-full">
-                          {doc.type}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              {/* Quick Tips */}
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-[#E1E8F5]">
+                <h3 className="text-[#1B2A49] font-bold text-lg mb-4">
+                  Quick Tips
+                </h3>
+                <ul className="space-y-3 text-sm text-[#344767]">
+                  <li className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 bg-[#2E69A4] rounded-full mt-2 flex-shrink-0"></div>
+                    <span>
+                      All documents are automatically saved to your archive
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 bg-[#2E69A4] rounded-full mt-2 flex-shrink-0"></div>
+                    <span>AI pre-fills data from your business profile</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 bg-[#2E69A4] rounded-full mt-2 flex-shrink-0"></div>
+                    <span>Review and edit before downloading</span>
+                  </li>
+                </ul>
               </div>
-
-              {/* Footer Button */}
-              <button
-                onClick={() => router.push("/dashboard/documents/history")}
-                className="w-full mt-5 py-2.5 border border-[#D7E3F2] text-[#2E69A4] font-semibold text-sm rounded-lg hover:bg-[#F4F7FA] transition-colors"
-              >
-                View All Documents
-              </button>
-            </div>
-
-            {/* Quick Tips */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-[#E1E8F5]">
-              <h3 className="text-[#1B2A49] font-bold text-lg mb-4">
-                Quick Tips
-              </h3>
-              <ul className="space-y-3 text-sm text-[#344767]">
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-[#2E69A4] rounded-full mt-2 flex-shrink-0"></div>
-                  <span>
-                    All documents are automatically saved to your archive
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-[#2E69A4] rounded-full mt-2 flex-shrink-0"></div>
-                  <span>AI pre-fills data from your business profile</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-[#2E69A4] rounded-full mt-2 flex-shrink-0"></div>
-                  <span>Review and edit before downloading</span>
-                </li>
-              </ul>
             </div>
           </div>
         </div>
-      </div>
-    </DashboardLayout>
+      </DashboardLayout>
+    </ProtectedRoute>
   );
 }

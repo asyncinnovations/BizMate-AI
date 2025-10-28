@@ -52,7 +52,7 @@ export default function PageHeader({
             <Button
               key={index}
               onClick={button.onClick}
-              icon={button.icon}
+              startIcon={button.icon}
               className={button.className}
             >
               {button.text}

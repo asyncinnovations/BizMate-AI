@@ -2,6 +2,7 @@ import React from "react";
 import Button from "@/app/components/ui/Button";
 import { FileText, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Card from "@/app/components/ui/Card";
 
 const RecentDocuments = () => {
   const router = useRouter();
@@ -33,7 +34,7 @@ const RecentDocuments = () => {
     },
   ];
   return (
-    <div className="bg-white rounded-xl p-6 shadow-md border border-[#E1E8F5] flex flex-col h-[500px]">
+    <Card className="flex flex-col h-[500px]" hoverEffect>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-[#1B2A49]">
@@ -69,13 +70,13 @@ const RecentDocuments = () => {
       <div className="mt-4">
         <Button
           className="w-full py-2 bg-gradient-to-r from-[#2E69A4] to-[#1B2A49]"
-          icon={<Plus className="w-4 h-4" />}
+          startIcon={<Plus className="w-4 h-4" />}
           onClick={() => router.push("/dashboard/documents")}
         >
           Generate New Document
         </Button>
       </div>
-    </div>
+    </Card>
   );
 };
 

@@ -2,6 +2,7 @@ import React from "react";
 
 import { FileText, Users, Calendar, MessageCircle } from "lucide-react";
 import Button from "@/app/components/ui/Button";
+import Card from "@/app/components/ui/Card";
 
 const ClientManagement = () => {
   const clients = [
@@ -57,7 +58,7 @@ const ClientManagement = () => {
     },
   ];
   return (
-    <div className="xl:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-[#E1E8F5]">
+    <Card className="xl:col-span-2" hoverEffect>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-[#1B2A49] flex items-center">
           <Users className="w-5 h-5 mr-2 text-purple-600" />
@@ -120,27 +121,27 @@ const ClientManagement = () => {
       {/* Quick Actions */}
       <div className="grid grid-cols-3 gap-2 mt-4">
         <Button
-          icon={<MessageCircle className="w-3 h-3" />}
+          startIcon={<MessageCircle className="w-3 h-3" />}
           className="justify-center p-2 bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-medium"
         >
           Message All
         </Button>
 
         <Button
-          icon={<FileText className="w-3 h-3" />}
+          startIcon={<FileText className="w-3 h-3" />}
           className="justify-center p-2 bg-green-50 text-green-700 hover:bg-green-100 text-xs font-medium"
         >
           Send Invoices
         </Button>
 
         <Button
-          icon={<Calendar className="w-3 h-3" />}
+          startIcon={<Calendar className="w-3 h-3" />}
           className="justify-center p-2 bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs font-medium"
         >
           Schedule Follow-up
         </Button>
       </div>
-    </div>
+    </Card>
   );
 };
 

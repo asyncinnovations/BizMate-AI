@@ -27,7 +27,7 @@ const StatCard: React.FC<StatCardProps> = ({
   className = "",
 }) => {
   const baseClasses =
-    "bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200";
+    "bg-white rounded-xl p-5 shadow-sm border border-[#E1E8F5] hover:shadow-md transition-shadow duration-200";
 
   return (
     <div className={twMerge(baseClasses, className)}>

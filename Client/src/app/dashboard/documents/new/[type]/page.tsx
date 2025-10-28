@@ -16,6 +16,7 @@ import {
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import PageHeader from "@/app/components/page-header/PageHeader";
 import { documentConfigs } from "@/app/config/documentConfigs";
+import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
 
 export default function DocumentFormPage() {
   const router = useRouter();
@@ -114,287 +115,292 @@ export default function DocumentFormPage() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="min-h-screen bg-[#F4F7FA] p-6 mb-4">
-        {/* Header */}
-        <PageHeader
-          title={currentConfig.title}
-          description={currentConfig.description}
-          showAIBadge={true}
-          icon={<FileText size={24} />}
-        />
+    <ProtectedRoute>
+      <DashboardLayout>
+        <div className="min-h-screen bg-[#F4F7FA] p-6 mb-4">
+          {/* Header */}
+          <PageHeader
+            title={currentConfig.title}
+            description={currentConfig.description}
+            showAIBadge={true}
+            icon={<FileText size={24} />}
+          />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
-          {/* Form Section */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl shadow-sm border border-[#E1E8F5] p-8">
-              {/* AI Auto-fill Notice */}
-              {Object.values(formData).some((val) => val) && (
-                <div className="mb-6 p-4 bg-[#2E69A4]/5 border border-[#2E69A4]/20 rounded-lg flex items-start gap-3">
-                  <Sparkles className="w-5 h-5 text-[#2E69A4] flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-[#1B2A49] font-semibold text-sm">
-                      AI Auto-fill Active
-                    </p>
-                    <p className="text-[#344767] text-sm">
-                      Some fields have been pre-filled from your business
-                      profile. Review and edit as needed.
-                    </p>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
+            {/* Form Section */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-xl shadow-sm border border-[#E1E8F5] p-8">
+                {/* AI Auto-fill Notice */}
+                {Object.values(formData).some((val) => val) && (
+                  <div className="mb-6 p-4 bg-[#2E69A4]/5 border border-[#2E69A4]/20 rounded-lg flex items-start gap-3">
+                    <Sparkles className="w-5 h-5 text-[#2E69A4] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-[#1B2A49] font-semibold text-sm">
+                        AI Auto-fill Active
+                      </p>
+                      <p className="text-[#344767] text-sm">
+                        Some fields have been pre-filled from your business
+                        profile. Review and edit as needed.
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Form Fields */}
-              <form className="space-y-6">
-                {currentConfig.fields.map((field) => (
-                  <div key={field.id} className="space-y-2">
-                    <label className="block text-[#1B2A49] font-semibold text-sm">
-                      {field.label}
-                      {field.required && (
-                        <span className="text-red-500 ml-1">*</span>
-                      )}
-                      {field.aiSuggestion && (
-                        <span className="ml-2 text-[#2E69A4] text-xs font-normal">
-                          ({field.aiSuggestion})
-                        </span>
-                      )}
-                    </label>
+                {/* Form Fields */}
+                <form className="space-y-6">
+                  {currentConfig.fields.map((field) => (
+                    <div key={field.id} className="space-y-2">
+                      <label className="block text-[#1B2A49] font-semibold text-sm">
+                        {field.label}
+                        {field.required && (
+                          <span className="text-red-500 ml-1">*</span>
+                        )}
+                        {field.aiSuggestion && (
+                          <span className="ml-2 text-[#2E69A4] text-xs font-normal">
+                            ({field.aiSuggestion})
+                          </span>
+                        )}
+                      </label>
 
-                    <div className="relative">
-                      {field.type === "textarea" ? (
-                        <div>
-                          <textarea
+                      <div className="relative">
+                        {field.type === "textarea" ? (
+                          <div>
+                            <textarea
+                              value={formData[field.id] || ""}
+                              onChange={(e) =>
+                                handleInputChange(field.id, e.target.value)
+                              }
+                              placeholder={field.placeholder}
+                              rows={4}
+                              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] resize-none ${
+                                errors[field.id]
+                                  ? "border-red-500"
+                                  : "border-[#E1E8F5]"
+                              }`}
+                            />
+                            {[
+                              "purpose",
+                              "benefits",
+                              "description",
+                              "paymentTerms",
+                            ].includes(field.id) && (
+                              <button
+                                type="button"
+                                onClick={() => handleAISuggest(field.id)}
+                                disabled={aiProcessing}
+                                className="absolute bottom-3 right-3 flex items-center gap-2 bg-[#F6A821] text-white px-3 py-1.5 rounded-md hover:bg-[#F6A821]/90 transition-colors text-sm font-medium disabled:opacity-50"
+                              >
+                                {aiProcessing ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Generating...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Wand2 className="w-4 h-4" />
+                                    AI Suggest
+                                  </>
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        ) : field.type === "select" ? (
+                          <select
                             value={formData[field.id] || ""}
                             onChange={(e) =>
                               handleInputChange(field.id, e.target.value)
                             }
+                            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] bg-white ${
+                              errors[field.id]
+                                ? "border-red-500"
+                                : "border-[#E1E8F5]"
+                            }`}
+                          >
+                            <option value={""}>Select {field.label}</option>
+                            {field.options?.map((op) => (
+                              <option key={op} value={op}>
+                                {op}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            value={formData[field.id] || ""}
+                            type={field.type}
+                            onChange={(e) =>
+                              handleInputChange(field.id, e.target.value)
+                            }
                             placeholder={field.placeholder}
-                            rows={4}
-                            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] resize-none ${
+                            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] ${
                               errors[field.id]
                                 ? "border-red-500"
                                 : "border-[#E1E8F5]"
                             }`}
                           />
-                          {[
-                            "purpose",
-                            "benefits",
-                            "description",
-                            "paymentTerms",
-                          ].includes(field.id) && (
-                            <button
-                              type="button"
-                              onClick={() => handleAISuggest(field.id)}
-                              disabled={aiProcessing}
-                              className="absolute bottom-3 right-3 flex items-center gap-2 bg-[#F6A821] text-white px-3 py-1.5 rounded-md hover:bg-[#F6A821]/90 transition-colors text-sm font-medium disabled:opacity-50"
-                            >
-                              {aiProcessing ? (
-                                <>
-                                  <Loader2 className="w-4 h-4 animate-spin" />
-                                  Generating...
-                                </>
-                              ) : (
-                                <>
-                                  <Wand2 className="w-4 h-4" />
-                                  AI Suggest
-                                </>
-                              )}
-                            </button>
-                          )}
+                        )}
+                      </div>
+
+                      {field.helpText && (
+                        <div className="flex items-start gap-2 text-[#344767] text-xs">
+                          <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                          <span>{field.helpText}</span>
                         </div>
-                      ) : field.type === "select" ? (
-                        <select
-                          value={formData[field.id] || ""}
-                          onChange={(e) =>
-                            handleInputChange(field.id, e.target.value)
-                          }
-                          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] bg-white ${
-                            errors[field.id]
-                              ? "border-red-500"
-                              : "border-[#E1E8F5]"
-                          }`}
-                        >
-                          <option value={""}>Select {field.label}</option>
-                          {field.options?.map((op) => (
-                            <option key={op} value={op}>
-                              {op}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <input
-                          value={formData[field.id] || ""}
-                          type={field.type}
-                          onChange={(e) =>
-                            handleInputChange(field.id, e.target.value)
-                          }
-                          placeholder={field.placeholder}
-                          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] ${
-                            errors[field.id]
-                              ? "border-red-500"
-                              : "border-[#E1E8F5]"
-                          }`}
-                        />
+                      )}
+
+                      {errors[field.id] && (
+                        <div className="flex items-center gap-2 text-red-500 text-sm">
+                          <AlertCircle className="w-4 h-4" />
+                          <span>{errors[field.id]}</span>
+                        </div>
                       )}
                     </div>
+                  ))}
+                </form>
 
-                    {field.helpText && (
-                      <div className="flex items-start gap-2 text-[#344767] text-xs">
-                        <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
-                        <span>{field.helpText}</span>
-                      </div>
-                    )}
+                {/* Action Buttons */}
+                <div className="flex items-center gap-4 mt-8 pt-6 border-t border-[#E1E8F5]">
+                  <button
+                    onClick={handleSaveDraft}
+                    className="flex items-center gap-2 px-6 py-3 border-2 border-[#2E69A4] text-[#2E69A4] rounded-lg hover:bg-[#2E69A4]/5 transition-colors font-semibold"
+                  >
+                    <Save className="w-5 h-5" />
+                    Save Draft
+                  </button>
 
-                    {errors[field.id] && (
-                      <div className="flex items-center gap-2 text-red-500 text-sm">
-                        <AlertCircle className="w-4 h-4" />
-                        <span>{errors[field.id]}</span>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </form>
-
-              {/* Action Buttons */}
-              <div className="flex items-center gap-4 mt-8 pt-6 border-t border-[#E1E8F5]">
-                <button
-                  onClick={handleSaveDraft}
-                  className="flex items-center gap-2 px-6 py-3 border-2 border-[#2E69A4] text-[#2E69A4] rounded-lg hover:bg-[#2E69A4]/5 transition-colors font-semibold"
-                >
-                  <Save className="w-5 h-5" />
-                  Save Draft
-                </button>
-
-                <button
-                  onClick={handlePreview}
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-[#1B2A49] text-white rounded-lg hover:bg-[#1B2A49]/90 transition-colors font-semibold"
-                >
-                  <Eye className="w-5 h-5" />
-                  Preview & Generate
-                </button>
-              </div>
-
-              {savedDraft && (
-                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 text-green-700">
-                  <CheckCircle className="w-5 h-5" />
-                  <span className="font-medium">Draft saved successfully!</span>
+                  <button
+                    onClick={handlePreview}
+                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-[#1B2A49] text-white rounded-lg hover:bg-[#1B2A49]/90 transition-colors font-semibold"
+                  >
+                    <Eye className="w-5 h-5" />
+                    Preview & Generate
+                  </button>
                 </div>
-              )}
-            </div>
-          </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6 sticky top-2 h-[80vh]">
-            {/* Document Progress */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-[#E1E8F5]">
-              <h3 className="text-[#1B2A49] font-bold text-lg mb-4">
-                Document Progress
-              </h3>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-[#344767] text-sm font-medium">
-                      Completion
-                    </span>
-                    <span className="text-[#2E69A4] text-sm font-bold">
-                      {Math.round(
-                        (Object.keys(formData).filter((key) => formData[key])
-                          .length /
-                          currentConfig.fields.length) *
-                          100
-                      )}
-                      %
+                {savedDraft && (
+                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 text-green-700">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="font-medium">
+                      Draft saved successfully!
                     </span>
                   </div>
-                  <div className="w-full h-2 bg-[#E1E8F5] rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-[#2E69A4] to-[#1B2A49] transition-all duration-300"
-                      style={{
-                        width: `${
+                )}
+              </div>
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-6 sticky top-2 h-[80vh]">
+              {/* Document Progress */}
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-[#E1E8F5]">
+                <h3 className="text-[#1B2A49] font-bold text-lg mb-4">
+                  Document Progress
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-[#344767] text-sm font-medium">
+                        Completion
+                      </span>
+                      <span className="text-[#2E69A4] text-sm font-bold">
+                        {Math.round(
                           (Object.keys(formData).filter((key) => formData[key])
                             .length /
                             currentConfig.fields.length) *
-                          100
-                        }%`,
-                      }}
-                    ></div>
+                            100
+                        )}
+                        %
+                      </span>
+                    </div>
+                    <div className="w-full h-2 bg-[#E1E8F5] rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-[#2E69A4] to-[#1B2A49] transition-all duration-300"
+                        style={{
+                          width: `${
+                            (Object.keys(formData).filter(
+                              (key) => formData[key]
+                            ).length /
+                              currentConfig.fields.length) *
+                            100
+                          }%`,
+                        }}
+                      ></div>
+                    </div>
                   </div>
-                </div>
 
-                <div className="pt-4 border-t border-[#E1E8F5] space-y-2 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#344767]">Total Fields</span>
-                    <span className="font-semibold text-[#1B2A49]">
-                      {currentConfig.fields.length}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#344767]">Completed</span>
-                    <span className="font-semibold text-[#2E69A4]">
-                      {
-                        Object.keys(formData).filter((key) => formData[key])
-                          .length
-                      }
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#344767]">Remaining</span>
-                    <span className="font-semibold text-[#344767]">
-                      {currentConfig.fields.length -
-                        Object.keys(formData).filter((key) => formData[key])
-                          .length}
-                    </span>
+                  <div className="pt-4 border-t border-[#E1E8F5] space-y-2 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#344767]">Total Fields</span>
+                      <span className="font-semibold text-[#1B2A49]">
+                        {currentConfig.fields.length}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#344767]">Completed</span>
+                      <span className="font-semibold text-[#2E69A4]">
+                        {
+                          Object.keys(formData).filter((key) => formData[key])
+                            .length
+                        }
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#344767]">Remaining</span>
+                      <span className="font-semibold text-[#344767]">
+                        {currentConfig.fields.length -
+                          Object.keys(formData).filter((key) => formData[key])
+                            .length}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Compliance Info */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-[#E1E8F5]">
-              <h3 className="text-[#1B2A49] font-bold text-lg mb-4">
-                Compliance Info
-              </h3>
-              <div className="space-y-3">
-                <div className="flex items-start gap-3 p-3 bg-[#F4F7FA] rounded-lg">
-                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-[#1B2A49] font-medium text-sm">
-                      UAE Compliant
-                    </p>
-                    <p className="text-[#344767] text-xs mt-1">
-                      This document follows UAE legal requirements
-                    </p>
+              {/* Compliance Info */}
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-[#E1E8F5]">
+                <h3 className="text-[#1B2A49] font-bold text-lg mb-4">
+                  Compliance Info
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3 p-3 bg-[#F4F7FA] rounded-lg">
+                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-[#1B2A49] font-medium text-sm">
+                        UAE Compliant
+                      </p>
+                      <p className="text-[#344767] text-xs mt-1">
+                        This document follows UAE legal requirements
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-start gap-3 p-3 bg-[#F4F7FA] rounded-lg">
-                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-[#1B2A49] font-medium text-sm">
-                      AI Verified
-                    </p>
-                    <p className="text-[#344767] text-xs mt-1">
-                      Content checked for accuracy and completeness
-                    </p>
+                  <div className="flex items-start gap-3 p-3 bg-[#F4F7FA] rounded-lg">
+                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-[#1B2A49] font-medium text-sm">
+                        AI Verified
+                      </p>
+                      <p className="text-[#344767] text-xs mt-1">
+                        Content checked for accuracy and completeness
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-start gap-3 p-3 bg-[#F4F7FA] rounded-lg">
-                  <Info className="w-5 h-5 text-[#2E69A4] flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-[#1B2A49] font-medium text-sm">
-                      Legal Review
-                    </p>
-                    <p className="text-[#344767] text-xs mt-1">
-                      Consider professional review for complex cases
-                    </p>
+                  <div className="flex items-start gap-3 p-3 bg-[#F4F7FA] rounded-lg">
+                    <Info className="w-5 h-5 text-[#2E69A4] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-[#1B2A49] font-medium text-sm">
+                        Legal Review
+                      </p>
+                      <p className="text-[#344767] text-xs mt-1">
+                        Consider professional review for complex cases
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </DashboardLayout>
+      </DashboardLayout>
+    </ProtectedRoute>
   );
 }

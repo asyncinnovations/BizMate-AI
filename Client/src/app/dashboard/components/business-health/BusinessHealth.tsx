@@ -1,10 +1,11 @@
 import React from "react";
 import { Target, AlertTriangle, Shield } from "lucide-react";
 import Button from "@/app/components/ui/Button";
+import Card from "@/app/components/ui/Card";
 
 const BusinessHealth = () => {
   return (
-    <div className="xl:col-span-1 bg-white rounded-xl p-6 shadow-sm border border-[#E1E8F5]">
+    <Card className="xl:col-span-1" hoverEffect>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-[#1B2A49] flex items-center">
           <div className="bg-gradient-to-r from-green-400 to-blue-500 rounded-full p-1.5 mr-2">
@@ -70,8 +71,8 @@ const BusinessHealth = () => {
         </div>
       </div>
 
-      <Button className="w-full mt-6">View Detailed Report</Button>
-    </div>
+      <Button className="w-full mt-8">View Detailed Report</Button>
+    </Card>
   );
 };
 
