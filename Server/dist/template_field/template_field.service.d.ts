@@ -1,6 +1,6 @@
-import { Repository } from "typeorm";
-import { TemplateFieldEntity } from "./template_field.entity";
 import { TemplateEntity } from "../templates/templates.entity";
+import { TemplateFieldEntity } from "./template_field.entity";
+import { Repository } from "typeorm";
 export declare class TemplateFieldService {
     private readonly templateFieldRepo;
     private readonly templateRepo;

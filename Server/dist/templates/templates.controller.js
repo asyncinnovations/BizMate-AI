@@ -22,36 +22,87 @@ let TemplatesController = class TemplatesController {
         this.templatesService = templatesService;
     }
     async createTemplate(data, req) {
+        if (!data.template_name || typeof data.template_name !== "string") {
+            throw new common_1.BadRequestException("Template name is required and must be a string.");
+        }
+        if (!data.fields_schema || typeof data.fields_schema !== "object") {
+            throw new common_1.BadRequestException("Fields schema is required and must be a valid JSON object.");
+        }
+        if (data.description && typeof data.description !== "string") {
+            throw new common_1.BadRequestException("Description must be a string if provided.");
+        }
+        if (data.is_prebuilt !== undefined &&
+            typeof data.is_prebuilt !== "boolean") {
+            throw new common_1.BadRequestException("is_prebuilt must be a boolean value.");
+        }
+        if (data.is_active !== undefined && typeof data.is_active !== "boolean") {
+            throw new common_1.BadRequestException("is_active must be a boolean value.");
+        }
+        if (data.version && isNaN(Number(data.version))) {
+            throw new common_1.BadRequestException("Version must be a number if provided.");
+        }
         const post_data = {
-            template_name: data.template_name,
-            description: data.description,
+            template_name: data.template_name.trim(),
+            description: data.description?.trim() || null,
             fields_schema: data.fields_schema,
-            user_id: req.user?.sub,
+            user_id: data.user_id || req.user?.uuid,
+            is_prebuilt: data.is_prebuilt ?? false,
+            version: data.version ?? 1,
+            is_active: data.is_active ?? true,
         };
         const result = await this.templatesService.create_template_service(post_data);
         return { message: "Template created successfully", data: result };
     }
     async get_all_template() {
         const templates = await this.templatesService.get_all_template_service();
-        if (!templates.length)
+        if (!templates || templates.length === 0) {
             return { message: "No templates found", status: 404 };
+        }
         return { message: "All templates", data: templates };
     }
     async single_template(id) {
+        if (!id) {
+            throw new common_1.BadRequestException("Template ID or UUID is required.");
+        }
         const template = await this.templatesService.single_template_service(id);
-        if (!template)
+        if (!template) {
             return { message: "Template not found", status: 404 };
+        }
         return { message: "Template found", data: template };
     }
     async update_template(id, data) {
+        if (!id) {
+            throw new common_1.BadRequestException("Template ID or UUID is required.");
+        }
+        if (!data || Object.keys(data).length === 0) {
+            throw new common_1.BadRequestException("No data provided for update.");
+        }
+        if (data.template_name && typeof data.template_name !== "string") {
+            throw new common_1.BadRequestException("Template name must be a string.");
+        }
+        if (data.fields_schema && typeof data.fields_schema !== "object") {
+            throw new common_1.BadRequestException("Fields schema must be a valid JSON object.");
+        }
+        if (data.version && isNaN(Number(data.version))) {
+            throw new common_1.BadRequestException("Version must be numeric if provided.");
+        }
         const updated = await this.templatesService.update_template_service(id, data);
-        return { message: "Template updated", data: updated };
+        return { message: "Template updated successfully", data: updated };
     }
     async user_template(user_id) {
+        if (!user_id) {
+            throw new common_1.BadRequestException("User ID is required.");
+        }
         const templates = await this.templatesService.user_template_service(user_id);
-        return { message: "User templates", data: templates };
+        if (!templates || templates.length === 0) {
+            return { message: "No templates found for this user", status: 404 };
+        }
+        return { message: "User templates found", data: templates };
     }
     async delete_template(id) {
+        if (!id) {
+            throw new common_1.BadRequestException("Template ID or UUID is required for deletion.");
+        }
         await this.templatesService.delete_template_service(id);
         return { message: "Template deleted successfully" };
     }

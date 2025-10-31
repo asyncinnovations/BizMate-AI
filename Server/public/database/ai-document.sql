@@ -79,4 +79,4 @@ CREATE TABLE documents (
     created_by INT REFERENCES users(user_id),
     created_at TIMESTAMP DEFAULT NOW()
 );
--- npx sequelize-cli migration:generate --name template_fields-templates
+-- npx sequelize-cli migration:generate --name invoice_items-table

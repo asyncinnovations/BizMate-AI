@@ -4,7 +4,6 @@ import { Module } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { AuthUsers } from "./user.entity";
 import { JwtModule } from "@nestjs/jwt";
-import { JwtStrategy } from "./_jwt.strategy";
 
 @Module({
   imports: [

@@ -4,15 +4,20 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  PrimaryColumn,
 } from "typeorm";
 
 @Entity("templates")
 export class TemplateEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column({ type: "uuid", default: () => "gen_random_uuid()", unique: true })
+  @PrimaryColumn({
+    type: "uuid",
+    default: () => "gen_random_uuid()",
+    unique: true,
+  })
   uuid: string;
+
+  @Column({ type: "integer", generated: "increment" })
+  id: number;
 
   @Column({ type: "varchar", length: 255, nullable: false })
   template_name: string;
@@ -23,8 +28,8 @@ export class TemplateEntity {
   @Column({ type: "jsonb", nullable: false })
   fields_schema: object;
 
-  @Column({ type: "int", nullable: true })
-  user_id: number;
+  @Column({ type: "uuid", nullable: true })
+  user_id: string;
 
   @Column({ type: "boolean", default: false })
   is_prebuilt: boolean;

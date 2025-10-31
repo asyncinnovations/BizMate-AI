@@ -32,7 +32,7 @@ __decorate([
     __metadata("design:type", String)
 ], TemplateFieldEntity.prototype, "uuid", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ type: "integer", generated: "increment" }),
     __metadata("design:type", Number)
 ], TemplateFieldEntity.prototype, "id", void 0);
 __decorate([

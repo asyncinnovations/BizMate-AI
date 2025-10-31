@@ -6,6 +6,7 @@ module.exports = {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
+        allowNull: false,
       },
       uuid: {
         type: Sequelize.UUID,

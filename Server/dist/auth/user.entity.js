@@ -18,30 +18,37 @@ var UserRole;
     UserRole["TEAM_MEMBER"] = "team_member";
 })(UserRole || (exports.UserRole = UserRole = {}));
 let AuthUsers = class AuthUsers {
-    id;
     uuid;
+    id;
     full_name;
     email;
     phone;
     password_hash;
+    lichence_file;
+    profile_image;
     company_name;
     license_number;
     vat_id;
-    idustry;
+    industry;
     role;
     language_preference;
+    status;
     created_at;
     updated_at;
 };
 exports.AuthUsers = AuthUsers;
 __decorate([
-    (0, typeorm_1.PrimaryGeneratedColumn)(),
-    __metadata("design:type", Number)
-], AuthUsers.prototype, "id", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: "uuid", default: () => "gen_random_uuid()", unique: true }),
+    (0, typeorm_1.PrimaryColumn)({
+        type: "uuid",
+        default: () => "gen_random_uuid()",
+        unique: true,
+    }),
     __metadata("design:type", String)
 ], AuthUsers.prototype, "uuid", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "integer", generated: "increment" }),
+    __metadata("design:type", Number)
+], AuthUsers.prototype, "id", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: false }),
     __metadata("design:type", String)
@@ -61,6 +68,14 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: true }),
     __metadata("design:type", String)
+], AuthUsers.prototype, "lichence_file", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: true }),
+    __metadata("design:type", String)
+], AuthUsers.prototype, "profile_image", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: true }),
+    __metadata("design:type", String)
 ], AuthUsers.prototype, "company_name", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: true }),
@@ -73,7 +88,7 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: true }),
     __metadata("design:type", String)
-], AuthUsers.prototype, "idustry", void 0);
+], AuthUsers.prototype, "industry", void 0);
 __decorate([
     (0, typeorm_1.Column)({
         type: "enum",
@@ -90,6 +105,14 @@ __decorate([
     }),
     __metadata("design:type", String)
 ], AuthUsers.prototype, "language_preference", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        type: "enum",
+        enum: ["active", "inactive", "suspended"],
+        default: "active",
+    }),
+    __metadata("design:type", String)
+], AuthUsers.prototype, "status", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" }),
     __metadata("design:type", Date)

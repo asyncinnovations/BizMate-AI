@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
+import { TemplateEntity } from "../templates/templates.entity";
+import { TemplateFieldEntity } from "./template_field.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { TemplateFieldEntity } from "./template_field.entity";
-import { TemplateEntity } from "../templates/templates.entity";
 
 @Injectable()
 export class TemplateFieldService {
@@ -50,10 +50,15 @@ export class TemplateFieldService {
   async field_by_templateId_service(
     templateId: string
   ): Promise<TemplateFieldEntity[]> {
-    return await this.templateFieldRepo.find({
-      where: { template_id: templateId },
-      order: { created_at: "ASC" },
-    });
+    const sql = await this.templateFieldRepo.query(
+      `SELECT tf.*,t.template_name FROM templates AS t JOIN template_fields as tf ON t.uuid=tf.template_id WHERE t.uuid=$1`,
+      [templateId]
+    );
+    return sql;
+    // return await this.templateFieldRepo.find({
+    //   where: { template_id: templateId },
+    //   order: { created_at: "ASC" },
+    // });
   }
 
   //////////////////////////////////////////////////////////////////////

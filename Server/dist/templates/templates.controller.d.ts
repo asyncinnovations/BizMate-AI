@@ -30,7 +30,12 @@ export declare class TemplatesController {
     }>;
     user_template(user_id: string): Promise<{
         message: string;
-        data: void;
+        status: number;
+        data?: undefined;
+    } | {
+        message: string;
+        data: import("./templates.entity").TemplateEntity[];
+        status?: undefined;
     }>;
     delete_template(id: string): Promise<{
         message: string;

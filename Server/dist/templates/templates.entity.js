@@ -12,8 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TemplateEntity = void 0;
 const typeorm_1 = require("typeorm");
 let TemplateEntity = class TemplateEntity {
-    id;
     uuid;
+    id;
     template_name;
     description;
     fields_schema;
@@ -26,13 +26,17 @@ let TemplateEntity = class TemplateEntity {
 };
 exports.TemplateEntity = TemplateEntity;
 __decorate([
-    (0, typeorm_1.PrimaryGeneratedColumn)(),
-    __metadata("design:type", Number)
-], TemplateEntity.prototype, "id", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: "uuid", default: () => "gen_random_uuid()", unique: true }),
+    (0, typeorm_1.PrimaryColumn)({
+        type: "uuid",
+        default: () => "gen_random_uuid()",
+        unique: true,
+    }),
     __metadata("design:type", String)
 ], TemplateEntity.prototype, "uuid", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "integer", generated: "increment" }),
+    __metadata("design:type", Number)
+], TemplateEntity.prototype, "id", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: false }),
     __metadata("design:type", String)
@@ -46,8 +50,8 @@ __decorate([
     __metadata("design:type", Object)
 ], TemplateEntity.prototype, "fields_schema", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "int", nullable: true }),
-    __metadata("design:type", Number)
+    (0, typeorm_1.Column)({ type: "uuid", nullable: true }),
+    __metadata("design:type", String)
 ], TemplateEntity.prototype, "user_id", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "boolean", default: false }),
