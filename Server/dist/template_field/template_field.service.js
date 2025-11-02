@@ -14,10 +14,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TemplateFieldService = void 0;
 const common_1 = require("@nestjs/common");
+const templates_entity_1 = require("../templates/templates.entity");
+const template_field_entity_1 = require("./template_field.entity");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
-const template_field_entity_1 = require("./template_field.entity");
-const templates_entity_1 = require("../templates/templates.entity");
 let TemplateFieldService = class TemplateFieldService {
     templateFieldRepo;
     templateRepo;
@@ -42,10 +42,8 @@ let TemplateFieldService = class TemplateFieldService {
         return await this.templateFieldRepo.save(fieldEntities);
     }
     async field_by_templateId_service(templateId) {
-        return await this.templateFieldRepo.find({
-            where: { template_id: templateId },
-            order: { created_at: "ASC" },
-        });
+        const sql = await this.templateFieldRepo.query(`SELECT tf.*,t.template_name FROM templates AS t JOIN template_fields as tf ON t.uuid=tf.template_id WHERE t.uuid=$1`, [templateId]);
+        return sql;
     }
     async single_template_field_service(tfield_id) {
         const field = await this.templateFieldRepo.findOne({

@@ -19,7 +19,7 @@ export class TemplateFieldEntity {
   })
   uuid: string;
 
-  @Column()
+  @Column({ type: "integer", generated: "increment" })
   id: number;
 
   @Column({ type: "uuid", nullable: false })

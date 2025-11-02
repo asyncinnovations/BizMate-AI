@@ -12,13 +12,15 @@ const templates_service_1 = require("./templates.service");
 const templates_controller_1 = require("./templates.controller");
 const typeorm_1 = require("@nestjs/typeorm");
 const templates_entity_1 = require("./templates.entity");
+const PdfService_1 = require("../common/PdfService");
+const EmailService_1 = require("../common/EmailService");
 let TemplatesModule = class TemplatesModule {
 };
 exports.TemplatesModule = TemplatesModule;
 exports.TemplatesModule = TemplatesModule = __decorate([
     (0, common_1.Module)({
         imports: [typeorm_1.TypeOrmModule.forFeature([templates_entity_1.TemplateEntity])],
-        providers: [templates_service_1.TemplatesService],
+        providers: [templates_service_1.TemplatesService, PdfService_1.PdfService, EmailService_1.EmailService],
         controllers: [templates_controller_1.TemplatesController],
         exports: [templates_service_1.TemplatesService],
     })

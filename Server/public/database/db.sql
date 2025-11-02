@@ -10,6 +10,7 @@ CREATE TABLE users (
     role VARCHAR(50) NOT NULL CHECK (role IN ('admin', 'business_owner', 'team_member')),
     company_name VARCHAR(255) NULL,
     license_number VARCHAR(255) NULL,
+    license_file VARCHAR(255) null,
     vat_id VARCHAR(255) NULL,
     idustry VARCHAR(255) NULL,
     language_preference VARCHAR(10) DEFAULT 'en' CHECK (language_preference IN ('en', 'ar', 'hi')),

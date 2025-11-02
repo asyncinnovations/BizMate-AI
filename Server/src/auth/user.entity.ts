@@ -1,9 +1,9 @@
 import {
   Entity,
   Column,
-  PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  PrimaryColumn,
 } from "typeorm";
 export enum UserRole {
   ADMIN = "admin",
@@ -13,11 +13,15 @@ export enum UserRole {
 
 @Entity("users")
 export class AuthUsers {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column({ type: "uuid", default: () => "gen_random_uuid()", unique: true })
+  @PrimaryColumn({
+    type: "uuid",
+    default: () => "gen_random_uuid()",
+    unique: true,
+  })
   uuid: string;
+
+  @Column({ type: "integer", generated: "increment" })
+  id: number;
 
   @Column({ type: "varchar", length: 255, nullable: false })
   full_name: string;
@@ -32,13 +36,19 @@ export class AuthUsers {
   password_hash: string;
 
   @Column({ type: "varchar", length: 255, nullable: true })
+  lichence_file: string;
+
+  @Column({ type: "varchar", length: 255, nullable: true })
+  profile_image: string;
+
+  @Column({ type: "varchar", length: 255, nullable: true })
   company_name: string;
   @Column({ type: "varchar", length: 255, nullable: true })
   license_number: string;
   @Column({ type: "varchar", length: 255, nullable: true })
   vat_id: string;
   @Column({ type: "varchar", length: 255, nullable: true })
-  idustry: string;
+  industry: string;
 
   @Column({
     type: "enum",
@@ -53,6 +63,13 @@ export class AuthUsers {
     default: "en",
   })
   language_preference: string;
+
+  @Column({
+    type: "enum",
+    enum: ["active", "inactive", "suspended"],
+    default: "active",
+  })
+  status: string;
 
   @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
   created_at: Date;

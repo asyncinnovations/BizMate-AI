@@ -37,6 +37,7 @@ let TemplatesService = class TemplatesService {
         return this.templatesRepo.findOneBy({ uuid: id });
     }
     async user_template_service(user_id) {
+        return this.templatesRepo.findBy({ user_id: user_id });
     }
     async delete_template_service(id) {
         return this.templatesRepo.delete(id);

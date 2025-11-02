@@ -7,6 +7,6 @@ export declare class TemplatesService {
     get_all_template_service(): Promise<TemplateEntity[]>;
     single_template_service(id: string): Promise<TemplateEntity | null>;
     update_template_service(id: string, data: any): Promise<TemplateEntity | null>;
-    user_template_service(user_id: string): Promise<void>;
+    user_template_service(user_id: string): Promise<TemplateEntity[]>;
     delete_template_service(id: string): Promise<import("typeorm").DeleteResult>;
 }

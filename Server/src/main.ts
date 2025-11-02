@@ -4,8 +4,8 @@ import { AppModule } from "./app.module";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Optional: Enable CORS if you plan to call API from frontend
-  app.enableCors();
+  // Enable CORS if you plan to call API from frontend
+  app.enableCors({ origin: "*" });
   app.setGlobalPrefix("api");
   const PORT = process.env.PORT || 8080;
   await app.listen(PORT);

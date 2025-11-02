@@ -2,22 +2,21 @@ import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { AuthModule } from "./auth/auth.module";
 import { AuthUsers } from "./auth/user.entity";
-import { DocumentGenModule } from "./_document_gen/document_gen.module";
 import { ChatgptModule } from "./chatgpt/chatgpt.module";
-import { PrebuiltTemplatesModule } from "./_prebuilt_templates/prebuilt_templates.module";
-import { PrebuiltTemplatesController } from "./_prebuilt_templates/prebuilt_templates.controller";
-import { PrebuiltTemplatesService } from "./_prebuilt_templates/prebuilt_templates.service";
 import { TemplatesModule } from "./templates/templates.module";
-import { JwtStrategy } from "./auth/_jwt.strategy";
 import { PassportModule } from "@nestjs/passport";
 import { JwtModule } from "@nestjs/jwt";
 import { TemplateEntity } from "./templates/templates.entity";
 import { TemplateFieldModule } from "./template_field/template_field.module";
 import { TemplateFieldEntity } from "./template_field/template_field.entity";
+import { InvoicesModule } from "./invoices/invoices.module";
+import { InvoiceEntity } from "./invoices/invoices.entity";
+import { UserPaymentGatewayModule } from "./user_payment_gateway/user_payment_gateway.module";
+import { UserPaymentGatewayEntity } from "./user_payment_gateway/user_payment_gateway.entity";
 
 @Module({
-  controllers: [PrebuiltTemplatesController],
-  providers: [PrebuiltTemplatesService],
+  controllers: [],
+  providers: [],
   exports: [],
   imports: [
     PassportModule,
@@ -28,20 +27,26 @@ import { TemplateFieldEntity } from "./template_field/template_field.entity";
     TemplatesModule,
     TypeOrmModule.forRoot({
       type: "postgres",
-      host: "localhost",
+      host: process.env.DB_HOST,
       port: 5432,
-      username: "postgres",
-      password: "monabbirhasan",
-      database: "bizmate",
-      entities: [AuthUsers, TemplateEntity, TemplateFieldEntity],
+      username: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      entities: [
+        AuthUsers,
+        TemplateEntity,
+        TemplateFieldEntity,
+        InvoiceEntity,
+        UserPaymentGatewayEntity,
+      ],
       synchronize: true,
     }),
     AuthModule,
-    DocumentGenModule,
     ChatgptModule,
-    PrebuiltTemplatesModule,
     TemplatesModule,
     TemplateFieldModule,
+    InvoicesModule,
+    UserPaymentGatewayModule,
   ],
 })
 export class AppModule {}

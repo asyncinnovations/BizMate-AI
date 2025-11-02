@@ -239,6 +239,7 @@ const CreateInvoicePage: React.FC = () => {
       status: "saved",
     };
 
+    console.log(newInvoice);
     router.push(
       `/dashboard/invoicing/preview/${newInvoice.id}?data=${encodeURIComponent(
         JSON.stringify(newInvoice)
