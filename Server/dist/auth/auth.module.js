@@ -21,12 +21,13 @@ exports.AuthModule = AuthModule = __decorate([
         imports: [
             typeorm_1.TypeOrmModule.forFeature([user_entity_1.AuthUsers]),
             jwt_1.JwtModule.register({
-                secret: 'my_jwt_secret',
-                signOptions: { expiresIn: '1d' },
+                secret: process.env.JWT_SECRET || "BizMateAI",
+                signOptions: { expiresIn: "1d" },
             }),
         ],
         controllers: [auth_controller_1.AuthController],
         providers: [auth_service_1.AuthService],
+        exports: [jwt_1.JwtModule],
     })
 ], AuthModule);
 //# sourceMappingURL=auth.module.js.map

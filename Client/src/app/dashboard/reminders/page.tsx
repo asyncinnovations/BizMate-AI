@@ -166,7 +166,7 @@ const AIRemindersPage = () => {
 
   const [showForm, setShowForm] = useState<boolean>(false);
   const [showNotifications, setShowNotifications] = useState<boolean>(false);
-  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [viewMode, setViewMode] = useState<ViewMode>("calendar");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
@@ -296,7 +296,7 @@ const AIRemindersPage = () => {
   return (
     <ProtectedRoute>
       <DashboardLayout>
-        <div className="min-h-screen text-[#1B2A49] p-6 mb-4">
+        <div className="min-h-screen text-[#1B2A49] p-4 mb-8">
           <div className="w-full">
             {/* Header */}
             <div className="mb-6">

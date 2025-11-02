@@ -244,7 +244,7 @@ const InvoiceListPage: React.FC = () => {
   return (
     <ProtectedRoute>
       <DashboardLayout>
-        <div className="min-h-screen p-6 mb-4">
+        <div className="min-h-screen p-4 mb-8">
           <div className="w-full">
             {/* Page Header */}
             <PageHeader

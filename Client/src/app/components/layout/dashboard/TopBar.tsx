@@ -3,8 +3,10 @@
 import { Bell, Zap, Search, Settings } from "lucide-react";
 import React, { useState } from "react";
 import Sidebar from "./Sidebar";
+import { useRouter } from "next/navigation";
 
 const TopBar = () => {
+  const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleToggle = () => {
@@ -41,16 +43,25 @@ const TopBar = () => {
               className="w-80 pl-10 pr-4 py-2 text-sm border bg-white border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E69A4]"
             />
           </div>
-          <div className="relative flex items-center justify-center w-10 h-10 rounded-lg bg-transparent transition hover:bg-[#1f4c78] cursor-pointer">
+          <div
+            onClick={() => router.push("/dashboard/notifications")}
+            className="relative flex items-center justify-center w-10 h-10 rounded-lg bg-transparent transition hover:bg-[#1f4c78] cursor-pointer"
+          >
             <Bell size={22} />
             <span className="absolute top-0 right-0 text-xs w-5 h-5 rounded-full bg-red-500 flex items-center justify-center border-2 border-[#1b2a49]">
               3
             </span>
           </div>
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-transparent transition hover:bg-[#1f4c78] cursor-pointer">
+          <div
+            onClick={() => router.push("/dashboard/settings")}
+            className="flex items-center justify-center w-10 h-10 rounded-lg bg-transparent transition hover:bg-[#1f4c78] cursor-pointer"
+          >
             <Settings size={22} />
           </div>
-          <div className="flex items-center gap-3 pl-3 border-l border-[#2E69A4]">
+          <div
+            onClick={() => router.push("/dashboard/profile")}
+            className="flex items-center gap-3 pl-3 border-l border-[#2E69A4] cursor-pointer"
+          >
             <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-semibold bg-gradient-to-r from-[#2E69A4] to-cyan-500">
               FA
             </div>

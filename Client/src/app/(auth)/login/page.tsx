@@ -18,7 +18,7 @@ import toast from "react-hot-toast";
 import Button from "@/app/components/ui/Button";
 import InputField from "@/app/components/ui/InputField";
 
-interface errorType {
+interface FormError {
   email: string;
   password: string;
 }
@@ -27,30 +27,30 @@ const LoginPage = () => {
   const router = useRouter();
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [errors, setErrors] = useState<errorType | null>(null);
+  const [errors, setErrors] = useState<FormError | null>(null);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
   const validateForm = () => {
-    const newErrors: errorType = {
+    const newErrors: FormError = {
       email: "",
       password: "",
     };
 
-    if (!formData.email) newErrors.email = "Email is required!";
+    if (!formData.email?.trim()) newErrors.email = "Email is required!";
     else if (!/\S+@\S+\.\S+/.test(formData.email))
       newErrors.email = "Email is invalid!";
 
-    if (!formData.password) newErrors.password = "Password is required!";
+    if (!formData.password?.trim())
+      newErrors.password = "Password is required!";
 
     setErrors(newErrors);
 
-    return (
-      Object.keys(newErrors).length === 0 ||
-      (newErrors.email === "" && newErrors.password === "")
-    );
+    const isValid = Object.values(newErrors).every((err) => err === "");
+
+    return isValid;
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

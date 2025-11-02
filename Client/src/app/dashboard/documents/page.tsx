@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   FileText,
@@ -14,11 +14,15 @@ import {
   TrendingUp,
   Download,
   CheckCircle,
+  Plus,
+  Star,
+  Send,
 } from "lucide-react";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import StatCard from "@/app/components/stat-card/StatCard";
 import PageHeader from "@/app/components/page-header/PageHeader";
 import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
+import Modal from "@/app/components/ui/Modal";
 
 interface DocumentTemplate {
   id: string;
@@ -28,12 +32,17 @@ interface DocumentTemplate {
   category: string;
   estimatedTime: string;
   popularity: number;
+  isCustom?: boolean;
 }
 
 export default function DocumentGeneratorMain() {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<"platform" | "custom">("platform");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const templates: DocumentTemplate[] = [
+  const platformTemplates: DocumentTemplate[] = [
     {
       id: "nda",
       title: "Non-Disclosure Agreement",
@@ -43,6 +52,7 @@ export default function DocumentGeneratorMain() {
       category: "legal",
       estimatedTime: "2 min",
       popularity: 95,
+      isCustom: false,
     },
     {
       id: "employment-contract",
@@ -53,6 +63,7 @@ export default function DocumentGeneratorMain() {
       category: "hr",
       estimatedTime: "3 min",
       popularity: 88,
+      isCustom: false,
     },
     {
       id: "service-agreement",
@@ -63,6 +74,7 @@ export default function DocumentGeneratorMain() {
       category: "legal",
       estimatedTime: "3 min",
       popularity: 82,
+      isCustom: false,
     },
     {
       id: "invoice",
@@ -73,6 +85,7 @@ export default function DocumentGeneratorMain() {
       category: "accounting",
       estimatedTime: "1 min",
       popularity: 98,
+      isCustom: false,
     },
     {
       id: "offer-letter",
@@ -82,6 +95,7 @@ export default function DocumentGeneratorMain() {
       category: "hr",
       estimatedTime: "2 min",
       popularity: 76,
+      isCustom: false,
     },
     {
       id: "termination-letter",
@@ -92,6 +106,33 @@ export default function DocumentGeneratorMain() {
       category: "hr",
       estimatedTime: "2 min",
       popularity: 64,
+      isCustom: false,
+    },
+  ];
+
+  // Example custom templates (you can fetch these from your backend)
+  const customTemplates: DocumentTemplate[] = [
+    {
+      id: "custom-partnership-agreement",
+      title: "Partnership Agreement",
+      description:
+        "Custom partnership agreement template for multi-party business ventures",
+      icon: <Briefcase className="w-8 h-8" />,
+      category: "legal",
+      estimatedTime: "4 min",
+      popularity: 0,
+      isCustom: true,
+    },
+    {
+      id: "custom-rental-contract",
+      title: "Rental Agreement",
+      description:
+        "Property rental contract template with custom terms and conditions",
+      icon: <FileText className="w-8 h-8" />,
+      category: "real-estate",
+      estimatedTime: "3 min",
+      popularity: 0,
+      isCustom: true,
     },
   ];
 
@@ -157,10 +198,36 @@ export default function DocumentGeneratorMain() {
     router.push(`/dashboard/documents/new/${templateId}`);
   };
 
+  const handleCreateCustomTemplate = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setCustomPrompt("");
+  };
+
+  const handleSubmitPrompt = () => {
+    if (!customPrompt.trim()) return;
+
+    setIsSubmitting(true);
+
+    // Encode the prompt for URL
+    const encodedPrompt = encodeURIComponent(customPrompt);
+
+    // Navigate to the custom template generation page with the prompt
+    router.push(
+      `/dashboard/documents/create-custom-template?prompt=${encodedPrompt}`
+    );
+  };
+
+  const displayedTemplates =
+    activeTab === "platform" ? platformTemplates : customTemplates;
+
   return (
     <ProtectedRoute>
       <DashboardLayout>
-        <div className="min-h-screen p-6 mb-4">
+        <div className="min-h-screen p-4 mb-8">
           {/* Header */}
           <PageHeader
             title="AI Document Generator"
@@ -180,34 +247,91 @@ export default function DocumentGeneratorMain() {
             {/* Left Side Wrapper Container */}
             <div className="lg:col-span-2">
               {/* Document Templates Grid Container */}
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-[#E1E8F5]">
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-[#E1E8F5] min-h-screen">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-bold text-[#1B2A49]">
                     Document Templates
                   </h2>
-                  <span className="text-sm text-[#344767]">
-                    {templates.length} templates found
+                  <button
+                    onClick={handleCreateCustomTemplate}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#1B2A49] to-[#2E69A4] text-white rounded-lg hover:shadow-lg transition-all duration-200 font-semibold text-sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Create Custom Template
+                  </button>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex items-center justify-between mb-6 border-b border-[#E1E8F5]">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setActiveTab("platform")}
+                      className={`px-4 py-2.5 font-semibold text-sm transition-all relative ${
+                        activeTab === "platform"
+                          ? "text-[#2E69A4]"
+                          : "text-[#344767] hover:text-[#2E69A4]"
+                      }`}
+                    >
+                      Platform Templates
+                      {activeTab === "platform" && (
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#2E69A4]"></div>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("custom")}
+                      className={`px-4 py-2.5 font-semibold text-sm transition-all relative ${
+                        activeTab === "custom"
+                          ? "text-[#2E69A4]"
+                          : "text-[#344767] hover:text-[#2E69A4]"
+                      }`}
+                    >
+                      Custom Templates
+                      {customTemplates.length > 0 && (
+                        <span className="ml-2 px-2 py-0.5 bg-[#2E69A4] text-white text-xs rounded-full">
+                          {customTemplates.length}
+                        </span>
+                      )}
+                      {activeTab === "custom" && (
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#2E69A4]"></div>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Templates Count Badge */}
+                  <span className="inline-flex mb-2 items-center px-3 py-1 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 text-[#2E69A4] text-sm font-bold rounded-lg shadow-sm">
+                    {displayedTemplates.length} Template
+                    {displayedTemplates.length !== 1 ? "s" : ""}
                   </span>
                 </div>
 
                 {/* Templates Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {templates.map((template) => (
+                  {displayedTemplates.map((template) => (
                     <div
                       key={template.id}
                       onClick={() => handleTemplateClick(template.id)}
-                      className="bg-white rounded-xl p-6 shadow-sm border border-[#E1E8F5] hover:shadow-md transition-all cursor-pointer group hover:border-[#2E69A4]"
+                      className="bg-white rounded-xl p-6 shadow-sm border border-[#E1E8F5] hover:shadow-md transition-all cursor-pointer group hover:border-[#2E69A4] relative"
                     >
+                      {/* Custom Badge */}
+                      {template.isCustom && (
+                        <div className="absolute top-4 right-4 flex items-center gap-1 border border-gray-400 text-gray-700 text-xs font-medium px-2.5 py-1 rounded-full bg-white shadow-sm">
+                          <Star className="w-3 h-3 text-gray-600" />
+                          CUSTOM
+                        </div>
+                      )}
+
                       <div className="flex items-start justify-between mb-4">
                         <div className="w-14 h-14 bg-gradient-to-br from-[#1B2A49] to-[#2E69A4] rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform">
                           {template.icon}
                         </div>
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center gap-1 text-[#F6A821] text-xs font-semibold bg-[#F6A821]/10 px-2 py-1 rounded">
-                            <TrendingUp className="w-3 h-3" />
-                            {template.popularity}%
+                        {!template.isCustom && (
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 text-[#F6A821] text-xs font-semibold bg-[#F6A821]/10 px-2 py-1 rounded">
+                              <TrendingUp className="w-3 h-3" />
+                              {template.popularity}%
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </div>
 
                       <h3 className="text-[#1B2A49] font-bold text-lg mb-2 group-hover:text-[#2E69A4] transition-colors">
@@ -231,15 +355,28 @@ export default function DocumentGeneratorMain() {
                   ))}
                 </div>
 
-                {templates.length === 0 && (
+                {displayedTemplates.length === 0 && (
                   <div className="bg-white rounded-xl p-12 shadow-sm border border-[#E1E8F5] text-center">
                     <FileText className="w-16 h-16 text-[#344767]/30 mx-auto mb-4" />
                     <h3 className="text-[#1B2A49] font-semibold text-lg mb-2">
-                      No templates found
+                      {activeTab === "custom"
+                        ? "No custom templates yet"
+                        : "No templates found"}
                     </h3>
-                    <p className="text-[#344767]">
-                      Try adjusting your search or filter criteria
+                    <p className="text-[#344767] mb-4">
+                      {activeTab === "custom"
+                        ? "Create your first custom template to get started"
+                        : "Try adjusting your search or filter criteria"}
                     </p>
+                    {activeTab === "custom" && (
+                      <button
+                        onClick={handleCreateCustomTemplate}
+                        className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#1B2A49] to-[#2E69A4] text-white rounded-lg hover:shadow-lg transition-all duration-200 font-semibold text-sm"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Create Custom Template
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -319,11 +456,92 @@ export default function DocumentGeneratorMain() {
                     <div className="w-1.5 h-1.5 bg-[#2E69A4] rounded-full mt-2 flex-shrink-0"></div>
                     <span>Review and edit before downloading</span>
                   </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 bg-[#2E69A4] rounded-full mt-2 flex-shrink-0"></div>
+                    <span>
+                      Create custom templates for recurring document needs
+                    </span>
+                  </li>
                 </ul>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Custom Template Modal */}
+        <Modal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          title="Create Custom Template"
+          showCloseButton={true}
+          closeOnOverlayClick={true}
+          size="md"
+          titleIcon={<Sparkles className="w-5 h-5 text-white" />}
+        >
+          <div className="p-6">
+            <p className="text-[#344767] text-sm mb-4">
+              Describe the document template you want to create. Our AI will
+              generate a custom template based on your requirements.
+            </p>
+
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-[#1B2A49] mb-2">
+                Template Description
+              </label>
+              <textarea
+                value={customPrompt}
+                onChange={(e) => setCustomPrompt(e.target.value)}
+                placeholder="E.g., I need a sales agreement template for B2B software services with payment terms, intellectual property clauses, and termination conditions..."
+                className="w-full h-40 px-4 py-3 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] focus:border-transparent resize-none text-sm text-[#344767]"
+              />
+              <p className="text-xs text-[#6B7280] mt-2">
+                Be as specific as possible to get the best results from AI
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="flex items-start gap-3">
+                <Sparkles className="w-5 h-5 text-[#2E69A4] flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-semibold text-[#1B2A49] mb-1">
+                    AI-Powered Generation
+                  </h4>
+                  <p className="text-xs text-[#344767]">
+                    Our AI will analyze your requirements and create a
+                    professional, UAE-compliant document template tailored to
+                    your needs.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleCloseModal}
+                className="flex-1 px-4 py-2.5 border border-[#E1E8F5] text-[#344767] font-semibold text-sm rounded-lg hover:bg-[#F4F7FA] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitPrompt}
+                disabled={!customPrompt.trim() || isSubmitting}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#1B2A49] to-[#2E69A4] text-white rounded-lg hover:shadow-lg transition-all duration-200 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Generating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    <span>Generate Template</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </Modal>
       </DashboardLayout>
     </ProtectedRoute>
   );

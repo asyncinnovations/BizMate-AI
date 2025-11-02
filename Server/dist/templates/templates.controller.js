@@ -1,0 +1,109 @@
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TemplatesController = void 0;
+const common_1 = require("@nestjs/common");
+const templates_service_1 = require("./templates.service");
+const auth_guard_1 = require("../guards/auth/auth.guard");
+let TemplatesController = class TemplatesController {
+    templatesService;
+    constructor(templatesService) {
+        this.templatesService = templatesService;
+    }
+    async createTemplate(data, req) {
+        const post_data = {
+            template_name: data.template_name,
+            description: data.description,
+            fields_schema: data.fields_schema,
+            user_id: req.user?.sub,
+        };
+        const result = await this.templatesService.create_template_service(post_data);
+        return { message: "Template created successfully", data: result };
+    }
+    async get_all_template() {
+        const templates = await this.templatesService.get_all_template_service();
+        if (!templates.length)
+            return { message: "No templates found", status: 404 };
+        return { message: "All templates", data: templates };
+    }
+    async single_template(id) {
+        const template = await this.templatesService.single_template_service(id);
+        if (!template)
+            return { message: "Template not found", status: 404 };
+        return { message: "Template found", data: template };
+    }
+    async update_template(id, data) {
+        const updated = await this.templatesService.update_template_service(id, data);
+        return { message: "Template updated", data: updated };
+    }
+    async user_template(user_id) {
+        const templates = await this.templatesService.user_template_service(user_id);
+        return { message: "User templates", data: templates };
+    }
+    async delete_template(id) {
+        await this.templatesService.delete_template_service(id);
+        return { message: "Template deleted successfully" };
+    }
+};
+exports.TemplatesController = TemplatesController;
+__decorate([
+    (0, common_1.Post)("/create"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], TemplatesController.prototype, "createTemplate", null);
+__decorate([
+    (0, common_1.Get)("/all"),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], TemplatesController.prototype, "get_all_template", null);
+__decorate([
+    (0, common_1.Get)("/single/:id"),
+    __param(0, (0, common_1.Param)("id")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], TemplatesController.prototype, "single_template", null);
+__decorate([
+    (0, common_1.Put)("/update/:id"),
+    __param(0, (0, common_1.Param)("id")),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], TemplatesController.prototype, "update_template", null);
+__decorate([
+    (0, common_1.Get)("/user/:user_id"),
+    __param(0, (0, common_1.Param)("user_id")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], TemplatesController.prototype, "user_template", null);
+__decorate([
+    (0, common_1.Delete)("/delete/:id"),
+    __param(0, (0, common_1.Param)("id")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], TemplatesController.prototype, "delete_template", null);
+exports.TemplatesController = TemplatesController = __decorate([
+    (0, common_1.Controller)("templates"),
+    (0, common_1.UseGuards)(auth_guard_1.JwtGuard),
+    __metadata("design:paramtypes", [templates_service_1.TemplatesService])
+], TemplatesController);
+//# sourceMappingURL=templates.controller.js.map

@@ -21,10 +21,18 @@ import { useRouter } from "next/navigation";
 import InputField from "@/app/components/ui/InputField";
 import Button from "@/app/components/ui/Button";
 
+interface FormError {
+  full_name: string;
+  email: string;
+  password: string;
+  phone: string;
+}
+
 const RegisterPage = () => {
   const [showSelectBusiness, setShowSelectBusiness] = useState(true);
   const router = useRouter();
   const [businessType, setBusinessType] = useState<string | null>("Freelancer");
+  const [errors, setErrors] = useState<FormError | null>(null);
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -37,14 +45,47 @@ const RegisterPage = () => {
     role: "business_owner", //default
   });
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Clear error when user starts typing
+    if (errors && errors[name as keyof errorType]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
   };
 
-  const handleSubmit = async (e) => {
+  const validateForm = () => {
+    const newErrors = {
+      full_name: "",
+      email: "",
+      password: "",
+      phone: "",
+    };
+
+    if (!formData.full_name?.trim()) newErrors.full_name = "Name is Required!";
+    if (!formData.phone?.trim()) newErrors.phone = "Phone is Required!";
+    if (!formData.email?.trim()) newErrors.email = "Email is required!";
+    else if (!/\S+@\S+\.\S+/.test(formData.email))
+      newErrors.email = "Email is invalid!";
+
+    if (!formData.password?.trim())
+      newErrors.password = "Password is required!";
+
+    setErrors(newErrors);
+
+    const isValid = Object.values(newErrors).every((err) => err === "");
+
+    return isValid;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("form data", formData);
+
+    if (!validateForm()) return;
 
     try {
       const response = await axios.post(
@@ -220,6 +261,7 @@ const RegisterPage = () => {
                       onChange={handleChange}
                       type="text"
                       placeholder="Enter your full name"
+                      error={errors?.full_name}
                     />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -230,6 +272,7 @@ const RegisterPage = () => {
                       name="email"
                       onChange={handleChange}
                       placeholder="business@company.ae"
+                      error={errors?.email}
                     />
                     <InputField
                       label="Phone"
@@ -238,6 +281,7 @@ const RegisterPage = () => {
                       name="phone"
                       onChange={handleChange}
                       placeholder="+971 XX XXX XXXX"
+                      error={errors?.phone}
                     />
                   </div>
                   <InputField
@@ -247,6 +291,7 @@ const RegisterPage = () => {
                     name="password"
                     onChange={handleChange}
                     placeholder="Create a strong password"
+                    error={errors?.password}
                   />
                 </div>
 

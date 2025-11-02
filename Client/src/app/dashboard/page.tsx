@@ -80,7 +80,7 @@ const Dashboard = () => {
         <div className="min-h-screen p-4 mb-8">
           {/* Header */}
           <PageHeader
-            title="Welcome back, Farhan 😊!"
+            title="Welcome back, Farhan 👋!"
             description="Here's what's happening with your business today"
             buttons={[
               {

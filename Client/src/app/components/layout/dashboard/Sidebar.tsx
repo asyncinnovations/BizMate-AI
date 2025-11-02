@@ -14,6 +14,7 @@ import {
   Wallet,
   Mail,
   Zap,
+  ShieldBan,
 } from "lucide-react";
 import React, { useRef, useEffect } from "react";
 import { gsap } from "gsap";
@@ -57,6 +58,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       icon: Calendar,
       color: "text-orange-400",
       href: "/dashboard/reminders",
+    },
+    {
+      id: 4,
+      label: "Compliance & Licensing",
+      icon: ShieldBan,
+      color: "text-indigo-500",
+      href: "/dashboard/compliance-licensing",
     },
     {
       id: 5,
@@ -111,7 +119,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       id: 14,
       label: "Billing & Plans",
       icon: Wallet,
-      href: "/dashboard/billing",
+      href: "/dashboard/pricing",
     },
   ];
 
@@ -229,7 +237,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         {/* User Profile Mini */}
         <div className="p-4 border-t border-[#1f4c78] flex-shrink-0">
           <Link
-            href="/profile"
+            href="/dashboard/profile"
             className="flex items-center gap-3 p-2 rounded-xl transition-all duration-200 hover:bg-[#1f4c78] hover:bg-opacity-50 cursor-pointer group"
           >
             <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#1f4c78] to-[#2c5a8a] flex items-center justify-center text-sm font-semibold">
