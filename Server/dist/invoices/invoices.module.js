@@ -12,13 +12,24 @@ const typeorm_1 = require("@nestjs/typeorm");
 const invoices_service_1 = require("./invoices.service");
 const invoices_controller_1 = require("./invoices.controller");
 const invoices_entity_1 = require("./invoices.entity");
+const PdfService_1 = require("../common/PdfService");
+const EmailService_1 = require("../common/EmailService");
+const user_payment_gateway_service_1 = require("../user_payment_gateway/user_payment_gateway.service");
+const user_payment_gateway_entity_1 = require("../user_payment_gateway/user_payment_gateway.entity");
 let InvoicesModule = class InvoicesModule {
 };
 exports.InvoicesModule = InvoicesModule;
 exports.InvoicesModule = InvoicesModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([invoices_entity_1.InvoiceEntity])],
-        providers: [invoices_service_1.InvoicesService],
+        imports: [
+            typeorm_1.TypeOrmModule.forFeature([invoices_entity_1.InvoiceEntity, user_payment_gateway_entity_1.UserPaymentGatewayEntity]),
+        ],
+        providers: [
+            invoices_service_1.InvoicesService,
+            PdfService_1.PdfService,
+            EmailService_1.EmailService,
+            user_payment_gateway_service_1.UserPaymentGatewayService,
+        ],
         controllers: [invoices_controller_1.InvoicesController],
         exports: [invoices_service_1.InvoicesService],
     })

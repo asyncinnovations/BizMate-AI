@@ -1,7 +1,11 @@
 import { TemplatesService } from "./templates.service";
+import { PdfService } from "src/common/PdfService";
+import { EmailService } from "src/common/EmailService";
 export declare class TemplatesController {
     private readonly templatesService;
-    constructor(templatesService: TemplatesService);
+    private readonly pdfService;
+    private readonly emailService;
+    constructor(templatesService: TemplatesService, pdfService: PdfService, emailService: EmailService);
     createTemplate(data: any, req: any): Promise<{
         message: string;
         data: import("./templates.entity").TemplateEntity[];
@@ -37,7 +41,19 @@ export declare class TemplatesController {
         data: import("./templates.entity").TemplateEntity[];
         status?: undefined;
     }>;
+    preview_document(body: any): Promise<{
+        response: string;
+        success: boolean;
+        url: string;
+    }>;
     delete_template(id: string): Promise<{
         message: string;
+    }>;
+    send_template_to_email(body: any): Promise<{
+        message: string;
+        response: {
+            success: boolean;
+            message: string;
+        };
     }>;
 }

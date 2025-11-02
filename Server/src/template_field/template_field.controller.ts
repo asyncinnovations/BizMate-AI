@@ -9,6 +9,8 @@ import {
   ParseUUIDPipe,
   BadRequestException,
   UseGuards,
+  HttpStatus,
+  HttpCode,
 } from "@nestjs/common";
 import { TemplateFieldService } from "./template_field.service";
 import { TemplateFieldEntity } from "./template_field.entity";
@@ -20,7 +22,7 @@ export class TemplateFieldController {
   constructor(private readonly templateFieldService: TemplateFieldService) {}
 
   //////////////////////////////////////////////////////////////////////
-  // HELPER: Manual Validation Logic
+  //  VALIDATE TEMPLATE FIELDS
   //////////////////////////////////////////////////////////////////////
   private validateTemplateField(data: Partial<TemplateFieldEntity>) {
     const errors: string[] = [];
@@ -57,7 +59,8 @@ export class TemplateFieldController {
   //////////////////////////////////////////////////////////////////////
   // CREATE SINGLE TEMPLATE FIELD
   //////////////////////////////////////////////////////////////////////
-  @Post("/create")
+  @Post("create")
+  @HttpCode(HttpStatus.CREATED)
   async create_template_field(@Body() body: Partial<TemplateFieldEntity>) {
     this.validateTemplateField(body);
 
@@ -79,6 +82,7 @@ export class TemplateFieldController {
   // CREATE MULTIPLE FIELDS FOR A TEMPLATE
   //////////////////////////////////////////////////////////////////////
   @Post("bulk/:template_id")
+  @HttpCode(HttpStatus.OK)
   async create_many_template_fields(
     @Param("template_id", new ParseUUIDPipe()) template_id: string,
     @Body() fields: Partial<TemplateFieldEntity>[]
@@ -104,6 +108,7 @@ export class TemplateFieldController {
   // GET ALL FIELDS BY TEMPLATE UUID
   //////////////////////////////////////////////////////////////////////
   @Get("template/:template_id")
+  @HttpCode(HttpStatus.OK)
   async get_fields_by_template(
     @Param("template_id", new ParseUUIDPipe()) template_id: string
   ) {
@@ -115,7 +120,8 @@ export class TemplateFieldController {
   //////////////////////////////////////////////////////////////////////
   // GET SINGLE FIELD BY UUID
   //////////////////////////////////////////////////////////////////////
-  @Get("/single/:tfield_id")
+  @Get("single/:tfield_id")
+  @HttpCode(HttpStatus.OK)
   async get_single_field(
     @Param("tfield_id", new ParseUUIDPipe()) tfield_id: string
   ) {
@@ -131,6 +137,7 @@ export class TemplateFieldController {
   // UPDATE SINGLE FIELD BY UUID
   //////////////////////////////////////////////////////////////////////
   @Patch("update/:tfield_id")
+  @HttpCode(HttpStatus.OK)
   async update_single_field(
     @Param("tfield_id", new ParseUUIDPipe()) tfield_id: string,
     @Body() data: Partial<TemplateFieldEntity>
@@ -149,6 +156,7 @@ export class TemplateFieldController {
   // DELETE SINGLE FIELD
   //////////////////////////////////////////////////////////////////////
   @Delete("delete/:tfield_id")
+  @HttpCode(HttpStatus.OK)
   async delete_single_field(
     @Param("tfield_id", new ParseUUIDPipe()) tfield_id: string
   ) {
@@ -160,7 +168,8 @@ export class TemplateFieldController {
   //////////////////////////////////////////////////////////////////////
   // DELETE ALL FIELDS OF A TEMPLATE
   //////////////////////////////////////////////////////////////////////
-  @Delete("/delete/template/:template_id")
+  @Delete("delete/template/:template_id")
+  @HttpCode(HttpStatus.OK)
   async delete_all_fields_of_template(
     @Param("template_id", new ParseUUIDPipe()) template_id: string
   ) {
@@ -175,6 +184,7 @@ export class TemplateFieldController {
   // CLONE FIELDS FROM ONE TEMPLATE TO ANOTHER
   //////////////////////////////////////////////////////////////////////
   @Post("clone/:fromtfield_id/:totfield_id")
+  @HttpCode(HttpStatus.OK)
   async clone_fields(
     @Param("fromtfield_id", new ParseUUIDPipe()) fromtfield_id: string,
     @Param("totfield_id", new ParseUUIDPipe()) totfield_id: string

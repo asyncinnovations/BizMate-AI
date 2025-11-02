@@ -11,6 +11,8 @@ import { TemplateFieldModule } from "./template_field/template_field.module";
 import { TemplateFieldEntity } from "./template_field/template_field.entity";
 import { InvoicesModule } from "./invoices/invoices.module";
 import { InvoiceEntity } from "./invoices/invoices.entity";
+import { UserPaymentGatewayModule } from "./user_payment_gateway/user_payment_gateway.module";
+import { UserPaymentGatewayEntity } from "./user_payment_gateway/user_payment_gateway.entity";
 
 @Module({
   controllers: [],
@@ -25,16 +27,17 @@ import { InvoiceEntity } from "./invoices/invoices.entity";
     TemplatesModule,
     TypeOrmModule.forRoot({
       type: "postgres",
-      host: "localhost",
+      host: process.env.DB_HOST,
       port: 5432,
-      username: "postgres",
-      password: "monabbirhasan",
-      database: "bizmate",
+      username: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
       entities: [
         AuthUsers,
         TemplateEntity,
         TemplateFieldEntity,
         InvoiceEntity,
+        UserPaymentGatewayEntity,
       ],
       synchronize: true,
     }),
@@ -43,6 +46,7 @@ import { InvoiceEntity } from "./invoices/invoices.entity";
     TemplatesModule,
     TemplateFieldModule,
     InvoicesModule,
+    UserPaymentGatewayModule,
   ],
 })
 export class AppModule {}

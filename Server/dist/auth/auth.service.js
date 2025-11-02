@@ -90,7 +90,7 @@ let AuthService = class AuthService {
     async login_service(email, password) {
         const user = await this.usersRepo.findOne({ where: { email } });
         if (!user)
-            throw new common_1.UnauthorizedException("Invalid credentials");
+            throw new common_1.UnauthorizedException("Account Not Found");
         const isMatch = await bcrypt.compare(password, user.password_hash);
         if (!isMatch)
             throw new common_1.UnauthorizedException("Invalid credentials");

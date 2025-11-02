@@ -162,6 +162,7 @@ let AuthController = class AuthController {
 exports.AuthController = AuthController;
 __decorate([
     (0, common_1.Post)("/signup"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     (0, upload_decorator_1.UploadFile)({
         fieldName: "license_file",
         destination: (0, path_1.join)(__dirname, "../../public/uploads"),
@@ -176,6 +177,7 @@ __decorate([
 ], AuthController.prototype, "signup", null);
 __decorate([
     (0, common_1.Post)("/login"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -183,12 +185,14 @@ __decorate([
 ], AuthController.prototype, "login", null);
 __decorate([
     (0, common_1.Get)("/all"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "all_users", null);
 __decorate([
     (0, common_1.Get)("/single/:id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("id")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -196,6 +200,7 @@ __decorate([
 ], AuthController.prototype, "single_user", null);
 __decorate([
     (0, common_1.Put)("/update/:id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("id")),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -204,6 +209,7 @@ __decorate([
 ], AuthController.prototype, "update_user", null);
 __decorate([
     (0, common_1.Put)("/update_image/:id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     (0, upload_decorator_1.UploadFile)({
         fieldName: "profile_image",
         destination: (0, path_1.join)(__dirname, "../../public/uploads"),
@@ -218,7 +224,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "update_profile_image", null);
 exports.AuthController = AuthController = __decorate([
-    (0, common_1.Controller)("auth"),
+    (0, common_1.Controller)("/auth"),
     __metadata("design:paramtypes", [auth_service_1.AuthService])
 ], AuthController);
 //# sourceMappingURL=auth.controller.js.map

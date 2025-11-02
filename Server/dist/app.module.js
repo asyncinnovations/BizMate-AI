@@ -20,6 +20,8 @@ const template_field_module_1 = require("./template_field/template_field.module"
 const template_field_entity_1 = require("./template_field/template_field.entity");
 const invoices_module_1 = require("./invoices/invoices.module");
 const invoices_entity_1 = require("./invoices/invoices.entity");
+const user_payment_gateway_module_1 = require("./user_payment_gateway/user_payment_gateway.module");
+const user_payment_gateway_entity_1 = require("./user_payment_gateway/user_payment_gateway.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -37,16 +39,17 @@ exports.AppModule = AppModule = __decorate([
             templates_module_1.TemplatesModule,
             typeorm_1.TypeOrmModule.forRoot({
                 type: "postgres",
-                host: "localhost",
+                host: process.env.DB_HOST,
                 port: 5432,
-                username: "postgres",
-                password: "monabbirhasan",
-                database: "bizmate",
+                username: process.env.DB_USER,
+                password: process.env.DB_PASSWORD,
+                database: process.env.DB_NAME,
                 entities: [
                     user_entity_1.AuthUsers,
                     templates_entity_1.TemplateEntity,
                     template_field_entity_1.TemplateFieldEntity,
                     invoices_entity_1.InvoiceEntity,
+                    user_payment_gateway_entity_1.UserPaymentGatewayEntity,
                 ],
                 synchronize: true,
             }),
@@ -55,6 +58,7 @@ exports.AppModule = AppModule = __decorate([
             templates_module_1.TemplatesModule,
             template_field_module_1.TemplateFieldModule,
             invoices_module_1.InvoicesModule,
+            user_payment_gateway_module_1.UserPaymentGatewayModule,
         ],
     })
 ], AppModule);

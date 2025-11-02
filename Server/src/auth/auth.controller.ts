@@ -7,6 +7,8 @@ import {
   UploadedFile,
   Param,
   Put,
+  HttpStatus,
+  HttpCode,
 } from "@nestjs/common";
 import { UploadFile } from "src/common/decorators/upload.decorator";
 import { AuthService } from "./auth.service";
@@ -16,7 +18,8 @@ import { join } from "path";
 import { LicenceNumberChecker } from "src/common/LicenceNumberChecker";
 import { PDFParse } from "pdf-parse";
 import fs from "fs";
-@Controller("auth")
+
+@Controller("/auth")
 export class AuthController {
   constructor(private authService: AuthService) {}
 
@@ -96,6 +99,7 @@ export class AuthController {
   // CREATE ACCOUNT
   //////////////////////////////////////////////////////
   @Post("/signup")
+  @HttpCode(HttpStatus.CREATED)
   @UploadFile({
     fieldName: "license_file",
     destination: join(__dirname, "../../public/uploads"),
@@ -143,6 +147,7 @@ export class AuthController {
   // LOGIN USER TO THE ACCOUNT
   /////////////////////////////////////////////////////////////
   @Post("/login")
+  @HttpCode(HttpStatus.OK)
   async login(@Body() body: { email: string; password: string }) {
     this.validateLogin(body);
     return this.authService.login_service(body.email, body.password);
@@ -152,6 +157,7 @@ export class AuthController {
   // GET ALL USERS
   //////////////////////////////////////////////////////
   @Get("/all")
+  @HttpCode(HttpStatus.OK)
   async all_users() {
     const response = await this.authService.all_users_service();
     return response;
@@ -161,6 +167,7 @@ export class AuthController {
   // GET SINGLE  USERS
   //////////////////////////////////////////////////////
   @Get("/single/:id")
+  @HttpCode(HttpStatus.OK)
   async single_user(@Param("id") user_id: string) {
     const response = await this.authService.single_user_service(user_id);
     return { message: "single user retrived", response };
@@ -170,6 +177,7 @@ export class AuthController {
   // UPDATE USER BY USER_ID
   //////////////////////////////////////////////////////
   @Put("/update/:id")
+  @HttpCode(HttpStatus.OK)
   async update_user(@Param("id") user_id: any, @Body() body: any) {
     const data = {
       full_name: body?.full_name,
@@ -190,6 +198,7 @@ export class AuthController {
   // UPDATE PROFILE IMAGE
   //////////////////////////////////////////////////////
   @Put("/update_image/:id")
+  @HttpCode(HttpStatus.OK)
   @UploadFile({
     fieldName: "profile_image",
     destination: join(__dirname, "../../public/uploads"),

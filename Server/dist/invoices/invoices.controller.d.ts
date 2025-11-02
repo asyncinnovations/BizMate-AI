@@ -1,11 +1,17 @@
 import { InvoicesService } from "./invoices.service";
 import { InvoiceEntity } from "./invoices.entity";
+import { PdfService } from "src/common/PdfService";
+import { EmailService } from "src/common/EmailService";
+import { UserPaymentGatewayService } from "src/user_payment_gateway/user_payment_gateway.service";
 export declare class InvoicesController {
     private readonly invoicesService;
-    constructor(invoicesService: InvoicesService);
-    create_invoice(data: Partial<InvoiceEntity> & {
+    private readonly pdfService;
+    private readonly emailService;
+    private readonly upgService;
+    constructor(invoicesService: InvoicesService, pdfService: PdfService, emailService: EmailService, upgService: UserPaymentGatewayService);
+    create_invoice(data: Partial<InvoiceEntity> | (any & {
         items?: any[];
-    }): Promise<{
+    })): Promise<{
         message: string;
         invoice: InvoiceEntity;
     }>;
@@ -21,5 +27,17 @@ export declare class InvoicesController {
     compute_totals(subtotal: number, vatRate: number): Promise<{
         vat: number;
         total: number;
+    }>;
+    preview_invoice(body: any): Promise<{
+        response: string;
+        success: boolean;
+        url: string;
+    }>;
+    send_invoice_to_email(body: any): Promise<{
+        message: string;
+        response: {
+            success: boolean;
+            message: string;
+        };
     }>;
 }

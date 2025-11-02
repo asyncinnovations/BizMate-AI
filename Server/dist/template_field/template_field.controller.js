@@ -95,7 +95,8 @@ let TemplateFieldController = class TemplateFieldController {
 };
 exports.TemplateFieldController = TemplateFieldController;
 __decorate([
-    (0, common_1.Post)("/create"),
+    (0, common_1.Post)("create"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -103,6 +104,7 @@ __decorate([
 ], TemplateFieldController.prototype, "create_template_field", null);
 __decorate([
     (0, common_1.Post)("bulk/:template_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("template_id", new common_1.ParseUUIDPipe())),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -111,13 +113,15 @@ __decorate([
 ], TemplateFieldController.prototype, "create_many_template_fields", null);
 __decorate([
     (0, common_1.Get)("template/:template_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("template_id", new common_1.ParseUUIDPipe())),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], TemplateFieldController.prototype, "get_fields_by_template", null);
 __decorate([
-    (0, common_1.Get)("/single/:tfield_id"),
+    (0, common_1.Get)("single/:tfield_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("tfield_id", new common_1.ParseUUIDPipe())),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -125,6 +129,7 @@ __decorate([
 ], TemplateFieldController.prototype, "get_single_field", null);
 __decorate([
     (0, common_1.Patch)("update/:tfield_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("tfield_id", new common_1.ParseUUIDPipe())),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -133,13 +138,15 @@ __decorate([
 ], TemplateFieldController.prototype, "update_single_field", null);
 __decorate([
     (0, common_1.Delete)("delete/:tfield_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("tfield_id", new common_1.ParseUUIDPipe())),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], TemplateFieldController.prototype, "delete_single_field", null);
 __decorate([
-    (0, common_1.Delete)("/delete/template/:template_id"),
+    (0, common_1.Delete)("delete/template/:template_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("template_id", new common_1.ParseUUIDPipe())),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -147,6 +154,7 @@ __decorate([
 ], TemplateFieldController.prototype, "delete_all_fields_of_template", null);
 __decorate([
     (0, common_1.Post)("clone/:fromtfield_id/:totfield_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("fromtfield_id", new common_1.ParseUUIDPipe())),
     __param(1, (0, common_1.Param)("totfield_id", new common_1.ParseUUIDPipe())),
     __metadata("design:type", Function),
