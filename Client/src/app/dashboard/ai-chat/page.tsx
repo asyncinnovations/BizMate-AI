@@ -25,7 +25,6 @@ import {
 } from "lucide-react";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import Button from "@/app/components/ui/Button";
-import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
 
 interface ChatMessage {
   id: string;
@@ -290,7 +289,6 @@ const ComplianceAssistancePage = () => {
   };
 
   return (
-    <ProtectedRoute>
       <DashboardLayout>
         <div className="h-screen bg-slate-50 flex flex-col overflow-hidden">
           {/* Compact Header */}
@@ -817,7 +815,6 @@ const ComplianceAssistancePage = () => {
           `}</style>
         </div>
       </DashboardLayout>
-    </ProtectedRoute>
   );
 };
 

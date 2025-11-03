@@ -18,7 +18,6 @@ import {
   HeadphonesIcon,
   Bot,
 } from "lucide-react";
-import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 
 const AIHelpCenter = () => {
@@ -85,7 +84,6 @@ const AIHelpCenter = () => {
   ];
 
   return (
-    <ProtectedRoute>
       <DashboardLayout>
         <div className="min-h-screen p-6 mb-8">
           <div className="max-w-7xl mx-auto">
@@ -295,7 +293,6 @@ const AIHelpCenter = () => {
           </div>
         </div>
       </DashboardLayout>
-    </ProtectedRoute>
   );
 };
 

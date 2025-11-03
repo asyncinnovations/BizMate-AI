@@ -19,7 +19,6 @@ import {
   Send,
   FileText,
 } from "lucide-react";
-import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
 
 // TypeScript interfaces
 interface InvoiceItem {
@@ -256,7 +255,6 @@ const CreateInvoicePage: React.FC = () => {
   };
 
   return (
-    <ProtectedRoute>
       <DashboardLayout>
         <div className="min-h-screen p-6 mb-4">
           <div className="w-full">
@@ -724,7 +722,6 @@ const CreateInvoicePage: React.FC = () => {
           </div>
         </div>
       </DashboardLayout>
-    </ProtectedRoute>
   );
 };
 

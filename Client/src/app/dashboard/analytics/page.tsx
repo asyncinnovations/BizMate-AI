@@ -17,7 +17,6 @@ import {
 import { DollarSign, FileText, Clock, MessageSquare } from "lucide-react";
 import StatCard from "@/app/components/stat-card/StatCard";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
 
 const AnalyticsPage = () => {
   // Dummy data for stat cards in the format expected by the reusable StatCard component
@@ -126,7 +125,6 @@ const AnalyticsPage = () => {
   ];
 
   return (
-    <ProtectedRoute>
       <DashboardLayout>
         <div className="p-4 min-h-screen mb-4 ">
           {/* Header */}
@@ -557,7 +555,6 @@ const AnalyticsPage = () => {
           </div>
         </div>
       </DashboardLayout>
-    </ProtectedRoute>
   );
 };
 

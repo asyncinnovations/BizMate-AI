@@ -225,7 +225,6 @@ export default function TeamManagement() {
   };
 
   return (
-    <ProtectedRoute>
       <DashboardLayout>
         <div className="min-h-screen bg-[#F4F7FA] p-6 mb-4">
           <div className="w-full">
@@ -809,6 +808,5 @@ export default function TeamManagement() {
           </Modal>
         </div>
       </DashboardLayout>
-    </ProtectedRoute>
   );
 }

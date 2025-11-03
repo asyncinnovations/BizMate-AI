@@ -23,7 +23,6 @@ import {
   AlertTriangle,
   Sparkles,
 } from "lucide-react";
-import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 
 const NotificationsPage = () => {
@@ -94,7 +93,6 @@ const NotificationsPage = () => {
   };
 
   return (
-    <ProtectedRoute>
       <DashboardLayout>
         <div className="min-h-screen bg-[#F4F7FA] p-4 mb-8">
           <div className="w-full">
@@ -322,7 +320,6 @@ const NotificationsPage = () => {
           </div>
         </div>
       </DashboardLayout>
-    </ProtectedRoute>
   );
 };
 

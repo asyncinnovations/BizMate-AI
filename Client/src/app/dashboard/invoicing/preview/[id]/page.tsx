@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import Button from "@/app/components/ui/Button";
 import { getStatusBadge } from "@/lib/statusBadge";
-import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
 
 // TypeScript interfaces
 interface InvoiceItem {
@@ -109,7 +108,6 @@ const InvoicePreviewPage: React.FC = () => {
   };
 
   return (
-<ProtectedRoute>
       <DashboardLayout>
       <div className="min-h-screen bg-gray-50 p-6 mb-4">
         <div className="w-full">
@@ -460,7 +458,6 @@ const InvoicePreviewPage: React.FC = () => {
         }
       `}</style>
     </DashboardLayout>
-</ProtectedRoute>
   );
 };
 
