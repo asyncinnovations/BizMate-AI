@@ -1,9 +1,13 @@
-import React, { useEffect } from "react";
+import React, { useEffect, ReactNode } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import LoadingSpinner from "../loading-spinner/LoadingSpinner";
 
-const ProtectedRoute = ({ children }) => {
+interface ProtectedRouteProps {
+  children: ReactNode;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, loading } = useAuth();
   const router = useRouter();
 
@@ -17,7 +21,7 @@ const ProtectedRoute = ({ children }) => {
 
   if (!user) return null;
 
-  return children;
+  return <>{children}</>;
 };
 
 export default ProtectedRoute;

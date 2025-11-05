@@ -19,7 +19,6 @@ import {
   Send,
   FileText,
 } from "lucide-react";
-import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
 
 // TypeScript interfaces
 interface InvoiceItem {
@@ -256,7 +255,6 @@ const CreateInvoicePage: React.FC = () => {
   };
 
   return (
-    <ProtectedRoute>
       <DashboardLayout>
         <div className="min-h-screen p-6 mb-4">
           <div className="w-full">
@@ -284,7 +282,7 @@ const CreateInvoicePage: React.FC = () => {
                 <Button
                   onClick={() => router.push("/dashboard/invoicing")}
                   className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 shadow-sm"
-                  icon={<ArrowLeft className="w-4 h-4" />}
+                  startIcon={<ArrowLeft className="w-4 h-4" />}
                 >
                   Back to Invoices
                 </Button>
@@ -313,7 +311,7 @@ const CreateInvoicePage: React.FC = () => {
                   onClick={generateAiSuggestions}
                   disabled={isGenerating}
                   className="bg-white text-[#1B2A49] hover:bg-gray-100 shadow-lg"
-                  icon={
+                  startIcon={
                     isGenerating ? (
                       <Clock className="w-4 h-4 animate-pulse" />
                     ) : (
@@ -547,7 +545,7 @@ const CreateInvoicePage: React.FC = () => {
                     <Button
                       onClick={handleAddItem}
                       className="mb-8 bg-transparent shadow-none py-2 px-4 text-[#1B2A49] hover:bg-blue-50 border border-dashed border-gray-300 rounded-xl transition-all duration-200"
-                      icon={<Plus className="w-4 h-4" />}
+                      startIcon={<Plus className="w-4 h-4" />}
                     >
                       Add Another Item
                     </Button>
@@ -618,13 +616,13 @@ const CreateInvoicePage: React.FC = () => {
                       <Button
                         onClick={handlePreview}
                         className="bg-[#f6a821] hover:bg-[#d18d18]"
-                        icon={<Eye className="w-4 h-4" />}
+                        startIcon={<Eye className="w-4 h-4" />}
                       >
                         Preview
                       </Button>
                       <Button
                         onClick={handleSaveInvoice}
-                        icon={<Send className="w-4 h-4" />}
+                        startIcon={<Send className="w-4 h-4" />}
                       >
                         Save
                       </Button>
@@ -683,7 +681,7 @@ const CreateInvoicePage: React.FC = () => {
                             <Button
                               onClick={applyNotesSuggestion}
                               className="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm py-2"
-                              icon={<CheckCircle className="w-3 h-3" />}
+                              startIcon={<CheckCircle className="w-3 h-3" />}
                             >
                               Use This Text
                             </Button>
@@ -724,7 +722,6 @@ const CreateInvoicePage: React.FC = () => {
           </div>
         </div>
       </DashboardLayout>
-    </ProtectedRoute>
   );
 };
 

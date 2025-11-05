@@ -8,26 +8,18 @@ import {
   MoreVertical,
   Mail,
   Phone,
-  Calendar,
   Shield,
-  Edit3,
-  Trash2,
   CheckCircle,
   XCircle,
   Clock,
-  Sparkles,
-  Brain,
   BarChart3,
   MessageSquare,
   FileText,
-  Database,
-  Wand2,
 } from "lucide-react";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import Modal from "@/app/components/ui/Modal";
 import Button from "@/app/components/ui/Button";
 import PageHeader from "@/app/components/page-header/PageHeader";
-import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
 
 // Type definitions
 interface TeamMember {
@@ -225,7 +217,6 @@ export default function TeamManagement() {
   };
 
   return (
-    <ProtectedRoute>
       <DashboardLayout>
         <div className="min-h-screen bg-[#F4F7FA] p-6 mb-4">
           <div className="w-full">
@@ -809,6 +800,5 @@ export default function TeamManagement() {
           </Modal>
         </div>
       </DashboardLayout>
-    </ProtectedRoute>
   );
 }

@@ -21,7 +21,6 @@ import {
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import StatCard from "@/app/components/stat-card/StatCard";
 import PageHeader from "@/app/components/page-header/PageHeader";
-import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
 import Modal from "@/app/components/ui/Modal";
 
 interface DocumentTemplate {
@@ -225,7 +224,6 @@ export default function DocumentGeneratorMain() {
     activeTab === "platform" ? platformTemplates : customTemplates;
 
   return (
-    <ProtectedRoute>
       <DashboardLayout>
         <div className="min-h-screen p-4 mb-8">
           {/* Header */}
@@ -543,6 +541,5 @@ export default function DocumentGeneratorMain() {
           </div>
         </Modal>
       </DashboardLayout>
-    </ProtectedRoute>
   );
 }

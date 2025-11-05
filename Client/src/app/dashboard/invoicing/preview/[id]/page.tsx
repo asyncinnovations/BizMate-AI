@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import Button from "@/app/components/ui/Button";
 import { getStatusBadge } from "@/lib/statusBadge";
-import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
 
 // TypeScript interfaces
 interface InvoiceItem {
@@ -109,7 +108,6 @@ const InvoicePreviewPage: React.FC = () => {
   };
 
   return (
-<ProtectedRoute>
       <DashboardLayout>
       <div className="min-h-screen bg-gray-50 p-6 mb-4">
         <div className="w-full">
@@ -126,7 +124,7 @@ const InvoicePreviewPage: React.FC = () => {
             <div className="flex flex-wrap gap-3 mt-4 md:mt-0">
               <Button
                 onClick={() => router.push("/dashboard/invoicing")}
-                icon={<ArrowLeft className="w-4 h-4" />}
+                startIcon={<ArrowLeft className="w-4 h-4" />}
               >
                 Back to Invoices
               </Button>
@@ -163,20 +161,20 @@ const InvoicePreviewPage: React.FC = () => {
                 <Button
                   onClick={handlePrint}
                   className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                  icon={<Printer className="w-4 h-4" />}
+                  startIcon={<Printer className="w-4 h-4" />}
                 >
                   Print
                 </Button>
                 <Button
                   onClick={() => handleDownloadPDF(currentInvoice)}
                   className="bg-[#f6a821] hover:bg-[#d18d18]"
-                  icon={<Download className="w-4 h-4" />}
+                  startIcon={<Download className="w-4 h-4" />}
                 >
                   Download PDF
                 </Button>
                 <Button
                   onClick={() => handleSendEmail(currentInvoice)}
-                  icon={<Send className="w-4 h-4" />}
+                  startIcon={<Send className="w-4 h-4" />}
                 >
                   Send to Customer
                 </Button>
@@ -425,7 +423,7 @@ const InvoicePreviewPage: React.FC = () => {
                 <Button
                   onClick={() => handleSendEmail(currentInvoice)}
                   className="text-sm"
-                  icon={<Send className="w-4 h-4" />}
+                  startIcon={<Send className="w-4 h-4" />}
                 >
                   Send to Customer
                 </Button>
@@ -460,7 +458,6 @@ const InvoicePreviewPage: React.FC = () => {
         }
       `}</style>
     </DashboardLayout>
-</ProtectedRoute>
   );
 };
 

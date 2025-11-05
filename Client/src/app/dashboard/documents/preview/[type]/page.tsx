@@ -18,7 +18,6 @@ import {
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import PageHeader from "@/app/components/page-header/PageHeader";
 import Button from "@/app/components/ui/Button";
-import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
 
 export default function DocumentPreviewPage() {
   const params = useParams();
@@ -103,7 +102,7 @@ export default function DocumentPreviewPage() {
 
             <div className="space-y-4">
               <p className="text-gray-700 leading-relaxed">
-                This Non-Disclosure Agreement (the "Agreement") is entered into
+                This Non-Disclosure Agreement (the &qout;Agreement&qout;) is entered into
                 on <strong>{formData.effectiveDate || "[Date]"}</strong> by and
                 between:
               </p>
@@ -147,7 +146,7 @@ export default function DocumentPreviewPage() {
                   2. DEFINITION OF CONFIDENTIAL INFORMATION
                 </h2>
                 <p className="text-gray-700 leading-relaxed">
-                  "Confidential Information" means any and all information
+                  &qout;Confidential Information&qout; means any and all information
                   disclosed by the Disclosing Party to the Receiving Party,
                   whether orally, in writing, or in any other form, including
                   but not limited to:
@@ -498,7 +497,7 @@ export default function DocumentPreviewPage() {
                 <p className="text-gray-700 leading-relaxed">
                   The Employee shall receive a monthly salary of{" "}
                   <strong>AED {formData.salary || "[Amount]"}</strong>, payable
-                  in accordance with the Employer's standard payroll schedule.
+                  in accordance with the Employer&apos;s standard payroll schedule.
                 </p>
                 {formData.benefits && (
                   <div className="mt-3 bg-white p-3 rounded border border-gray-200">
@@ -590,297 +589,293 @@ export default function DocumentPreviewPage() {
   };
 
   return (
-    <ProtectedRoute>
-      <DashboardLayout>
-        <div className="min-h-screen bg-gray-50 p-6 mb-4">
-          {/* Header */}
-          <PageHeader
-            title="Document Preview"
-            description={documentTitles[documentType] || "Document"}
-            showAIBadge={true}
-            icon={<FileText size={20} />}
-            buttons={[
-              {
-                text: "Back to Documents",
-                icon: <ArrowLeft size={20} />,
-                onClick: () => router.back(),
-              },
-            ]}
-          />
+    <DashboardLayout>
+      <div className="min-h-screen bg-gray-50 p-6 mb-4">
+        {/* Header */}
+        <PageHeader
+          title="Document Preview"
+          description={documentTitles[documentType] || "Document"}
+          showAIBadge={true}
+          icon={<FileText size={20} />}
+          buttons={[
+            {
+              text: "Back to Documents",
+              icon: <ArrowLeft size={20} />,
+              onClick: () => router.back(),
+            },
+          ]}
+        />
 
-          {/* Action Bar */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <FileText className="w-5 h-5 text-gray-900" />
-                  </div>
-                  <div>
-                    <h2 className="font-bold text-gray-900 text-lg">
-                      {documentTitles[documentType]}
-                    </h2>
-                    <p className="text-gray-600 text-sm">
-                      AI-Generated Document
-                    </p>
-                  </div>
+        {/* Action Bar */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <FileText className="w-5 h-5 text-gray-900" />
                 </div>
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  <CheckCircle className="w-3 h-3" />
-                  Verified
-                </span>
+                <div>
+                  <h2 className="font-bold text-gray-900 text-lg">
+                    {documentTitles[documentType]}
+                  </h2>
+                  <p className="text-gray-600 text-sm">AI-Generated Document</p>
+                </div>
               </div>
-
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  onClick={handlePrint}
-                  className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                  icon={<Printer className="w-4 h-4" />}
-                >
-                  Print
-                </Button>
-                <Button
-                  onClick={handleDownload}
-                  disabled={isDownloading}
-                  className="bg-[#f6a821] hover:bg-[#d18d18]"
-                  icon={
-                    isDownloading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Download className="w-4 h-4" />
-                    )
-                  }
-                >
-                  {isDownloading ? "Generating PDF..." : "Download PDF"}
-                </Button>
-                <Button
-                  onClick={() => setShowEmailModal(true)}
-                  icon={<Send className="w-4 h-4" />}
-                >
-                  Send to Customer
-                </Button>
-              </div>
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <CheckCircle className="w-3 h-3" />
+                Verified
+              </span>
             </div>
-          </div>
 
-          {/* Document Preview */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div className="p-8">
-              <div
-                ref={previewRef}
-                className="max-w-4xl mx-auto bg-white p-8 border border-gray-200 rounded-lg print-area"
-                style={{ fontFamily: "Georgia, serif" }}
+            <div className="flex flex-wrap gap-3">
+              <Button
+                onClick={handlePrint}
+                className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                startIcon={<Printer className="w-4 h-4" />}
               >
-                {renderDocumentContent()}
-              </div>
+                Print
+              </Button>
+              <Button
+                onClick={handleDownload}
+                disabled={isDownloading}
+                className="bg-[#f6a821] hover:bg-[#d18d18]"
+                startIcon={
+                  isDownloading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )
+                }
+              >
+                {isDownloading ? "Generating PDF..." : "Download PDF"}
+              </Button>
+              <Button
+                onClick={() => setShowEmailModal(true)}
+                startIcon={<Send className="w-4 h-4" />}
+              >
+                Send to Customer
+              </Button>
             </div>
           </div>
-
-          {/* AI Verification Section */}
-          <div className="mt-6">
-            <div className="bg-gradient-to-r from-blue-50 to-gray-50 border border-blue-200 rounded-lg p-6 flex items-start gap-4">
-              <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <p className="font-bold text-gray-900 text-lg mb-2">
-                  AI Verification Complete
-                </p>
-                <p className="text-gray-600">
-                  This document has been verified for UAE compliance, legal
-                  terminology accuracy, and completeness. All required fields
-                  have been validated.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="mt-8 text-center">
-            <div className="inline-flex items-center gap-6 bg-white border border-gray-300 rounded-lg px-6 py-4">
-              <div className="text-sm text-gray-600">
-                Need to make changes to this document?
-              </div>
-              <div className="flex gap-3">
-                <Button
-                  onClick={() => router.back()}
-                  className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm"
-                >
-                  Edit Document
-                </Button>
-                <Button
-                  onClick={() => setShowEmailModal(true)}
-                  className="text-sm"
-                  icon={<Send className="w-4 h-4" />}
-                >
-                  Send to Customer
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Email Modal */}
-          {showEmailModal && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-xl">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-gray-900 font-bold text-xl">
-                    Send via Email
-                  </h3>
-                  <button
-                    onClick={() => setShowEmailModal(false)}
-                    className="p-1 hover:bg-gray-100 rounded transition-colors"
-                  >
-                    <X className="w-5 h-5 text-gray-600" />
-                  </button>
-                </div>
-
-                {!emailSent ? (
-                  <>
-                    <div className="space-y-4 mb-6">
-                      <div>
-                        <label className="block text-gray-900 font-semibold text-sm mb-2">
-                          Recipient Email *
-                        </label>
-                        <input
-                          type="email"
-                          value={emailAddress}
-                          onChange={(e) => setEmailAddress(e.target.value)}
-                          placeholder="client@example.com"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-gray-900 font-semibold text-sm mb-2">
-                          Message (Optional)
-                        </label>
-                        <textarea
-                          value={emailMessage}
-                          onChange={(e) => setEmailMessage(e.target.value)}
-                          placeholder="Add a message..."
-                          rows={3}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 resize-none"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => setShowEmailModal(false)}
-                        className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={handleSendEmail}
-                        disabled={!emailAddress}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-semibold disabled:opacity-50"
-                      >
-                        <Send className="w-5 h-5" />
-                        Send Email
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <CheckCircle className="w-8 h-8 text-green-600" />
-                    </div>
-                    <h4 className="text-gray-900 font-bold text-lg mb-2">
-                      Email Sent!
-                    </h4>
-                    <p className="text-gray-600">
-                      Document sent to {emailAddress}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Share Modal */}
-          {showShareModal && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-xl">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-gray-900 font-bold text-xl">
-                    Share Document
-                  </h3>
-                  <button
-                    onClick={() => setShowShareModal(false)}
-                    className="p-1 hover:bg-gray-100 rounded transition-colors"
-                  >
-                    <X className="w-5 h-5 text-gray-600" />
-                  </button>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-gray-900 font-semibold text-sm mb-2">
-                      Shareable Link
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={window.location.href}
-                        readOnly
-                        className="flex-1 px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 text-sm"
-                      />
-                      <button
-                        onClick={handleCopyLink}
-                        className="px-4 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
-                      >
-                        {copied ? (
-                          <Check className="w-5 h-5" />
-                        ) : (
-                          <Copy className="w-5 h-5" />
-                        )}
-                      </button>
-                    </div>
-                    {copied && (
-                      <p className="text-green-600 text-sm mt-2 flex items-center gap-1">
-                        <CheckCircle className="w-4 h-4" />
-                        Link copied to clipboard!
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="pt-4 border-t border-gray-200">
-                    <p className="text-gray-600 text-sm text-center">
-                      Anyone with this link can view the document
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Print Styles */}
-        <style jsx global>{`
-          @media print {
-            body * {
-              visibility: hidden;
-            }
-            .print-area,
-            .print-area * {
-              visibility: visible;
-            }
-            .print-area {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 100%;
-              padding: 0;
-              margin: 0;
-              background: white;
-            }
-            .no-print {
-              display: none !important;
-            }
+        {/* Document Preview */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div className="p-8">
+            <div
+              ref={previewRef}
+              className="max-w-4xl mx-auto bg-white p-8 border border-gray-200 rounded-lg print-area"
+              style={{ fontFamily: "Georgia, serif" }}
+            >
+              {renderDocumentContent()}
+            </div>
+          </div>
+        </div>
+
+        {/* AI Verification Section */}
+        <div className="mt-6">
+          <div className="bg-gradient-to-r from-blue-50 to-gray-50 border border-blue-200 rounded-lg p-6 flex items-start gap-4">
+            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Sparkles className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <p className="font-bold text-gray-900 text-lg mb-2">
+                AI Verification Complete
+              </p>
+              <p className="text-gray-600">
+                This document has been verified for UAE compliance, legal
+                terminology accuracy, and completeness. All required fields have
+                been validated.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="mt-8 text-center">
+          <div className="inline-flex items-center gap-6 bg-white border border-gray-300 rounded-lg px-6 py-4">
+            <div className="text-sm text-gray-600">
+              Need to make changes to this document?
+            </div>
+            <div className="flex gap-3">
+              <Button
+                onClick={() => router.back()}
+                className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm"
+              >
+                Edit Document
+              </Button>
+              <Button
+                onClick={() => setShowEmailModal(true)}
+                className="text-sm"
+                startIcon={<Send className="w-4 h-4" />}
+              >
+                Send to Customer
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Email Modal */}
+        {showEmailModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-xl">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-gray-900 font-bold text-xl">
+                  Send via Email
+                </h3>
+                <button
+                  onClick={() => setShowEmailModal(false)}
+                  className="p-1 hover:bg-gray-100 rounded transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-600" />
+                </button>
+              </div>
+
+              {!emailSent ? (
+                <>
+                  <div className="space-y-4 mb-6">
+                    <div>
+                      <label className="block text-gray-900 font-semibold text-sm mb-2">
+                        Recipient Email *
+                      </label>
+                      <input
+                        type="email"
+                        value={emailAddress}
+                        onChange={(e) => setEmailAddress(e.target.value)}
+                        placeholder="client@example.com"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-gray-900 font-semibold text-sm mb-2">
+                        Message (Optional)
+                      </label>
+                      <textarea
+                        value={emailMessage}
+                        onChange={(e) => setEmailMessage(e.target.value)}
+                        placeholder="Add a message..."
+                        rows={3}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 resize-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowEmailModal(false)}
+                      className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSendEmail}
+                      disabled={!emailAddress}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-semibold disabled:opacity-50"
+                    >
+                      <Send className="w-5 h-5" />
+                      Send Email
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h4 className="text-gray-900 font-bold text-lg mb-2">
+                    Email Sent!
+                  </h4>
+                  <p className="text-gray-600">
+                    Document sent to {emailAddress}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Share Modal */}
+        {showShareModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-xl">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-gray-900 font-bold text-xl">
+                  Share Document
+                </h3>
+                <button
+                  onClick={() => setShowShareModal(false)}
+                  className="p-1 hover:bg-gray-100 rounded transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-600" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-gray-900 font-semibold text-sm mb-2">
+                    Shareable Link
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={window.location.href}
+                      readOnly
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 text-sm"
+                    />
+                    <button
+                      onClick={handleCopyLink}
+                      className="px-4 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
+                    >
+                      {copied ? (
+                        <Check className="w-5 h-5" />
+                      ) : (
+                        <Copy className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+                  {copied && (
+                    <p className="text-green-600 text-sm mt-2 flex items-center gap-1">
+                      <CheckCircle className="w-4 h-4" />
+                      Link copied to clipboard!
+                    </p>
+                  )}
+                </div>
+
+                <div className="pt-4 border-t border-gray-200">
+                  <p className="text-gray-600 text-sm text-center">
+                    Anyone with this link can view the document
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Print Styles */}
+      <style jsx global>{`
+        @media print {
+          body * {
+            visibility: hidden;
           }
-        `}</style>
-      </DashboardLayout>
-    </ProtectedRoute>
+          .print-area,
+          .print-area * {
+            visibility: visible;
+          }
+          .print-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            background: white;
+          }
+          .no-print {
+            display: none !important;
+          }
+        }
+      `}</style>
+    </DashboardLayout>
   );
 }

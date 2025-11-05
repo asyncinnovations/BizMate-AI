@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState, ChangeEvent, FormEvent } from "react";
 import {
   ShieldCheck,
   FileText,
@@ -23,75 +23,100 @@ interface FormError {
   password: string;
 }
 
-const LoginPage = () => {
+interface FormData {
+  email: string;
+  password: string;
+}
+
+interface PlatformFeature {
+  icon: React.ReactNode;
+  text: string;
+}
+
+interface AuthResponse {
+  token: string;
+  user: any;
+}
+
+const LoginPage: React.FC = () => {
   const router = useRouter();
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<FormError | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
   });
 
-  const validateForm = () => {
+  const validateForm = (): boolean => {
     const newErrors: FormError = {
       email: "",
       password: "",
     };
 
-    if (!formData.email?.trim()) newErrors.email = "Email is required!";
-    else if (!/\S+@\S+\.\S+/.test(formData.email))
+    if (!formData.email?.trim()) {
+      newErrors.email = "Email is required!";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Email is invalid!";
+    }
 
-    if (!formData.password?.trim())
+    if (!formData.password?.trim()) {
       newErrors.password = "Password is required!";
+    }
 
     setErrors(newErrors);
 
     const isValid = Object.values(newErrors).every((err) => err === "");
-
     return isValid;
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
     const sanitizedValue = value.trim();
     setFormData((prev) => ({ ...prev, [name]: sanitizedValue }));
 
-    // Clear error when user starts typing
-    if (errors && errors[name as keyof errorType]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
+    // Clear error when user starts typing - FIXED TYPE ERROR
+    if (errors && errors[name as keyof FormError]) {
+      setErrors((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          [name]: "",
+        };
+      });
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
 
     if (!validateForm()) return;
 
     setIsLoading(true);
     try {
-      const response = await axios.post(
+      const response = await axios.post<AuthResponse>(
         `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
         formData
       );
-      if (response.status === 201) {
+      
+      if (response.status === 200) {
         toast.success("Login successful! Redirecting to your dashboard…");
         login(response.data.token, response.data.user);
         router.push("/dashboard");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.log("Error while logged in", error);
-      toast.error("Login failed! Invalid email or password.");
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Login failed! Please check your credentials.";
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const platformTexts = [
+  const platformTexts: string[] = [
     "AI-Powered Business Assistant for SMEs",
     "Automate Compliance, Invoices & VAT",
     "Smart Reminders & WhatsApp Auto-Replies",
@@ -99,7 +124,7 @@ const LoginPage = () => {
     "From Compliance to Conversations, AI-Driven",
   ];
 
-  const features = [
+  const features: PlatformFeature[] = [
     {
       icon: <ShieldCheck className="w-5 h-5 text-cyan-400" />,
       text: "AI Compliance Assistant - UAE Regulations",

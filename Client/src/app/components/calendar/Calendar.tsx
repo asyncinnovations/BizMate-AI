@@ -173,9 +173,6 @@ const ReminderCalendar = ({ reminders, typeColors }: ReminderCalendarProps) => {
         day
       );
 
-      const hasPendingReminders = dayReminders.some(
-        (r) => r.status === "pending"
-      );
       const hasHighPriority = dayReminders.some((r) => r.priority === "high");
 
       days.push(
