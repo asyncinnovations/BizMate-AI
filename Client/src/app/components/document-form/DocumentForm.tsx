@@ -30,7 +30,7 @@ interface FieldConfig {
   id: string;
   label: string;
   type: "text" | "email" | "date" | "number" | "textarea" | "select" | "file";
-  placeholder: string;
+  placeholder?: string;
   required: boolean;
   aiSuggestion?: string;
   helpText?: string;
@@ -626,7 +626,14 @@ export default function DocumentForm() {
     const newField: FieldConfig = {
       id: `custom_${Date.now()}`,
       label: newFieldLabel,
-      type: newFieldType as any,
+      type: newFieldType as
+        | "number"
+        | "text"
+        | "select"
+        | "email"
+        | "date"
+        | "textarea"
+        | "file",
       placeholder:
         newFieldPlaceholder || `Enter ${newFieldLabel.toLowerCase()}`,
       required: newFieldRequired,

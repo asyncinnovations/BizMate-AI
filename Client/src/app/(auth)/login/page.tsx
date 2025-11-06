@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import TypeWriter from "@/app/components/type-writer/TypeWriter";
 import { useAuth } from "@/context/AuthContext";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import toast from "react-hot-toast";
 import Button from "@/app/components/ui/Button";
 import InputField from "@/app/components/ui/InputField";
@@ -35,7 +35,7 @@ interface PlatformFeature {
 
 interface AuthResponse {
   token: string;
-  user: any;
+  user: Record<string, unknown>;
 }
 
 const LoginPage: React.FC = () => {
@@ -98,18 +98,21 @@ const LoginPage: React.FC = () => {
         `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
         formData
       );
-      
+
       if (response.status === 200) {
         toast.success("Login successful! Redirecting to your dashboard…");
         login(response.data.token, response.data.user);
         router.push("/dashboard");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.log("Error while logged in", error);
+
+      const err = error as AxiosError<{ message?: string; error?: string }>;
       const errorMessage =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
+        err.response?.data?.message ||
+        err.response?.data?.error ||
         "Login failed! Please check your credentials.";
+
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);

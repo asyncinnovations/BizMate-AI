@@ -14,7 +14,7 @@ import {
 import Link from "next/link";
 import React, { useState, ChangeEvent, FormEvent } from "react";
 import TypeWriter from "@/app/components/type-writer/TypeWriter";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import InputField from "@/app/components/ui/InputField";
@@ -52,7 +52,7 @@ interface Benefit {
 
 interface AuthResponse {
   token?: string;
-  user?: any;
+  user?: Record<string, unknown>;
 }
 
 const RegisterPage: React.FC = () => {
@@ -128,12 +128,13 @@ const RegisterPage: React.FC = () => {
         toast.success("Account created successfully!");
         router.push("/login");
       }
-    } catch (error: any) {
-      console.log("Error occur while signup", error);
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message?: string; error?: string }>;
       const errorMessage =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
+        err.response?.data?.message ||
+        err.response?.data?.error ||
         "Signup failed! Please check your details and try again.";
+
       toast.error(errorMessage);
     }
   };

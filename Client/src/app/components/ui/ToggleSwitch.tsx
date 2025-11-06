@@ -1,4 +1,9 @@
-const ToggleSwitch = ({ enabled, onChange }) => (
+interface ToggleSwitchProps {
+  enabled: boolean;
+  onChange: () => void;
+}
+
+const ToggleSwitch = ({ enabled, onChange }: ToggleSwitchProps) => (
   <button
     onClick={onChange}
     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
