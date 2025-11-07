@@ -80,7 +80,7 @@ const LoginPage = () => {
       );
       if (response.status === 200) {
         toast.success("Login successful! Redirecting to your dashboard…");
-        login(response.data.token, response.data.user);
+        login(response?.data?.token, response?.data?.user);
         router.push("/dashboard");
       }
     } catch (error) {

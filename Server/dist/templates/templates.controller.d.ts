@@ -13,7 +13,7 @@ export declare class TemplatesController {
     get_all_template(): Promise<{
         message: string;
         status: number;
-        data?: undefined;
+        data: never[];
     } | {
         message: string;
         data: import("./templates.entity").TemplateEntity[];
@@ -35,7 +35,7 @@ export declare class TemplatesController {
     user_template(user_id: string): Promise<{
         message: string;
         status: number;
-        data?: undefined;
+        data: never[];
     } | {
         message: string;
         data: import("./templates.entity").TemplateEntity[];

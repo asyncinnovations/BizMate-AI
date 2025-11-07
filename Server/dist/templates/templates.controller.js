@@ -63,7 +63,7 @@ let TemplatesController = class TemplatesController {
     async get_all_template() {
         const templates = await this.templatesService.get_all_template_service();
         if (!templates || templates.length === 0) {
-            return { message: "No templates found", status: 404 };
+            return { message: "No templates found", status: 404, data: [] };
         }
         return { message: "All templates", data: templates };
     }
@@ -102,7 +102,11 @@ let TemplatesController = class TemplatesController {
         }
         const templates = await this.templatesService.user_template_service(user_id);
         if (!templates || templates.length === 0) {
-            return { message: "No templates found for this user", status: 404 };
+            return {
+                message: "No templates found for this user",
+                status: 404,
+                data: [],
+            };
         }
         return { message: "User templates found", data: templates };
     }
