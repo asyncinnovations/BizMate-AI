@@ -16,9 +16,9 @@ exports.TemplatesController = void 0;
 const common_1 = require("@nestjs/common");
 const templates_service_1 = require("./templates.service");
 const auth_guard_1 = require("../guards/auth/auth.guard");
-const PdfService_1 = require("../common/PdfService");
+const PdfService_1 = require("../services/PdfService");
 const path_1 = require("path");
-const EmailService_1 = require("../common/EmailService");
+const EmailService_1 = require("../services/EmailService");
 let TemplatesController = class TemplatesController {
     templatesService;
     pdfService;

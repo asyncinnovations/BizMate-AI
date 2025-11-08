@@ -17,8 +17,8 @@ import { InvoicesService } from "./invoices.service";
 import { InvoiceEntity } from "./invoices.entity";
 import { JwtGuard } from "src/guards/auth/auth.guard";
 import { join } from "node:path";
-import { PdfService } from "src/common/PdfService";
-import { EmailService } from "src/common/EmailService";
+import { PdfService } from "src/services/PdfService";
+import { EmailService } from "src/services/EmailService";
 import { UserPaymentGatewayService } from "src/user_payment_gateway/user_payment_gateway.service";
 
 @Controller("invoices")

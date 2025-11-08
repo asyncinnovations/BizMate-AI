@@ -12,8 +12,8 @@ const templates_service_1 = require("./templates.service");
 const templates_controller_1 = require("./templates.controller");
 const typeorm_1 = require("@nestjs/typeorm");
 const templates_entity_1 = require("./templates.entity");
-const PdfService_1 = require("../common/PdfService");
-const EmailService_1 = require("../common/EmailService");
+const PdfService_1 = require("../services/PdfService");
+const EmailService_1 = require("../services/EmailService");
 let TemplatesModule = class TemplatesModule {
 };
 exports.TemplatesModule = TemplatesModule;

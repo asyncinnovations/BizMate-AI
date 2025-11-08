@@ -3,6 +3,7 @@ export declare class TemplateFieldEntity {
     id: number;
     template_id: string;
     field_name: string;
+    placeholder: string;
     field_value: string;
     field_type: string;
     required: boolean;

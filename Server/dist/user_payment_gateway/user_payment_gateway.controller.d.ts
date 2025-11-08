@@ -1,5 +1,5 @@
 import { UserPaymentGatewayService } from "./user_payment_gateway.service";
-import { PaymentService } from "src/common/PaymentService";
+import { PaymentService } from "src/services/PaymentService";
 export declare class UserPaymentGatewayController {
     private readonly gatewayService;
     private readonly paymentService;

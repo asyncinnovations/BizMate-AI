@@ -16,6 +16,7 @@ let TemplateFieldEntity = class TemplateFieldEntity {
     id;
     template_id;
     field_name;
+    placeholder;
     field_value;
     field_type;
     required;
@@ -43,6 +44,10 @@ __decorate([
     (0, typeorm_1.Column)({ type: "varchar", length: 100, nullable: false }),
     __metadata("design:type", String)
 ], TemplateFieldEntity.prototype, "field_name", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: false }),
+    __metadata("design:type", String)
+], TemplateFieldEntity.prototype, "placeholder", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "text", nullable: true }),
     __metadata("design:type", String)

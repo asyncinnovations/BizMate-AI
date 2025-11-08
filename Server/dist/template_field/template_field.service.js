@@ -60,6 +60,7 @@ let TemplateFieldService = class TemplateFieldService {
     }
     async bulk_update_template_field_service(templateId, data) {
         const fields = await this.field_by_templateId_service(templateId);
+        console.log(fields);
         if (!fields.length)
             throw new common_1.NotFoundException("No fields found for this template");
         const updated = fields.map((field, i) => ({

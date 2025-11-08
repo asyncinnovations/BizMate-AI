@@ -18,12 +18,8 @@ export class InvoicesService {
   // CREATE INVOICE
   ///////////////////////////////////////////
   async create_invoice_service(data: Partial<InvoiceEntity>) {
-    try {
-      const invoice = this.invoicesRepo.create(data);
-      return await this.invoicesRepo.save(invoice);
-    } catch (err) {
-      throw new BadRequestException("Failed to create invoice: " + err.message);
-    }
+    const invoice = this.invoicesRepo.create(data);
+    return await this.invoicesRepo.save(invoice);
   }
 
   ///////////////////////////////////////////

@@ -23,13 +23,8 @@ let InvoicesService = class InvoicesService {
         this.invoicesRepo = invoicesRepo;
     }
     async create_invoice_service(data) {
-        try {
-            const invoice = this.invoicesRepo.create(data);
-            return await this.invoicesRepo.save(invoice);
-        }
-        catch (err) {
-            throw new common_1.BadRequestException("Failed to create invoice: " + err.message);
-        }
+        const invoice = this.invoicesRepo.create(data);
+        return await this.invoicesRepo.save(invoice);
     }
     async all_invoices_service(query) {
         const where = {};

@@ -15,9 +15,9 @@ import {
 } from "@nestjs/common";
 import { TemplatesService } from "./templates.service";
 import { JwtGuard } from "src/guards/auth/auth.guard";
-import { PdfService } from "src/common/PdfService";
+import { PdfService } from "src/services/PdfService";
 import { join } from "path";
-import { EmailService } from "src/common/EmailService";
+import { EmailService } from "src/services/EmailService";
 
 @Controller("templates")
 @UseGuards(JwtGuard)

@@ -16,7 +16,7 @@ exports.UserPaymentGatewayController = void 0;
 const common_1 = require("@nestjs/common");
 const user_payment_gateway_service_1 = require("./user_payment_gateway.service");
 const auth_guard_1 = require("../guards/auth/auth.guard");
-const PaymentService_1 = require("../common/PaymentService");
+const PaymentService_1 = require("../services/PaymentService");
 let UserPaymentGatewayController = class UserPaymentGatewayController {
     gatewayService;
     paymentService;

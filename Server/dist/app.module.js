@@ -22,6 +22,8 @@ const invoices_module_1 = require("./invoices/invoices.module");
 const invoices_entity_1 = require("./invoices/invoices.entity");
 const user_payment_gateway_module_1 = require("./user_payment_gateway/user_payment_gateway.module");
 const user_payment_gateway_entity_1 = require("./user_payment_gateway/user_payment_gateway.entity");
+const ai_reminder_module_1 = require("./ai_reminder/ai_reminder.module");
+const ai_reminder_entity_1 = require("./ai_reminder/ai_reminder.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -44,14 +46,15 @@ exports.AppModule = AppModule = __decorate([
                 username: process.env.DB_USER,
                 password: process.env.DB_PASSWORD,
                 database: process.env.DB_NAME,
+                synchronize: true,
                 entities: [
                     user_entity_1.AuthUsers,
                     templates_entity_1.TemplateEntity,
                     template_field_entity_1.TemplateFieldEntity,
                     invoices_entity_1.InvoiceEntity,
                     user_payment_gateway_entity_1.UserPaymentGatewayEntity,
+                    ai_reminder_entity_1.AiReminder,
                 ],
-                synchronize: true,
             }),
             auth_module_1.AuthModule,
             chatgpt_module_1.ChatgptModule,
@@ -59,6 +62,7 @@ exports.AppModule = AppModule = __decorate([
             template_field_module_1.TemplateFieldModule,
             invoices_module_1.InvoicesModule,
             user_payment_gateway_module_1.UserPaymentGatewayModule,
+            ai_reminder_module_1.AiReminderModule,
         ],
     })
 ], AppModule);

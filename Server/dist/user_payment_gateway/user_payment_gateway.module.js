@@ -12,7 +12,7 @@ const user_payment_gateway_service_1 = require("./user_payment_gateway.service")
 const user_payment_gateway_controller_1 = require("./user_payment_gateway.controller");
 const user_payment_gateway_entity_1 = require("./user_payment_gateway.entity");
 const typeorm_1 = require("@nestjs/typeorm");
-const PaymentService_1 = require("../common/PaymentService");
+const PaymentService_1 = require("../services/PaymentService");
 let UserPaymentGatewayModule = class UserPaymentGatewayModule {
 };
 exports.UserPaymentGatewayModule = UserPaymentGatewayModule;
