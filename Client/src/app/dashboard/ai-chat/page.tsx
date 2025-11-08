@@ -289,532 +289,527 @@ const ComplianceAssistancePage = () => {
   };
 
   return (
-      <DashboardLayout>
-        <div className="h-screen bg-slate-50 flex flex-col overflow-hidden">
-          {/* Compact Header */}
-          <header className="bg-white border-b border-slate-200">
-            <div className="px-6 py-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#1b2a49] rounded-lg flex items-center justify-center">
-                      <Bot className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <h1 className="text-xl font-bold text-slate-900">
-                        Compliance Assistant
-                      </h1>
-                      <p className="text-sm text-slate-600 flex items-center gap-1">
-                        <Shield className="h-3 w-3 text-emerald-500" />
-                        AI-powered UAE regulations expert
-                      </p>
-                    </div>
-                  </div>
-                </div>
+    <DashboardLayout>
+      <div className="h-screen bg-slate-50 flex flex-col overflow-hidden">
+        {/* Compact Header */}
+        <header className="bg-white border-b border-slate-200">
+          <div className="px-6 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
                 <div className="flex items-center gap-3">
-                  <Button
-                    className="bg-white py-2 border border-gray-300 text-gray-700 hover:bg-gray-50"
-                    icon={<Languages className="h-3 w-3" />}
-                  >
-                    العربية
-                  </Button>
-                  <Button className="py-2">Upgrade</Button>
+                  <div className="w-10 h-10 bg-[#1b2a49] rounded-lg flex items-center justify-center">
+                    <Bot className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-bold text-slate-900">
+                      Compliance Assistant
+                    </h1>
+                    <p className="text-sm text-slate-600 flex items-center gap-1">
+                      <Shield className="h-3 w-3 text-emerald-500" />
+                      AI-powered UAE regulations expert
+                    </p>
+                  </div>
                 </div>
               </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  className="bg-white py-2 border border-gray-300 text-gray-700 hover:bg-gray-50"
+                  icon={<Languages className="h-3 w-3" />}
+                >
+                  العربية
+                </Button>
+                <Button className="py-2">Upgrade</Button>
+              </div>
             </div>
-          </header>
+          </div>
+        </header>
 
-          {/* Main Content */}
-          <div className="flex-1 flex overflow-hidden">
-            {/* Compact Sidebar */}
-            <div
-              className={`bg-white border-r border-slate-200 flex flex-col transition-all duration-300 w-80`}
-            >
-              {
-                <>
-                  {/* Sidebar Tabs */}
-                  <div className="p-3 border-b border-slate-200">
-                    <div className="flex p-1 bg-slate-100 rounded-lg">
-                      <button
-                        onClick={() => setActiveTab("reminders")}
-                        className={`flex-1 py-2 text-xs font-medium flex items-center justify-center gap-1 rounded-md ${
-                          activeTab === "reminders"
-                            ? "bg-white text-slate-900 shadow-sm"
-                            : "text-slate-600 hover:text-slate-900"
-                        }`}
-                      >
-                        <AlertCircle className="h-3 w-3" />
-                        Reminders
-                      </button>
-                      <button
-                        onClick={() => setActiveTab("history")}
-                        className={`flex-1 py-2 text-xs font-medium flex items-center justify-center gap-1 rounded-md ${
-                          activeTab === "history"
-                            ? "bg-white text-slate-900 shadow-sm"
-                            : "text-slate-600 hover:text-slate-900"
-                        }`}
-                      >
-                        <Clock className="h-3 w-3" />
-                        History
-                      </button>
-                      <button
-                        onClick={() => setActiveTab("templates")}
-                        className={`flex-1 py-2 text-xs font-medium flex items-center justify-center gap-1 rounded-md ${
-                          activeTab === "templates"
-                            ? "bg-white text-slate-900 shadow-sm"
-                            : "text-slate-600 hover:text-slate-900"
-                        }`}
-                      >
-                        <FileText className="h-3 w-3" />
-                        Templates
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Sidebar Content */}
-                  <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-                    {activeTab === "reminders" && (
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-sm font-semibold text-slate-900">
-                            Deadlines
-                          </h3>
-                          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
-                            {
-                              reminders.filter((r) => r.status === "pending")
-                                .length
-                            }{" "}
-                            pending
-                          </span>
-                        </div>
-                        {reminders.map((reminder) => (
-                          <div
-                            key={reminder.id}
-                            className="p-3 bg-slate-50 rounded-lg border border-slate-200"
-                          >
-                            <div className="flex items-start justify-between mb-2">
-                              <div className="flex items-center gap-2">
-                                <div className="p-1.5 bg-white rounded">
-                                  {getCategoryIcon(reminder.category)}
-                                </div>
-                                <div>
-                                  <h4 className="text-xs font-semibold text-slate-900">
-                                    {reminder.title}
-                                  </h4>
-                                  <p className="text-xs text-slate-600 mt-0.5">
-                                    {reminder.description}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs text-[#1b2a49] flex items-center gap-1">
-                                <Calendar className="h-3 w-3" />
-                                {new Date(
-                                  reminder.deadline
-                                ).toLocaleDateString()}
-                              </span>
-                              <div
-                                className={`w-2 h-2 rounded-full ${getPriorityColor(
-                                  reminder.priority
-                                )}`}
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {activeTab === "history" && (
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-sm font-semibold text-slate-900">
-                            History
-                          </h3>
-                          <div className="relative">
-                            <Search className="h-3 w-3 absolute left-2 top-1.5 text-slate-400" />
-                            <input
-                              type="text"
-                              placeholder="Search..."
-                              className="pl-7 pr-2 py-1.5 text-xs border border-slate-200 rounded-lg w-32 focus:outline-none focus:border-[#1b2a49]"
-                            />
-                          </div>
-                        </div>
-                        {conversationHistory.map((conversation) => (
-                          <div
-                            key={conversation.id}
-                            className="p-3 bg-slate-50 rounded-lg border border-slate-200"
-                          >
-                            <div className="flex items-start justify-between mb-2">
-                              <div className="flex items-start gap-2 flex-1">
-                                <div className="p-1.5 bg-white rounded">
-                                  {getCategoryIcon(conversation.category)}
-                                </div>
-                                <div className="flex-1">
-                                  <h4 className="text-xs font-semibold text-slate-900 mb-1">
-                                    {conversation.title}
-                                  </h4>
-                                  <p className="text-xs text-slate-600 line-clamp-2">
-                                    {conversation.preview}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs text-slate-500">
-                                {conversation.timestamp.toLocaleDateString()}
-                              </span>
-                              {conversation.rating && (
-                                <div className="flex items-center gap-0.5">
-                                  {renderStars(conversation.rating)}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {activeTab === "templates" && (
-                      <div className="space-y-3">
-                        <h3 className="text-sm font-semibold text-slate-900">
-                          Templates
-                        </h3>
-                        {quickTemplates.map((template, index) => (
-                          <button
-                            key={index}
-                            onClick={() => handleSendMessage(template.prompt)}
-                            className="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 hover:border-blue-300 text-left"
-                          >
-                            <div className="flex items-center gap-2">
-                              <div className="p-1.5 bg-white rounded">
-                                {getCategoryIcon(template.category)}
-                              </div>
-                              <div>
-                                <h4 className="text-xs font-semibold text-slate-900">
-                                  {template.title}
-                                </h4>
-                                <p className="text-xs text-slate-600">
-                                  {template.description}
-                                </p>
-                              </div>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Quick Actions */}
-                  <div className="p-3 border-t border-slate-200">
-                    <div className="grid grid-cols-4 gap-2">
-                      <button className="flex flex-col items-center p-2 bg-slate-100 rounded-lg hover:bg-slate-200 text-xs">
-                        <FileText className="h-3 w-3 text-[#1b2a49] mb-1" />
-                        <span>Docs</span>
-                      </button>
-                      <button className="flex flex-col items-center p-2 bg-slate-100 rounded-lg hover:bg-slate-200 text-xs">
-                        <Download className="h-3 w-3 text-emerald-600 mb-1" />
-                        <span>Export</span>
-                      </button>
-                      <button className="flex flex-col items-center p-2 bg-slate-100 rounded-lg hover:bg-slate-200 text-xs">
-                        <Calendar className="h-3 w-3 text-amber-600 mb-1" />
-                        <span>Calendar</span>
-                      </button>
-                      <button className="flex flex-col items-center p-2 bg-slate-100 rounded-lg hover:bg-slate-200 text-xs">
-                        <HelpCircle className="h-3 w-3 text-purple-600 mb-1" />
-                        <span>Help</span>
-                      </button>
-                    </div>
-                  </div>
-                </>
-              }
-            </div>
-
-            {/* Main Chat Area */}
-            <div className="flex-1 flex flex-col bg-white">
-              {/* Chat Header */}
-              <div className="border-b border-slate-200 p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-gradient-to-r from-[#1f4c78] to-[#1b2a49] rounded-lg flex items-center justify-center">
-                      <Sparkles className="h-4 w-4 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
-                        AI Compliance Assistant
-                        <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded-full">
-                          Online
-                        </span>
-                      </h3>
-                      <p className="text-xs text-slate-600">
-                        UAE business regulations • Fast responses
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button className="p-1.5 hover:bg-slate-100 rounded">
-                      <Settings className="h-4 w-4 text-slate-500" />
+        {/* Main Content */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Compact Sidebar */}
+          <div
+            className={`bg-white border-r border-slate-200 flex flex-col transition-all duration-300 w-80`}
+          >
+            {
+              <>
+                {/* Sidebar Tabs */}
+                <div className="p-3 border-b border-slate-200">
+                  <div className="flex p-1 bg-slate-100 rounded-lg">
+                    <button
+                      onClick={() => setActiveTab("reminders")}
+                      className={`flex-1 py-2 text-xs font-medium flex items-center justify-center gap-1 rounded-md ${
+                        activeTab === "reminders"
+                          ? "bg-white text-slate-900 shadow-sm"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      <AlertCircle className="h-3 w-3" />
+                      Reminders
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("history")}
+                      className={`flex-1 py-2 text-xs font-medium flex items-center justify-center gap-1 rounded-md ${
+                        activeTab === "history"
+                          ? "bg-white text-slate-900 shadow-sm"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      <Clock className="h-3 w-3" />
+                      History
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("templates")}
+                      className={`flex-1 py-2 text-xs font-medium flex items-center justify-center gap-1 rounded-md ${
+                        activeTab === "templates"
+                          ? "bg-white text-slate-900 shadow-sm"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      <FileText className="h-3 w-3" />
+                      Templates
                     </button>
                   </div>
                 </div>
-              </div>
 
-              {/* Chat Messages - Wider Container */}
-              <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-                <div className="max-w-5xl mx-auto space-y-4">
-                  {chatMessages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${
-                        message.isUser ? "justify-end" : "justify-start"
-                      }`}
-                    >
-                      <div
-                        className={`max-w-3xl ${
-                          message.isUser ? "ml-16" : "mr-16"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 mb-1">
-                          {!message.isUser && (
-                            <div className="w-6 h-6 bg-[#1b2a49] rounded flex items-center justify-center">
-                              <Bot className="h-3 w-3 text-white" />
-                            </div>
-                          )}
-                          <span className="text-xs font-medium text-slate-700">
-                            {message.isUser ? "You" : "Assistant"}
-                          </span>
-                          <span className="text-xs text-slate-500">
-                            {message.timestamp.toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </span>
-                          {!message.isUser && message.confidence && (
-                            <span className="text-xs text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
-                              {message.confidence}%
-                            </span>
-                          )}
-                        </div>
+                {/* Sidebar Content */}
+                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                  {activeTab === "reminders" && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-semibold text-slate-900">
+                          Deadlines
+                        </h3>
+                        <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
+                          {
+                            reminders.filter((r) => r.status === "pending")
+                              .length
+                          }{" "}
+                          pending
+                        </span>
+                      </div>
+                      {reminders.map((reminder) => (
                         <div
-                          className={`rounded-xl px-4 py-3 ${
-                            message.isUser
-                              ? "bg-[#1b2a49] text-white"
-                              : "bg-slate-100 text-slate-900"
-                          }`}
+                          key={reminder.id}
+                          className="p-3 bg-slate-50 rounded-lg border border-slate-200"
                         >
-                          <div className="text-sm leading-6 whitespace-pre-wrap">
-                            {message.content.split("\n").map((line, index) => {
-                              if (
-                                line.startsWith("**") &&
-                                line.endsWith("**")
-                              ) {
-                                return (
-                                  <div
-                                    key={index}
-                                    className={`font-semibold mt-2 mb-1 ${
-                                      message.isUser
-                                        ? "text-blue-100"
-                                        : "text-slate-800"
-                                    }`}
-                                  >
-                                    {line.slice(2, -2)}
-                                  </div>
-                                );
-                              } else if (line.startsWith("• ")) {
-                                return (
-                                  <div
-                                    key={index}
-                                    className={`ml-3 ${
-                                      message.isUser
-                                        ? "text-blue-50"
-                                        : "text-slate-700"
-                                    }`}
-                                  >
-                                    {line}
-                                  </div>
-                                );
-                              } else if (line.match(/^\d+\./)) {
-                                return (
-                                  <div
-                                    key={index}
-                                    className={`ml-3 font-medium ${
-                                      message.isUser
-                                        ? "text-blue-50"
-                                        : "text-slate-700"
-                                    }`}
-                                  >
-                                    {line}
-                                  </div>
-                                );
-                              }
-                              return (
-                                line && (
-                                  <div key={index} className="mb-1">
-                                    {line}
-                                  </div>
-                                )
-                              );
-                            })}
-                          </div>
-                          {!message.isUser && message.sources && (
-                            <div className="mt-2 pt-2 border-t border-slate-200/40">
-                              <div className="flex flex-wrap gap-1">
-                                {message.sources.map((source, idx) => (
-                                  <span
-                                    key={idx}
-                                    className="text-xs bg-white/80 text-slate-600 px-2 py-0.5 rounded"
-                                  >
-                                    {source}
-                                  </span>
-                                ))}
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className="p-1.5 bg-white rounded">
+                                {getCategoryIcon(reminder.category)}
+                              </div>
+                              <div>
+                                <h4 className="text-xs font-semibold text-slate-900">
+                                  {reminder.title}
+                                </h4>
+                                <p className="text-xs text-slate-600 mt-0.5">
+                                  {reminder.description}
+                                </p>
                               </div>
                             </div>
-                          )}
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-[#1b2a49] flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {new Date(reminder.deadline).toLocaleDateString()}
+                            </span>
+                            <div
+                              className={`w-2 h-2 rounded-full ${getPriorityColor(
+                                reminder.priority
+                              )}`}
+                            />
+                          </div>
                         </div>
-                        <div
-                          className={`flex items-center gap-2 mt-1 text-xs ${
-                            message.isUser ? "justify-end" : "justify-start"
-                          }`}
-                        >
-                          {!message.isUser && (
-                            <>
-                              <button className="text-slate-500 hover:text-slate-700">
-                                Copy
-                              </button>
-                              <button className="text-slate-500 hover:text-slate-700">
-                                Save
-                              </button>
-                              <button
-                                onClick={() =>
-                                  toggleReminder(message.id, message.content)
-                                }
-                                className={`flex items-center gap-1 ${
-                                  message.hasReminder
-                                    ? "text-amber-600 hover:text-amber-700"
-                                    : "text-slate-500 hover:text-slate-700"
-                                }`}
-                              >
-                                {message.hasReminder ? (
-                                  <>
-                                    <Bell className="h-3 w-3" />
-                                    Reminder Set
-                                  </>
-                                ) : (
-                                  <>
-                                    <BellOff className="h-3 w-3" />
-                                    Set Reminder
-                                  </>
-                                )}
-                              </button>
-                              <button className="text-slate-500 hover:text-slate-700">
-                                Helpful
-                              </button>
-                            </>
-                          )}
+                      ))}
+                    </div>
+                  )}
+
+                  {activeTab === "history" && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-semibold text-slate-900">
+                          History
+                        </h3>
+                        <div className="relative">
+                          <Search className="h-3 w-3 absolute left-2 top-1.5 text-slate-400" />
+                          <input
+                            type="text"
+                            placeholder="Search..."
+                            className="pl-7 pr-2 py-1.5 text-xs border border-slate-200 rounded-lg w-32 focus:outline-none focus:border-[#1b2a49]"
+                          />
                         </div>
                       </div>
+                      {conversationHistory.map((conversation) => (
+                        <div
+                          key={conversation.id}
+                          className="p-3 bg-slate-50 rounded-lg border border-slate-200"
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-start gap-2 flex-1">
+                              <div className="p-1.5 bg-white rounded">
+                                {getCategoryIcon(conversation.category)}
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="text-xs font-semibold text-slate-900 mb-1">
+                                  {conversation.title}
+                                </h4>
+                                <p className="text-xs text-slate-600 line-clamp-2">
+                                  {conversation.preview}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-slate-500">
+                              {conversation.timestamp.toLocaleDateString()}
+                            </span>
+                            {conversation.rating && (
+                              <div className="flex items-center gap-0.5">
+                                {renderStars(conversation.rating)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
 
-                  {isLoading && (
-                    <div className="flex justify-start">
-                      <div className="max-w-3xl mr-16">
-                        <div className="flex items-center gap-2 mb-1">
+                  {activeTab === "templates" && (
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-semibold text-slate-900">
+                        Templates
+                      </h3>
+                      {quickTemplates.map((template, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleSendMessage(template.prompt)}
+                          className="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 hover:border-blue-300 text-left"
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="p-1.5 bg-white rounded">
+                              {getCategoryIcon(template.category)}
+                            </div>
+                            <div>
+                              <h4 className="text-xs font-semibold text-slate-900">
+                                {template.title}
+                              </h4>
+                              <p className="text-xs text-slate-600">
+                                {template.description}
+                              </p>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Quick Actions */}
+                <div className="p-3 border-t border-slate-200">
+                  <div className="grid grid-cols-4 gap-2">
+                    <button className="flex flex-col items-center p-2 bg-slate-100 rounded-lg hover:bg-slate-200 text-xs">
+                      <FileText className="h-3 w-3 text-[#1b2a49] mb-1" />
+                      <span>Docs</span>
+                    </button>
+                    <button className="flex flex-col items-center p-2 bg-slate-100 rounded-lg hover:bg-slate-200 text-xs">
+                      <Download className="h-3 w-3 text-emerald-600 mb-1" />
+                      <span>Export</span>
+                    </button>
+                    <button className="flex flex-col items-center p-2 bg-slate-100 rounded-lg hover:bg-slate-200 text-xs">
+                      <Calendar className="h-3 w-3 text-amber-600 mb-1" />
+                      <span>Calendar</span>
+                    </button>
+                    <button className="flex flex-col items-center p-2 bg-slate-100 rounded-lg hover:bg-slate-200 text-xs">
+                      <HelpCircle className="h-3 w-3 text-purple-600 mb-1" />
+                      <span>Help</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            }
+          </div>
+
+          {/* Main Chat Area */}
+          <div className="flex-1 flex flex-col bg-white">
+            {/* Chat Header */}
+            <div className="border-b border-slate-200 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-[#1f4c78] to-[#1b2a49] rounded-lg flex items-center justify-center">
+                    <Sparkles className="h-4 w-4 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                      AI Compliance Assistant
+                      <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded-full">
+                        Online
+                      </span>
+                    </h3>
+                    <p className="text-xs text-slate-600">
+                      UAE business regulations • Fast responses
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button className="p-1.5 hover:bg-slate-100 rounded">
+                    <Settings className="h-4 w-4 text-slate-500" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Chat Messages - Wider Container */}
+            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+              <div className="max-w-5xl mx-auto space-y-4">
+                {chatMessages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`flex ${
+                      message.isUser ? "justify-end" : "justify-start"
+                    }`}
+                  >
+                    <div
+                      className={`max-w-3xl ${
+                        message.isUser ? "ml-16" : "mr-16"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        {!message.isUser && (
                           <div className="w-6 h-6 bg-[#1b2a49] rounded flex items-center justify-center">
                             <Bot className="h-3 w-3 text-white" />
                           </div>
-                          <span className="text-xs font-medium text-slate-700">
-                            Assistant
+                        )}
+                        <span className="text-xs font-medium text-slate-700">
+                          {message.isUser ? "You" : "Assistant"}
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          {message.timestamp.toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                        {!message.isUser && message.confidence && (
+                          <span className="text-xs text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
+                            {message.confidence}%
                           </span>
-                          <span className="text-xs text-slate-500">
-                            typing...
-                          </span>
+                        )}
+                      </div>
+                      <div
+                        className={`rounded-xl px-4 py-3 ${
+                          message.isUser
+                            ? "bg-[#1b2a49] text-white"
+                            : "bg-slate-100 text-slate-900"
+                        }`}
+                      >
+                        <div className="text-sm leading-6 whitespace-pre-wrap">
+                          {message.content.split("\n").map((line, index) => {
+                            if (line.startsWith("**") && line.endsWith("**")) {
+                              return (
+                                <div
+                                  key={index}
+                                  className={`font-semibold mt-2 mb-1 ${
+                                    message.isUser
+                                      ? "text-blue-100"
+                                      : "text-slate-800"
+                                  }`}
+                                >
+                                  {line.slice(2, -2)}
+                                </div>
+                              );
+                            } else if (line.startsWith("• ")) {
+                              return (
+                                <div
+                                  key={index}
+                                  className={`ml-3 ${
+                                    message.isUser
+                                      ? "text-blue-50"
+                                      : "text-slate-700"
+                                  }`}
+                                >
+                                  {line}
+                                </div>
+                              );
+                            } else if (line.match(/^\d+\./)) {
+                              return (
+                                <div
+                                  key={index}
+                                  className={`ml-3 font-medium ${
+                                    message.isUser
+                                      ? "text-blue-50"
+                                      : "text-slate-700"
+                                  }`}
+                                >
+                                  {line}
+                                </div>
+                              );
+                            }
+                            return (
+                              line && (
+                                <div key={index} className="mb-1">
+                                  {line}
+                                </div>
+                              )
+                            );
+                          })}
                         </div>
-                        <div className="bg-slate-100 rounded-xl px-4 py-3">
-                          <div className="flex items-center space-x-1">
-                            <div className="w-2 h-2 bg-[#1b2a49] rounded-full animate-bounce"></div>
-                            <div
-                              className="w-2 h-2 bg-[#1b2a49] rounded-full animate-bounce"
-                              style={{ animationDelay: "0.2s" }}
-                            ></div>
-                            <div
-                              className="w-2 h-2 bg-[#1b2a49] rounded-full animate-bounce"
-                              style={{ animationDelay: "0.4s" }}
-                            ></div>
+                        {!message.isUser && message.sources && (
+                          <div className="mt-2 pt-2 border-t border-slate-200/40">
+                            <div className="flex flex-wrap gap-1">
+                              {message.sources.map((source, idx) => (
+                                <span
+                                  key={idx}
+                                  className="text-xs bg-white/80 text-slate-600 px-2 py-0.5 rounded"
+                                >
+                                  {source}
+                                </span>
+                              ))}
+                            </div>
                           </div>
+                        )}
+                      </div>
+                      <div
+                        className={`flex items-center gap-2 mt-1 text-xs ${
+                          message.isUser ? "justify-end" : "justify-start"
+                        }`}
+                      >
+                        {!message.isUser && (
+                          <>
+                            <button className="text-slate-500 hover:text-slate-700">
+                              Copy
+                            </button>
+                            <button className="text-slate-500 hover:text-slate-700">
+                              Save
+                            </button>
+                            <button
+                              onClick={() =>
+                                toggleReminder(message.id, message.content)
+                              }
+                              className={`flex items-center gap-1 ${
+                                message.hasReminder
+                                  ? "text-amber-600 hover:text-amber-700"
+                                  : "text-slate-500 hover:text-slate-700"
+                              }`}
+                            >
+                              {message.hasReminder ? (
+                                <>
+                                  <Bell className="h-3 w-3" />
+                                  Reminder Set
+                                </>
+                              ) : (
+                                <>
+                                  <BellOff className="h-3 w-3" />
+                                  Set Reminder
+                                </>
+                              )}
+                            </button>
+                            <button className="text-slate-500 hover:text-slate-700">
+                              Helpful
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="max-w-3xl mr-16">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-6 h-6 bg-[#1b2a49] rounded flex items-center justify-center">
+                          <Bot className="h-3 w-3 text-white" />
+                        </div>
+                        <span className="text-xs font-medium text-slate-700">
+                          Assistant
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          typing...
+                        </span>
+                      </div>
+                      <div className="bg-slate-100 rounded-xl px-4 py-3">
+                        <div className="flex items-center space-x-1">
+                          <div className="w-2 h-2 bg-[#1b2a49] rounded-full animate-bounce"></div>
+                          <div
+                            className="w-2 h-2 bg-[#1b2a49] rounded-full animate-bounce"
+                            style={{ animationDelay: "0.2s" }}
+                          ></div>
+                          <div
+                            className="w-2 h-2 bg-[#1b2a49] rounded-full animate-bounce"
+                            style={{ animationDelay: "0.4s" }}
+                          ></div>
                         </div>
                       </div>
                     </div>
-                  )}
-                  <div ref={chatEndRef} />
-                </div>
+                  </div>
+                )}
+                <div ref={chatEndRef} />
               </div>
+            </div>
 
-              {/* Chat Input */}
-              <div className="border-t border-slate-200 p-4">
-                <div className="max-w-5xl mx-auto">
-                  <div className="flex gap-3">
-                    <div className="flex-1">
-                      <div className="relative bg-white border border-slate-200 rounded-lg focus-within:[#1b2a49]">
-                        <textarea
-                          placeholder="Ask about UAE compliance, VAT, licenses..."
-                          className="w-full border-0 rounded-lg px-3 py-2 pr-12 focus:outline-none resize-none text-sm"
-                          rows={2}
-                          value={newMessage}
-                          onChange={(e) => setNewMessage(e.target.value)}
-                          onKeyDown={handleKeyPress}
-                        />
-                        <button
-                          onClick={() => handleSendMessage()}
-                          disabled={isLoading || !newMessage.trim()}
-                          className={`absolute right-2 bottom-2 p-1.5 rounded ${
-                            isLoading || !newMessage.trim()
-                              ? "text-slate-400"
-                              : "bg-[#1b2a49] text-white hover:bg-[#1b2a49]"
-                          }`}
-                        >
-                          <Send className="h-3 w-3" />
-                        </button>
-                      </div>
-                      <div className="flex items-center justify-between mt-2 text-xs text-slate-500">
-                        <span>Press Enter to send</span>
-                        <span>Shift+Enter for new line</span>
-                      </div>
+            {/* Chat Input */}
+            <div className="border-t border-slate-200 p-4">
+              <div className="max-w-5xl mx-auto">
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <div className="relative bg-white border border-slate-200 rounded-lg focus-within:[#1b2a49]">
+                      <textarea
+                        placeholder="Ask about UAE compliance, VAT, licenses..."
+                        className="w-full border-0 rounded-lg px-3 py-2 pr-12 focus:outline-none resize-none text-sm"
+                        rows={2}
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        onKeyDown={handleKeyPress}
+                      />
+                      <button
+                        onClick={() => handleSendMessage()}
+                        disabled={isLoading || !newMessage.trim()}
+                        className={`absolute right-2 bottom-2 p-1.5 rounded ${
+                          isLoading || !newMessage.trim()
+                            ? "text-slate-400"
+                            : "bg-[#1b2a49] text-white hover:bg-[#1b2a49]"
+                        }`}
+                      >
+                        <Send className="h-3 w-3" />
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between mt-2 text-xs text-slate-500">
+                      <span>Press Enter to send</span>
+                      <span>Shift+Enter for new line</span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-
-          <style jsx global>{`
-            .line-clamp-2 {
-              display: -webkit-box;
-              -webkit-line-clamp: 2;
-              -webkit-box-orient: vertical;
-              overflow: hidden;
-            }
-
-            .custom-scrollbar::-webkit-scrollbar {
-              width: 6px;
-            }
-
-            .custom-scrollbar::-webkit-scrollbar-track {
-              background: #f1f5f9;
-              border-radius: 3px;
-            }
-
-            .custom-scrollbar::-webkit-scrollbar-thumb {
-              background: #cbd5e1;
-              border-radius: 3px;
-            }
-
-            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-              background: #94a3b8;
-            }
-          `}</style>
         </div>
-      </DashboardLayout>
+
+        <style jsx global>{`
+          .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+          }
+
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+          }
+
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+          }
+
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+          }
+
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+          }
+        `}</style>
+      </div>
+    </DashboardLayout>
   );
 };
 

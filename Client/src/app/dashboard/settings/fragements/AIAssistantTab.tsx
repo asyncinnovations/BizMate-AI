@@ -50,7 +50,9 @@ const AIAssistantTab: React.FC = () => {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-[#1B2A49]">Enable Smart Suggestions</p>
+              <p className="font-medium text-[#1B2A49]">
+                Enable Smart Suggestions
+              </p>
               <p className="text-sm text-[#344767]">
                 AI provides proactive business suggestions
               </p>
@@ -76,7 +78,9 @@ const AIAssistantTab: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-[#1B2A49]">Allow Training on Your Data</p>
+              <p className="font-medium text-[#1B2A49]">
+                Allow Training on Your Data
+              </p>
               <p className="text-sm text-[#344767]">
                 Help improve AI by analyzing your chat interactions
               </p>
@@ -85,7 +89,9 @@ const AIAssistantTab: React.FC = () => {
           </div>
           <div className="p-4 bg-[#F4F7FA] rounded-lg">
             <p className="text-sm text-[#344767]">
-              Your business data is encrypted and secure. Disabling training means AI won't learn from your specific interactions, but core features remain functional.
+              Your business data is encrypted and secure. Disabling training
+              means AI won't learn from your specific interactions, but core
+              features remain functional.
             </p>
           </div>
         </div>

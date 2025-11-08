@@ -108,7 +108,7 @@ const InvoicePreviewPage: React.FC = () => {
   };
 
   return (
-      <DashboardLayout>
+    <DashboardLayout>
       <div className="min-h-screen bg-gray-50 p-6 mb-4">
         <div className="w-full">
           {/* Page Header */}

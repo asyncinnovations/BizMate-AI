@@ -17,7 +17,6 @@ import {
   Plus,
   Star,
   Send,
-  File,
   FileSignature,
 } from "lucide-react";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
@@ -25,43 +24,71 @@ import StatCard from "@/app/components/stat-card/StatCard";
 import PageHeader from "@/app/components/page-header/PageHeader";
 import Modal from "@/app/components/ui/Modal";
 import { useAuth } from "@/context/AuthContext";
-import axios from "axios";
 import axiosInstance from "@/utils/axiosInstance";
 import toast from "react-hot-toast";
+import LoadingSpinner from "@/app/components/loading-spinner/LoadingSpinner";
 
 interface DocumentTemplate {
+  uuid: string;
   id: string;
-  title: string;
+  template_name: string;
   description: string;
-  icon: React.ReactNode;
-  category: string;
-  estimatedTime: string;
-  popularity: number;
-  isCustom?: boolean;
+  fields_schema: Record<string, string>;
+  user_id: string | null;
+  is_prebuilt: boolean;
 }
+
+const dummyTemplates = [
+  {
+    uuid: "6b71e1ca-c877-40c9-afd8-4f997b435ef1",
+    id: 1,
+    template_name: "Employment Contract",
+    description: "Standard employment agreement for companies.",
+    fields_schema: {
+      salary: "",
+      position: "",
+      start_date: "",
+      employee_name: "",
+    },
+    user_id: null,
+    is_prebuilt: true,
+    version: 1,
+    is_active: true,
+    created_at: "2025-11-03T05:38:48.886Z",
+    updated_at: "2025-11-03T05:38:48.886Z",
+  },
+];
 
 export default function DocumentGeneratorMain() {
   const router = useRouter();
-  const [customTemplates, setCustomTemplates] = useState([]);
-  const [preBuiltTemplates, setPreBuiltTemplates] = useState([]);
+  const [customTemplates, setCustomTemplates] = useState<DocumentTemplate[]>(
+    []
+  );
+  const [preBuiltTemplates, setPreBuiltTemplates] = useState<
+    DocumentTemplate[]
+  >([]);
   const [activeTab, setActiveTab] = useState<"platform" | "custom">("platform");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [customPrompt, setCustomPrompt] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { user, loading } = useAuth();
 
   const fetchTemplates = async () => {
     try {
+      setIsLoading(true);
       const [allRes, userRes] = await Promise.all([
         axiosInstance.get("/templates/all"),
         axiosInstance.get(`/templates/user/${user?.user?.user_id}`),
       ]);
-      console.log("Successfully fetched templates", allRes , userRes);
+      console.log("Successfully fetched templates", allRes, userRes);
       const preBuilt = allRes.data?.data.filter((temp) => temp.is_prebuilt);
       setPreBuiltTemplates(preBuilt);
       setCustomTemplates(userRes.data?.data);
     } catch (error) {
       console.log(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -307,27 +334,6 @@ export default function DocumentGeneratorMain() {
     );
   };
 
-  const dummyTemplates = [
-    {
-      uuid: "6b71e1ca-c877-40c9-afd8-4f997b435ef1",
-      id: 1,
-      template_name: "Employment Contract",
-      description: "Standard employment agreement for companies.",
-      fields_schema: {
-        salary: "",
-        position: "",
-        start_date: "",
-        employee_name: "",
-      },
-      user_id: null,
-      is_prebuilt: true,
-      version: 1,
-      is_active: true,
-      created_at: "2025-11-03T05:38:48.886Z",
-      updated_at: "2025-11-03T05:38:48.886Z",
-    },
-  ];
-
   const displayedTemplates =
     activeTab === "platform" ? preBuiltTemplates : customTemplates;
 
@@ -411,58 +417,62 @@ export default function DocumentGeneratorMain() {
               </div>
 
               {/* Templates Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {displayedTemplates.map((template) => (
-                  <div
-                    key={template.uuid}
-                    onClick={() => handleTemplateClick(template.uuid)}
-                    className="bg-white rounded-xl p-6 shadow-sm border border-[#E1E8F5] hover:shadow-md transition-all cursor-pointer group hover:border-[#2E69A4] relative"
-                  >
-                    {/* Custom Badge */}
-                    {!template.is_prebuilt && (
-                      <div className="absolute top-4 right-4 flex items-center gap-1 border border-gray-400 text-gray-700 text-xs font-medium px-2.5 py-1 rounded-full bg-white shadow-sm">
-                        <Star className="w-3 h-3 text-gray-600" />
-                        CUSTOM
-                      </div>
-                    )}
-
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="w-14 h-14 bg-gradient-to-br from-[#1B2A49] to-[#2E69A4] rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform">
-                        {getTemplateIcon(template.template_name)}
-                      </div>
-                      {!template.is_prebuilt && (
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center gap-1 text-[#F6A821] text-xs font-semibold bg-[#F6A821]/10 px-2 py-1 rounded">
-                            <TrendingUp className="w-3 h-3" />
-                            {/* {template.popularity}% */}
-                            90%
-                          </div>
+              {isLoading ? (
+                <div className="p-12">
+                  <LoadingSpinner size="w-8 h-8" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {displayedTemplates.map((template) => (
+                    <div
+                      key={template.uuid}
+                      onClick={() => handleTemplateClick(template.uuid)}
+                      className="bg-white rounded-xl p-6 shadow-sm border border-[#E1E8F5] hover:shadow-md transition-all cursor-pointer group hover:border-[#2E69A4] relative"
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="w-14 h-14 bg-gradient-to-br from-[#1B2A49] to-[#2E69A4] rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                          {getTemplateIcon(template.template_name)}
                         </div>
-                      )}
-                    </div>
 
-                    <h3 className="text-[#1B2A49] font-bold text-lg mb-2 group-hover:text-[#2E69A4] transition-colors">
-                      {template.template_name}
-                    </h3>
-                    <p className="text-[#344767] text-sm mb-4 line-clamp-2">
-                      {template.description}
-                    </p>
-
-                    <div className="flex items-center justify-between pt-4 border-t border-[#E1E8F5]">
-                      <div className="flex items-center gap-2 text-[#344767] text-sm">
-                        <Clock className="w-4 h-4" />
-                        {/* <span>{template.estimatedTime}</span> */}
+                        {template.is_prebuilt ? (
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 text-[#F6A821] text-xs font-semibold bg-[#F6A821]/10 px-2 py-1 rounded">
+                              <TrendingUp className="w-3 h-3" />
+                              {/* {template.popularity}% */}
+                              90%
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1 border border-gray-400 text-gray-700 text-xs font-medium px-2.5 py-1 rounded-full bg-white shadow-sm">
+                            <Star className="w-3 h-3 text-gray-600" />
+                            CUSTOM
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2 text-[#2E69A4] font-semibold group-hover:gap-3 transition-all">
-                        <span className="text-sm">Create</span>
-                        <ArrowRight className="w-4 h-4" />
+
+                      <h3 className="text-[#1B2A49] font-bold text-lg mb-2 group-hover:text-[#2E69A4] transition-colors">
+                        {template.template_name}
+                      </h3>
+                      <p className="text-[#344767] text-sm mb-4 line-clamp-2">
+                        {template.description}
+                      </p>
+
+                      <div className="flex items-center justify-between pt-4 border-t border-[#E1E8F5]">
+                        <div className="flex items-center gap-2 text-[#344767] text-sm">
+                          <Clock className="w-4 h-4" />
+                          {/* <span>{template.estimatedTime}</span> */}
+                        </div>
+                        <div className="flex items-center gap-2 text-[#2E69A4] font-semibold group-hover:gap-3 transition-all">
+                          <span className="text-sm">Create</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
 
-              {displayedTemplates.length === 0 && (
+              {displayedTemplates.length === 0 && !isLoading && (
                 <div className="bg-white rounded-xl p-12 shadow-sm border border-[#E1E8F5] text-center">
                   <FileText className="w-16 h-16 text-[#344767]/30 mx-auto mb-4" />
                   <h3 className="text-[#1B2A49] font-semibold text-lg mb-2">

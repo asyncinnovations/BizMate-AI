@@ -56,7 +56,9 @@ const Button: React.FC<ButtonProps> = ({
         <LoadingSpinner size="w-5 h-5" color="border-white" />
       ) : (
         <>
-          {startIcon && <span className="mr-2 flex items-center">{startIcon}</span>}
+          {startIcon && (
+            <span className="mr-2 flex items-center">{startIcon}</span>
+          )}
           {children}
           {endIcon && <span className="ml-2 flex items-center">{endIcon}</span>}
         </>

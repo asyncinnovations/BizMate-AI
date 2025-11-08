@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import {
   Sparkles,
   Save,
-  Eye,
   FileText,
   AlertCircle,
   CheckCircle,
@@ -20,7 +19,6 @@ import {
 } from "lucide-react";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import PageHeader from "@/app/components/page-header/PageHeader";
-import { documentConfigs } from "@/app/config/documentConfigs";
 import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
 import Modal from "@/app/components/ui/Modal";
 import toast from "react-hot-toast";
@@ -30,10 +28,8 @@ import { useAuth } from "@/context/AuthContext";
 
 interface FieldConfig {
   id: string;
-  label: string;
-  field_name?: string;
-  type: "text" | "email" | "date" | "number" | "textarea" | "select" | "file";
-  field_type?:
+  field_name: string;
+  field_type:
     | "text"
     | "email"
     | "date"
@@ -41,29 +37,49 @@ interface FieldConfig {
     | "textarea"
     | "select"
     | "file";
+  field_value?: string;
   placeholder: string;
   required: boolean;
   aiSuggestion?: string;
   helpText?: string;
   options?: string[];
-  isCustomAdded?: boolean;
   unique_id?: string;
+  uuid?: string; // Add uuid for existing fields from backend
+}
+
+interface ErrorTypes {
+  header: Record<string, string>;
+  main: Record<string, string>;
+  footer: Record<string, string>;
+}
+
+interface NewFieldTypes {
+  field_name: string;
+  field_type: string;
+  placeholder: string;
+  required: boolean;
+}
+
+interface FormDataTypes {
+  header: Record<string, string>;
+  main: Record<string, string>;
+  footer: Record<string, string>;
 }
 
 // Header fields configuration
 const headerFields: FieldConfig[] = [
   {
     id: "formName",
-    label: "Form Name",
-    type: "text",
+    field_name: "Form Name",
+    field_type: "text",
     placeholder: "e.g., Contract Form, Employment Agreement, NDA",
     required: true,
     helpText: "This will be displayed as the main title of your document",
   },
   {
     id: "documentTitle",
-    label: "Document Title",
-    type: "text",
+    field_name: "Document Title",
+    field_type: "text",
     placeholder: "e.g., Service Agreement, Employment Contract",
     required: false,
     helpText: "Specific title for this document instance",
@@ -74,43 +90,43 @@ const headerFields: FieldConfig[] = [
 const footerFields: FieldConfig[] = [
   {
     id: "preparedBy",
-    label: "Prepared By",
-    type: "text",
+    field_name: "Prepared By",
+    field_type: "text",
     placeholder: "Name of person/organization who prepared this document",
     required: false,
   },
   {
     id: "reviewedBy",
-    label: "Reviewed By",
-    type: "text",
+    field_name: "Reviewed By",
+    field_type: "text",
     placeholder: "Name of reviewer",
     required: false,
   },
   {
     id: "approvedBy",
-    label: "Approved By",
-    type: "text",
+    field_name: "Approved By",
+    field_type: "text",
     placeholder: "Name of approver",
     required: false,
   },
   {
     id: "effectiveDate",
-    label: "Effective Date",
-    type: "date",
+    field_name: "Effective Date",
+    field_type: "date",
     placeholder: "When this document becomes effective",
     required: false,
   },
   {
     id: "expiryDate",
-    label: "Expiry Date",
-    type: "date",
+    field_name: "Expiry Date",
+    field_type: "date",
     placeholder: "When this document expires (if applicable)",
     required: false,
   },
   {
     id: "footerNotes",
-    label: "Footer Notes",
-    type: "textarea",
+    field_name: "Footer Notes",
+    field_type: "textarea",
     placeholder:
       "Any additional notes, disclaimers, or important information to display in footer",
     required: false,
@@ -118,8 +134,8 @@ const footerFields: FieldConfig[] = [
   },
   {
     id: "confidentialityLevel",
-    label: "Confidentiality Level",
-    type: "select",
+    field_name: "Confidentiality Level",
+    field_type: "select",
     placeholder: "Select confidentiality level",
     required: false,
     options: [
@@ -145,6 +161,7 @@ export default function DocumentForm() {
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [aiProcessing, setAiProcessing] = useState<boolean>(false);
   const [fields, setFields] = useState<FieldConfig[]>([]);
+  const [originalFields, setOriginalFields] = useState<FieldConfig[]>([]); // Store original fields for comparison
   const [templateName, setTemplateName] = useState<string>("");
   const [templateDescription, setTemplateDescription] = useState<string>("");
   const [hasAutoFilled, setHasAutoFilled] = useState<boolean>(false);
@@ -155,24 +172,22 @@ export default function DocumentForm() {
   const [isAddFieldModalOpen, setIsAddFieldModalOpen] =
     useState<boolean>(false);
 
-  const [newFieldPlaceholder, setNewFieldPlaceholder] = useState<string>("");
-  const [newFieldOptions, setNewFieldOptions] = useState<string>("");
-
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormDataTypes>({
     header: {}, // e.g. { title: "", logo: "" }
     main: {}, // user dynamically adds fields here
     footer: {}, // e.g. { note: "" }
   });
 
-  const [errors, setErrors] = useState({
+  const [errors, setErrors] = useState<ErrorTypes>({
     header: {},
     main: {},
     footer: {},
   });
 
-  const [newField, setNewField] = useState({
+  const [newField, setNewField] = useState<NewFieldTypes>({
     field_name: "",
-    field_type: "",
+    field_type: "text",
+    placeholder: "",
     required: false,
   });
 
@@ -206,11 +221,12 @@ export default function DocumentForm() {
         `/template_field/template/${template_id}`
       );
       if (response.status === 200) {
-        const fields = (response.data.response || []).map((f) => ({
+        const fields = (response.data.response || []).map((f: FieldConfig) => ({
           ...f,
           unique_id: generateUniqueId(),
         }));
         setFields(fields);
+        setOriginalFields(fields); // Store original fields for comparison
         console.log("Successfully get all fields of a template", fields);
       }
     } catch (error) {
@@ -223,34 +239,46 @@ export default function DocumentForm() {
   //////////////////////////////////////////
   const fetchAIGeneratedFields = async () => {
     try {
+      setIsGenerating(true);
       //Step-1 Ask AI to generate schema
-      const aiResponseFields = [
-        {
-          field_name: "Name",
-          field_type: "text",
-          required: true,
-        },
-        {
-          field_name: "Email",
-          field_type: "email",
-          required: true,
-        },
-        {
-          field_name: "Phone",
-          field_type: "number",
-          required: true,
-        },
-      ];
+      const response: FieldConfig[] = await new Promise((resolve, reject) => {
+        setTimeout(() => {
+          const aiResponseFields: FieldConfig[] = [
+            {
+              id: "temp-1",
+              field_name: "Name",
+              field_type: "text",
+              placeholder: "Enter your name",
+              required: false,
+            },
+            {
+              id: "temp-2",
+              field_name: "Email",
+              field_type: "email",
+              placeholder: "Enter your business email",
+              required: true,
+            },
+          ];
 
-      const aiResponseFieldsWithUniqueIds = aiResponseFields.map((f) => ({
+          setTemplateName(promptFromUrl.slice(0, 30));
+          setTemplateDescription(promptFromUrl);
+
+          resolve(aiResponseFields);
+        }, 2000);
+      });
+
+      const aiResponseFieldsWithUniqueIds = response.map((f) => ({
         ...f,
         unique_id: generateUniqueId(),
       }));
 
       setFields(aiResponseFieldsWithUniqueIds);
+      setOriginalFields(aiResponseFieldsWithUniqueIds); // Store original fields for comparison
     } catch (error) {
       console.log(error);
       toast.error("Failed to generate AI Template");
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -264,9 +292,16 @@ export default function DocumentForm() {
       unique_id: generateUniqueId(),
     };
 
+    console.log(fieldToAdd);
+
     setFields((prev) => [...prev, fieldToAdd]);
     toast.success("Field added!");
-    setNewField({ field_name: "", field_type: "", required: false });
+    setNewField({
+      field_name: "",
+      field_type: "",
+      placeholder: "",
+      required: false,
+    });
     setIsAddFieldModalOpen(false);
 
     // try {
@@ -314,12 +349,17 @@ export default function DocumentForm() {
 
     setFields((prev) =>
       prev.map((f) =>
-        editingField === f.unique_id ? { ...f, ...updatedData } : f
+        f.unique_id === editingField.unique_id ? { ...f, ...updatedData } : f
       )
     );
     toast.success("Field Updated!");
     setEditingField(null);
-    setNewField({ field_name: "", field_type: "", required: false });
+    setNewField({
+      field_name: "",
+      field_type: "",
+      placeholder: "",
+      required: false,
+    });
     handleCloseEditFieldModal();
 
     // try {
@@ -372,6 +412,100 @@ export default function DocumentForm() {
   };
 
   //////////////////////////////////////////
+  //  Field Management Logic for Template Update
+  //////////////////////////////////////////
+  const manageTemplateFields = async () => {
+    if (!template_id) return;
+
+    try {
+      // Identify fields that need to be processed
+      const currentFieldIds = fields.map((f) => f.unique_id);
+      const originalFieldIds = originalFields.map((f) => f.unique_id);
+
+      // Fields to delete (present in original but not in current)
+      const fieldsToDelete = originalFields.filter(
+        (field) => !currentFieldIds.includes(field.unique_id)
+      );
+
+      // Fields to add (present in current but not in original)
+      const fieldsToAdd = fields.filter(
+        (field) => !originalFieldIds.includes(field.unique_id)
+      );
+
+      // Fields to update (present in both but potentially modified)
+      const fieldsToUpdate = fields.filter((field) => {
+        if (!originalFieldIds.includes(field.unique_id)) return false;
+
+        const originalField = originalFields.find(
+          (f) => f.unique_id === field.unique_id
+        );
+        return (
+          originalField &&
+          (originalField.field_name !== field.field_name ||
+            originalField.field_type !== field.field_type ||
+            originalField.placeholder !== field.placeholder ||
+            originalField.required !== field.required)
+        );
+      });
+
+      console.log("Fields to delete:", fieldsToDelete);
+      console.log("Fields to add:", fieldsToAdd);
+      console.log("Fields to update:", fieldsToUpdate);
+
+      // Delete fields
+      for (const field of fieldsToDelete) {
+        if (field.uuid) {
+          // Only delete fields that exist in backend (have uuid)
+          await axiosInstance.delete(`/template_field/delete/${field.uuid}`);
+          console.log(`Deleted field: ${field.field_name}`);
+        }
+      }
+
+      // Add new fields
+      if (fieldsToAdd.length > 0) {
+        const fieldsForBulkCreate = fieldsToAdd.map((field) => ({
+          field_name: field.field_name,
+          field_type: field.field_type,
+          placeholder: field.placeholder,
+          required: field.required,
+          template_id: template_id,
+        }));
+
+        await axiosInstance.post(
+          `/template_field/bulk/${template_id}`,
+          fieldsForBulkCreate
+        );
+        console.log(`Added ${fieldsToAdd.length} new fields`);
+      }
+
+      // Update existing fields
+      for (const field of fieldsToUpdate) {
+        if (field.uuid) {
+          // Only update fields that exist in backend (have uuid)
+          const updatedData = {
+            field_name: field.field_name,
+            field_type: field.field_type,
+            placeholder: field.placeholder,
+            required: field.required,
+            template_id: template_id,
+          };
+
+          await axiosInstance.patch(
+            `/template_field/update/${field.uuid}`,
+            updatedData
+          );
+          console.log(`Updated field: ${field.field_name}`);
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error managing template fields:", error);
+      throw error;
+    }
+  };
+
+  //////////////////////////////////////////
   //  Update Template
   //////////////////////////////////////////
   const handleFinalSave = async () => {
@@ -379,8 +513,8 @@ export default function DocumentForm() {
       if (isCustomTemplate) {
         // Create a new template
         const createRes = await axiosInstance.post(`/templates/create`, {
-          template_name: promptFromUrl.slice(0, 30),
-          description: "AI generated custom template",
+          template_name: templateName,
+          description: templateDescription,
           fields_schema: formData,
           user_id: !loading ? user?.user.user_id : null,
         });
@@ -391,23 +525,29 @@ export default function DocumentForm() {
         const fieldsForBulk = fields.map((field) => ({
           field_name: field.field_name,
           field_type: field.field_type,
+          placeholder: field.placeholder,
           required: field.required,
         }));
 
-        //  Bulk insert AI fields to template_field table
+        // Bulk insert AI fields to template_field table
         await axiosInstance.post(
           `/template_field/bulk/${newId}`,
           fieldsForBulk
         );
+
         toast.success("Template Saved!");
 
         return { success: true };
       } else if (template_id) {
+        // Update template fields schema
         await axiosInstance.put(`/templates/update/${template_id}`, {
           fields_schema: formData,
         });
 
-        toast.success("Template Saved!");
+        // Manage template fields (add, update, delete)
+        await manageTemplateFields();
+
+        toast.success("Template Updated!");
         return { success: true };
       }
     } catch (error) {
@@ -421,7 +561,7 @@ export default function DocumentForm() {
   //  Handle Input Change Function
   //////////////////////////////////////////
   const handleInputChange = (
-    section: header | main | footer,
+    section: "header" | "main" | "footer",
     field: string,
     value: string
   ) => {
@@ -490,9 +630,9 @@ export default function DocumentForm() {
 
     // Validate header fields
     headerFields.forEach((field) => {
-      const value = formData.header?.[field.label]?.trim();
+      const value = formData.header?.[field.field_name]?.trim();
       if (field.required && !value) {
-        newErrors.header[field.label] = `${field.label} is Required`;
+        newErrors.header[field.field_name] = `${field.field_name} is Required`;
       }
     });
 
@@ -506,9 +646,9 @@ export default function DocumentForm() {
 
     // Validate footer fields
     footerFields.forEach((field) => {
-      const value = formData.footer?.[field.label]?.trim();
+      const value = formData.footer?.[field.field_name]?.trim();
       if (field.required && !value) {
-        newErrors.footer[field.label] = `${field.label} is Required`;
+        newErrors.footer[field.field_name] = `${field.field_name} is Required`;
       }
     });
 
@@ -528,7 +668,8 @@ export default function DocumentForm() {
   //  Handle Save And Preview
   //////////////////////////////////////////
   const handleSaveAndPreview = async () => {
-    if (!validateForm()) return;
+    if (!validateForm())
+      return toast.error("Fill all the required fields to Preview Document");
 
     const result = await handleFinalSave();
 
@@ -552,20 +693,30 @@ export default function DocumentForm() {
 
   const handleCloseAddFieldModal = () => {
     setIsAddFieldModalOpen(false);
-    setNewField({ field_name: "", field_type: "", required: false });
+    setNewField({
+      field_name: "",
+      field_type: "",
+      placeholder: "",
+      required: false,
+    });
   };
 
-  const handleOpenEditFieldModal = (field) => {
-    setEditingField(field.unique_id);
-    const { field_name, field_type, required } = field;
-    setNewField({ field_name, field_type, required });
+  const handleOpenEditFieldModal = (field: FieldConfig) => {
+    setEditingField(field);
+    const { field_name, field_type, placeholder, required } = field;
+    setNewField({ field_name, field_type, placeholder, required });
     setIsEditFieldModalOpen(true);
   };
 
   const handleCloseEditFieldModal = () => {
     setIsEditFieldModalOpen(false);
     setEditingField(null);
-    setNewField({ field_name: "", field_type: "", required: false });
+    setNewField({
+      field_name: "",
+      field_type: "",
+      placeholder: "",
+      required: false,
+    });
   };
 
   const getPageTitle = () => {
@@ -745,13 +896,13 @@ export default function DocumentForm() {
                       {/* Header Form Fields */}
                       {headerFields.map((field) => (
                         <div
-                          key={field.id}
+                          key={field.unique_id}
                           className="space-y-3 relative group"
                         >
                           {/* Field Actions */}
                           <div className="flex items-center justify-between">
                             <label className="block text-[#1B2A49] font-semibold text-sm">
-                              {field.label}
+                              {field.field_name}
                               {field.required && (
                                 <span className="text-red-500 ml-1">*</span>
                               )}
@@ -759,38 +910,42 @@ export default function DocumentForm() {
                           </div>
 
                           <div>
-                            {field.type === "textarea" ? (
+                            {field.field_type === "textarea" ? (
                               <textarea
-                                value={formData.header?.[field.label] || ""}
+                                value={
+                                  formData.header?.[field.field_name] || ""
+                                }
                                 onChange={(e) =>
                                   handleInputChange(
                                     "header",
-                                    field.label,
+                                    field.field_name,
                                     e.target.value
                                   )
                                 }
                                 placeholder={field.placeholder}
                                 rows={3}
                                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] resize-none ${
-                                  errors.header?.[field.label]
+                                  errors.header?.[field.field_name]
                                     ? "border-red-500"
                                     : "border-[#E1E8F5]"
                                 }`}
                               />
                             ) : (
                               <input
-                                value={formData.header?.[field.label] || ""}
-                                type={field.type}
+                                value={
+                                  formData.header?.[field.field_name] || ""
+                                }
+                                type={field.field_type}
                                 onChange={(e) =>
                                   handleInputChange(
                                     "header",
-                                    field.label,
+                                    field.field_name,
                                     e.target.value
                                   )
                                 }
                                 placeholder={field.placeholder}
                                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] ${
-                                  errors.header?.[field.label]
+                                  errors.header?.[field.field_name]
                                     ? "border-red-500"
                                     : "border-[#E1E8F5]"
                                 }`}
@@ -803,10 +958,10 @@ export default function DocumentForm() {
                               <span>{field.helpText}</span>
                             </div>
                           )}
-                          {errors.header?.[field.label] && (
+                          {errors.header?.[field.field_name] && (
                             <div className="flex items-center gap-2 text-red-500 text-sm">
                               <AlertCircle className="w-4 h-4" />
-                              <span>{errors.header?.[field.label]}</span>
+                              <span>{errors.header?.[field.field_name]}</span>
                             </div>
                           )}
                         </div>
@@ -822,7 +977,7 @@ export default function DocumentForm() {
                     <div className="space-y-6">
                       {fields.map((field) => (
                         <div
-                          key={field.uuid}
+                          key={field.unique_id}
                           className="space-y-3 relative group"
                         >
                           {/* Field Actions */}
@@ -835,12 +990,6 @@ export default function DocumentForm() {
                               {field.aiSuggestion && (
                                 <span className="ml-2 text-[#2E69A4] text-xs font-normal">
                                   ({field.aiSuggestion})
-                                </span>
-                              )}
-                              {field.isCustomAdded && (
-                                <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 bg-[#F6A821]/10 text-[#F6A821] text-xs font-medium rounded-full">
-                                  <Plus className="w-3 h-3" />
-                                  Custom
                                 </span>
                               )}
                             </label>
@@ -878,7 +1027,7 @@ export default function DocumentForm() {
                                     e.target.value
                                   )
                                 }
-                                placeholder={field.field_name}
+                                placeholder={field.placeholder}
                                 rows={4}
                                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] resize-none ${
                                   errors.main?.[field.field_name]
@@ -905,7 +1054,7 @@ export default function DocumentForm() {
                                 <option value={""}>
                                   Select {field.field_name}
                                 </option>
-                                {field.options?.map((op) => (
+                                {field.placeholder?.split(",")?.map((op) => (
                                   <option key={op} value={op}>
                                     {op}
                                   </option>
@@ -922,7 +1071,7 @@ export default function DocumentForm() {
                                     e.target.value
                                   )
                                 }
-                                placeholder={field.field_name}
+                                placeholder={field.placeholder}
                                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] ${
                                   errors.main?.[field.field_name]
                                     ? "border-red-500"
@@ -958,13 +1107,13 @@ export default function DocumentForm() {
                     <div className="space-y-6">
                       {footerFields.map((field) => (
                         <div
-                          key={field.id}
+                          key={field.unique_id}
                           className="space-y-3 relative group"
                         >
                           {/* Field Actions */}
                           <div className="flex items-center justify-between">
                             <label className="block text-[#1B2A49] font-semibold text-sm">
-                              {field.label}
+                              {field.field_name}
                               {field.required && (
                                 <span className="text-red-500 ml-1">*</span>
                               )}
@@ -972,41 +1121,47 @@ export default function DocumentForm() {
                           </div>
 
                           <div>
-                            {field.type === "textarea" ? (
+                            {field.field_type === "textarea" ? (
                               <textarea
-                                value={formData.footer?.[field.label] || ""}
+                                value={
+                                  formData.footer?.[field.field_name] || ""
+                                }
                                 onChange={(e) =>
                                   handleInputChange(
                                     "footer",
-                                    field.label,
+                                    field.field_name,
                                     e.target.value
                                   )
                                 }
                                 placeholder={field.placeholder}
                                 rows={3}
                                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] resize-none ${
-                                  errors.footer?.[field.label]
+                                  errors.footer?.[field.field_name]
                                     ? "border-red-500"
                                     : "border-[#E1E8F5]"
                                 }`}
                               />
-                            ) : field.type === "select" ? (
+                            ) : field.field_type === "select" ? (
                               <select
-                                value={formData.footer?.[field.label] || ""}
+                                value={
+                                  formData.footer?.[field.field_name] || ""
+                                }
                                 onChange={(e) =>
                                   handleInputChange(
                                     "footer",
-                                    field.label,
+                                    field.field_name,
                                     e.target.value
                                   )
                                 }
                                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] bg-white ${
-                                  errors.footer?.[field.label]
+                                  errors.footer?.[field.field_name]
                                     ? "border-red-500"
                                     : "border-[#E1E8F5]"
                                 }`}
                               >
-                                <option value={""}>Select {field.label}</option>
+                                <option value={""}>
+                                  Select {field.field_name}
+                                </option>
                                 {field.options?.map((op) => (
                                   <option key={op} value={op}>
                                     {op}
@@ -1015,18 +1170,20 @@ export default function DocumentForm() {
                               </select>
                             ) : (
                               <input
-                                value={formData.footer?.[field.label] || ""}
-                                type={field.type}
+                                value={
+                                  formData.footer?.[field.field_name] || ""
+                                }
+                                type={field.field_type}
                                 onChange={(e) =>
                                   handleInputChange(
                                     "footer",
-                                    field.label,
+                                    field.field_name,
                                     e.target.value
                                   )
                                 }
                                 placeholder={field.placeholder}
                                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] ${
-                                  errors.footer?.[field.label]
+                                  errors.footer?.[field.field_name]
                                     ? "border-red-500"
                                     : "border-[#E1E8F5]"
                                 }`}
@@ -1039,10 +1196,10 @@ export default function DocumentForm() {
                               <span>{field.helpText}</span>
                             </div>
                           )}
-                          {errors.footer?.[field.label] && (
+                          {errors.footer?.[field.field_name] && (
                             <div className="flex items-center gap-2 text-red-500 text-sm">
                               <AlertCircle className="w-4 h-4" />
-                              <span>{errors.footer?.[field.label]}</span>
+                              <span>{errors.footer?.[field.field_name]}</span>
                             </div>
                           )}
                         </div>
@@ -1209,33 +1366,37 @@ export default function DocumentForm() {
                 </select>
               </div>
 
-              {newField.field_type === "select" && (
+              {newField.field_type === "select" ? (
                 <div>
                   <label className="block text-sm font-semibold text-[#1B2A49] mb-2">
                     Options (comma-separated)
                   </label>
                   <input
                     type="text"
-                    value={newFieldOptions}
-                    onChange={(e) => setNewFieldOptions(e.target.value)}
+                    value={newField.placeholder}
+                    onChange={(e) =>
+                      setNewField({ ...newField, placeholder: e.target.value })
+                    }
                     placeholder="e.g., Option 1, Option 2, Option 3"
                     className="w-full px-4 py-2.5 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-sm text-[#344767]"
                   />
                 </div>
+              ) : (
+                <div>
+                  <label className="block text-sm font-semibold text-[#1B2A49] mb-2">
+                    Placeholder Text
+                  </label>
+                  <input
+                    type="text"
+                    value={newField.placeholder}
+                    onChange={(e) =>
+                      setNewField({ ...newField, placeholder: e.target.value })
+                    }
+                    placeholder="e.g., Enter contract value"
+                    className="w-full px-4 py-2.5 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-sm text-[#344767]"
+                  />
+                </div>
               )}
-
-              <div>
-                <label className="block text-sm font-semibold text-[#1B2A49] mb-2">
-                  Placeholder Text
-                </label>
-                <input
-                  type="text"
-                  value={newFieldPlaceholder}
-                  onChange={(e) => setNewFieldPlaceholder(e.target.value)}
-                  placeholder="e.g., Enter contract value"
-                  className="w-full px-4 py-2.5 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-sm text-[#344767]"
-                />
-              </div>
 
               <div className="flex items-center gap-3">
                 <input
@@ -1322,16 +1483,33 @@ export default function DocumentForm() {
                 </select>
               </div>
 
-              {newField.field_type === "select" && (
+              {newField.field_type === "select" ? (
                 <div>
                   <label className="block text-sm font-semibold text-[#1B2A49] mb-2">
                     Options (comma-separated)
                   </label>
                   <input
                     type="text"
-                    value={newFieldOptions}
-                    onChange={(e) => setNewFieldOptions(e.target.value)}
+                    value={newField.placeholder}
+                    onChange={(e) =>
+                      setNewField({ ...newField, placeholder: e.target.value })
+                    }
                     placeholder="e.g., Option 1, Option 2, Option 3"
+                    className="w-full px-4 py-2.5 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-sm text-[#344767]"
+                  />
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-sm font-semibold text-[#1B2A49] mb-2">
+                    Placeholder Text
+                  </label>
+                  <input
+                    type="text"
+                    value={newField.placeholder}
+                    onChange={(e) =>
+                      setNewField({ ...newField, placeholder: e.target.value })
+                    }
+                    placeholder="e.g., Enter contract value"
                     className="w-full px-4 py-2.5 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-sm text-[#344767]"
                   />
                 </div>
@@ -1358,9 +1536,9 @@ export default function DocumentForm() {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
                 <Info className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
                 <p className="text-xs text-blue-900">
-                  You can update this field’s name, type, or other properties
-                  anytime. Make sure to review changes before saving to ensure
-                  data consistency.
+                  You can update this field&apos;s name, type, or other
+                  properties anytime. Make sure to review changes before saving
+                  to ensure data consistency.
                 </p>
               </div>
             </div>
