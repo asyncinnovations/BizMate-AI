@@ -1,6 +1,6 @@
 import { TemplatesService } from "./templates.service";
-import { PdfService } from "src/common/PdfService";
-import { EmailService } from "src/common/EmailService";
+import { PdfService } from "src/services/PdfService";
+import { EmailService } from "src/services/EmailService";
 export declare class TemplatesController {
     private readonly templatesService;
     private readonly pdfService;
@@ -53,7 +53,12 @@ export declare class TemplatesController {
         message: string;
         response: {
             success: boolean;
-            message: string;
+            response: any;
+            error?: undefined;
+        } | {
+            success: boolean;
+            error: any;
+            response?: undefined;
         };
     }>;
 }

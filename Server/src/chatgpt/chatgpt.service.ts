@@ -14,12 +14,13 @@ export class ChatgptService {
   async generateResponse(prompt: string): Promise<string> {
     try {
       const response = await this.openai.chat.completions.create({
-        model: "gpt-4o", // or 'gpt-4o', 'gpt-4-turbo'
+        model: "o1-mini", // or 'gpt-4o', 'gpt-4-turbo'
         messages: [{ role: "user", content: prompt }],
         temperature: 0.7,
       });
       return response.choices[0]?.message?.content || "No response.";
     } catch (error: any) {
+      console.log(error);
       if (error.status === 429) {
         return "API rate limit exceeded. Please try again later.";
       }

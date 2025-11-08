@@ -13,6 +13,8 @@ import { InvoicesModule } from "./invoices/invoices.module";
 import { InvoiceEntity } from "./invoices/invoices.entity";
 import { UserPaymentGatewayModule } from "./user_payment_gateway/user_payment_gateway.module";
 import { UserPaymentGatewayEntity } from "./user_payment_gateway/user_payment_gateway.entity";
+import { AiReminderModule } from "./ai_reminder/ai_reminder.module";
+import { AiReminder } from "./ai_reminder/ai_reminder.entity";
 
 @Module({
   controllers: [],
@@ -32,14 +34,15 @@ import { UserPaymentGatewayEntity } from "./user_payment_gateway/user_payment_ga
       username: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
+      synchronize: true,
       entities: [
         AuthUsers,
         TemplateEntity,
         TemplateFieldEntity,
         InvoiceEntity,
         UserPaymentGatewayEntity,
+        AiReminder,
       ],
-      synchronize: true,
     }),
     AuthModule,
     ChatgptModule,
@@ -47,6 +50,7 @@ import { UserPaymentGatewayEntity } from "./user_payment_gateway/user_payment_ga
     TemplateFieldModule,
     InvoicesModule,
     UserPaymentGatewayModule,
+    AiReminderModule,
   ],
 })
 export class AppModule {}

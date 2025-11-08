@@ -48,6 +48,7 @@ let TemplateFieldController = class TemplateFieldController {
         const data = {
             template_id: body.template_id,
             field_name: body.field_name?.trim(),
+            placeholder: body.placeholder,
             field_value: body.field_value || null,
             field_type: body.field_type || null,
             required: body.required ?? false,
@@ -79,6 +80,26 @@ let TemplateFieldController = class TemplateFieldController {
         this.validateTemplateField(data);
         const response = await this.templateFieldService.update_template_field_service(tfield_id, data);
         return { message: "Template field updated successfully", response };
+    }
+    async bulk_update_template_field(template_id, data) {
+        console.log(template_id);
+        if (!Array.isArray(data) || data.length === 0) {
+            throw new common_1.BadRequestException("Request body must be a non-empty array of template fields");
+        }
+        data.forEach((field, index) => {
+            if (!field.id && !field.uuid) {
+                throw new common_1.BadRequestException(`Each field must include 'id' or 'uuid' (item at index ${index})`);
+            }
+            if (!field.template_id || field.template_id !== template_id) {
+                throw new common_1.BadRequestException(`Each field must have a matching 'template_id' (item at index ${index})`);
+            }
+        });
+        const response = await this.templateFieldService.bulk_update_template_field_service(template_id, data);
+        return {
+            message: "Template fields updated successfully",
+            success: true,
+            data: response,
+        };
     }
     async delete_single_field(tfield_id) {
         const response = await this.templateFieldService.delete_template_field_service(tfield_id);
@@ -136,6 +157,15 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], TemplateFieldController.prototype, "update_single_field", null);
+__decorate([
+    (0, common_1.Patch)("bulk_update/:tid"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Param)("tid", new common_1.ParseUUIDPipe())),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Array]),
+    __metadata("design:returntype", Promise)
+], TemplateFieldController.prototype, "bulk_update_template_field", null);
 __decorate([
     (0, common_1.Delete)("delete/:tfield_id"),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),

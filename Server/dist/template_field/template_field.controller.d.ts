@@ -24,6 +24,11 @@ export declare class TemplateFieldController {
         message: string;
         response: TemplateFieldEntity;
     }>;
+    bulk_update_template_field(template_id: string, data: any[]): Promise<{
+        message: string;
+        success: boolean;
+        data: void;
+    }>;
     delete_single_field(tfield_id: string): Promise<{
         message: string;
         response: void;

@@ -3,7 +3,7 @@ import { UserPaymentGatewayService } from "./user_payment_gateway.service";
 import { UserPaymentGatewayController } from "./user_payment_gateway.controller";
 import { UserPaymentGatewayEntity } from "./user_payment_gateway.entity";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { PaymentService } from "src/common/PaymentService";
+import { PaymentService } from "src/services/PaymentService";
 
 @Module({
   imports: [TypeOrmModule.forFeature([UserPaymentGatewayEntity])],

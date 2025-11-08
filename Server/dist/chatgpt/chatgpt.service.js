@@ -29,13 +29,14 @@ let ChatgptService = class ChatgptService {
     async generateResponse(prompt) {
         try {
             const response = await this.openai.chat.completions.create({
-                model: "gpt-4o",
+                model: "o1-mini",
                 messages: [{ role: "user", content: prompt }],
                 temperature: 0.7,
             });
             return response.choices[0]?.message?.content || "No response.";
         }
         catch (error) {
+            console.log(error);
             if (error.status === 429) {
                 return "API rate limit exceeded. Please try again later.";
             }

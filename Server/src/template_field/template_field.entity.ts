@@ -33,6 +33,9 @@ export class TemplateFieldEntity {
   @Column({ type: "varchar", length: 100, nullable: false })
   field_name: string;
 
+  @Column({ type: "varchar", length: 255, nullable: false })
+  placeholder: string;
+
   @Column({ type: "text", nullable: true })
   field_value: string;
 
