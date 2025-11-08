@@ -85,7 +85,7 @@ const AIAssistantTab: React.FC = () => {
           </div>
           <div className="p-4 bg-[#F4F7FA] rounded-lg">
             <p className="text-sm text-[#344767]">
-              Your business data is encrypted and secure. Disabling training means AI won&apos;t learn from your specific interactions, but core features remain functional.
+              Your business data is encrypted and secure. Disabling training means AI won't learn from your specific interactions, but core features remain functional.
             </p>
           </div>
         </div>

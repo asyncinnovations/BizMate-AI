@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, LucideIcon } from "lucide-react";
+import { Check, Sparkles, Building2, Rocket, LucideIcon } from "lucide-react";
 
 // Reusable PlanCard Component
 interface PlanCardProps {

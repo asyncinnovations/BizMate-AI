@@ -5,17 +5,25 @@ import {
   BellOff,
   CheckCheck,
   Trash2,
+  Filter,
   Clock,
   AlertCircle,
   FileText,
+  DollarSign,
   Calendar,
   MessageSquare,
   TrendingUp,
   ShieldAlert,
+  CreditCard,
   User,
   Settings as SettingsIcon,
+  CheckCircle,
+  XCircle,
+  Info,
+  AlertTriangle,
   Sparkles,
 } from "lucide-react";
+import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 
 const NotificationsPage = () => {
@@ -67,7 +75,7 @@ const NotificationsPage = () => {
       ? notifications
       : notifications.filter((n) => n.category === activeFilter);
 
-  const markAsRead = (id: number) => {
+  const markAsRead = (id) => {
     setNotifications(
       notifications.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
@@ -77,7 +85,7 @@ const NotificationsPage = () => {
     setNotifications(notifications.map((n) => ({ ...n, read: true })));
   };
 
-  const deleteNotification = (id : number) => {
+  const deleteNotification = (id) => {
     setNotifications(notifications.filter((n) => n.id !== id));
   };
 
@@ -86,6 +94,7 @@ const NotificationsPage = () => {
   };
 
   return (
+    <ProtectedRoute>
       <DashboardLayout>
         <div className="min-h-screen bg-[#F4F7FA] p-4 mb-8">
           <div className="w-full">
@@ -313,6 +322,7 @@ const NotificationsPage = () => {
           </div>
         </div>
       </DashboardLayout>
+    </ProtectedRoute>
   );
 };
 

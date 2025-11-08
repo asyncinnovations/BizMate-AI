@@ -1,12 +1,8 @@
 import DocumentForm from "@/app/components/document-form/DocumentForm";
-import React, { Suspense } from "react";
+import React from "react";
 
-const Page = () => {
-  return (
-    <Suspense fallback={<div>Loading form...</div>}>
-      <DocumentForm />
-    </Suspense>
-  );
+const page = () => {
+  return <DocumentForm />;
 };
 
-export default Page;
+export default page;

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useState, ChangeEvent, FormEvent } from "react";
+import React, { useState } from "react";
 import {
   ShieldCheck,
   FileText,
@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import TypeWriter from "@/app/components/type-writer/TypeWriter";
 import { useAuth } from "@/context/AuthContext";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import toast from "react-hot-toast";
 import Button from "@/app/components/ui/Button";
 import InputField from "@/app/components/ui/InputField";
@@ -23,103 +23,75 @@ interface FormError {
   password: string;
 }
 
-interface FormData {
-  email: string;
-  password: string;
-}
-
-interface PlatformFeature {
-  icon: React.ReactNode;
-  text: string;
-}
-
-interface AuthResponse {
-  token: string;
-  user: Record<string, unknown>;
-}
-
-const LoginPage: React.FC = () => {
+const LoginPage = () => {
   const router = useRouter();
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<FormError | null>(null);
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
-  const validateForm = (): boolean => {
+  const validateForm = () => {
     const newErrors: FormError = {
       email: "",
       password: "",
     };
 
-    if (!formData.email?.trim()) {
-      newErrors.email = "Email is required!";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    if (!formData.email?.trim()) newErrors.email = "Email is required!";
+    else if (!/\S+@\S+\.\S+/.test(formData.email))
       newErrors.email = "Email is invalid!";
-    }
 
-    if (!formData.password?.trim()) {
+    if (!formData.password?.trim())
       newErrors.password = "Password is required!";
-    }
 
     setErrors(newErrors);
 
     const isValid = Object.values(newErrors).every((err) => err === "");
+
     return isValid;
   };
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const sanitizedValue = value.trim();
     setFormData((prev) => ({ ...prev, [name]: sanitizedValue }));
 
-    // Clear error when user starts typing - FIXED TYPE ERROR
-    if (errors && errors[name as keyof FormError]) {
-      setErrors((prev) => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          [name]: "",
-        };
-      });
+    // Clear error when user starts typing
+    if (errors && errors[name as keyof errorType]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
     }
   };
 
-  const handleSubmit = async (e: FormEvent): Promise<void> => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) return;
 
     setIsLoading(true);
     try {
-      const response = await axios.post<AuthResponse>(
+      const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
         formData
       );
-
-      if (response.status === 200) {
+      if (response.status === 201) {
         toast.success("Login successful! Redirecting to your dashboard…");
         login(response.data.token, response.data.user);
         router.push("/dashboard");
       }
-    } catch (error: unknown) {
+    } catch (error) {
       console.log("Error while logged in", error);
-
-      const err = error as AxiosError<{ message?: string; error?: string }>;
-      const errorMessage =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        "Login failed! Please check your credentials.";
-
-      toast.error(errorMessage);
+      toast.error("Login failed! Invalid email or password.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const platformTexts: string[] = [
+  const platformTexts = [
     "AI-Powered Business Assistant for SMEs",
     "Automate Compliance, Invoices & VAT",
     "Smart Reminders & WhatsApp Auto-Replies",
@@ -127,7 +99,7 @@ const LoginPage: React.FC = () => {
     "From Compliance to Conversations, AI-Driven",
   ];
 
-  const features: PlatformFeature[] = [
+  const features = [
     {
       icon: <ShieldCheck className="w-5 h-5 text-cyan-400" />,
       text: "AI Compliance Assistant - UAE Regulations",

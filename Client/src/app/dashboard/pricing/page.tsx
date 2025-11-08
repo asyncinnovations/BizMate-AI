@@ -4,6 +4,7 @@ import React from "react";
 import { Sparkles, Building2, Rocket } from "lucide-react";
 import PlanCard from "@/app/components/plan-card/PlanCard";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
+import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
 
 // Main Pricing Page Component
 export default function PricingPage() {
@@ -75,6 +76,7 @@ export default function PricingPage() {
   ];
 
   return (
+    <ProtectedRoute>
       <DashboardLayout>
         <div className="min-h-screen bg-[#F4F7FA] pb-4">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -121,5 +123,6 @@ export default function PricingPage() {
           </div>
         </div>
       </DashboardLayout>
+    </ProtectedRoute>
   );
 }

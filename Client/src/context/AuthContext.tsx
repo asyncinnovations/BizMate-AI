@@ -10,12 +10,12 @@ import {
 
 interface User {
   token: string;
-  user: Record<string , unknown>;
+  user: any;
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (token: string, userData: Record<string , unknown>) => void;
+  login: (token: string, userData: any) => void;
   logout: () => void;
   isAuthenticated: () => boolean;
   loading: boolean;
@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setLoading(false);
   }, []);
 
-  const login = (token: string, userData: Record<string , unknown>) => {
+  const login = (token: string, userData: any) => {
     localStorage.setItem(TOKEN_KEY, token);
     localStorage.setItem(USER_KEY, JSON.stringify(userData));
     setUser({ token, user: userData });
