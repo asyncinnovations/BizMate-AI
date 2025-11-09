@@ -510,6 +510,14 @@ export default function DocumentForm() {
   //////////////////////////////////////////
   const handleFinalSave = async () => {
     try {
+      // Prepare fields for bulk creation
+      const fieldsForBulk = fields.map((field) => ({
+        field_name: field.field_name,
+        field_type: field.field_type,
+        placeholder: field.placeholder,
+        required: field.required,
+      }));
+
       if (isCustomTemplate) {
         // Create a new template
         const createRes = await axiosInstance.post(`/templates/create`, {
@@ -521,20 +529,13 @@ export default function DocumentForm() {
 
         const newId = createRes.data.data.uuid;
 
-        // Prepare fields for bulk creation
-        const fieldsForBulk = fields.map((field) => ({
-          field_name: field.field_name,
-          field_type: field.field_type,
-          placeholder: field.placeholder,
-          required: field.required,
-        }));
-
         // Bulk insert AI fields to template_field table
         await axiosInstance.post(
           `/template_field/bulk/${newId}`,
           fieldsForBulk
         );
 
+        router.push(`/dashboard/documents/new/${newId}`);
         toast.success("Template Saved!");
 
         return { success: true };
@@ -547,6 +548,10 @@ export default function DocumentForm() {
         // Manage template fields (add, update, delete)
         await manageTemplateFields();
 
+        // await axiosInstance.patch(
+        //   `/template_field/bulk_update/${template_id}`,
+        //   fieldsForBulk
+        // );
         toast.success("Template Updated!");
         return { success: true };
       }
@@ -681,7 +686,9 @@ export default function DocumentForm() {
         : `/dashboard/documents/preview/${templateName}?data=${encodeURIComponent(
             JSON.stringify(formData)
           )}`;
-      router.push(previewPath);
+      setTimeout(() => {
+        router.push(previewPath);
+      }, isCustomTemplate ? 2000 : 0);
     } else {
       toast.error("Template save Failed. Preview not generated.");
     }

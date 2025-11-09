@@ -22,7 +22,7 @@ export declare class TemplatesController {
     single_template(id: string): Promise<{
         message: string;
         status: number;
-        data?: undefined;
+        data: never[];
     } | {
         message: string;
         data: import("./templates.entity").TemplateEntity;

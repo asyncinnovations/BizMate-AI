@@ -73,7 +73,7 @@ let TemplatesController = class TemplatesController {
         }
         const template = await this.templatesService.single_template_service(id);
         if (!template) {
-            return { message: "Template not found", status: 404 };
+            return { message: "No templates found", status: 404, data: [] };
         }
         return { message: "Template found", data: template };
     }

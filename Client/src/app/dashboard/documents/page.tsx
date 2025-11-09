@@ -398,9 +398,9 @@ export default function DocumentGeneratorMain() {
                     }`}
                   >
                     Custom Templates
-                    {customTemplates.length > 0 && (
+                    {customTemplates?.length > 0 && (
                       <span className="ml-2 px-2 py-0.5 bg-[#2E69A4] text-white text-xs rounded-full">
-                        {customTemplates.length}
+                        {customTemplates?.length}
                       </span>
                     )}
                     {activeTab === "custom" && (
@@ -423,7 +423,7 @@ export default function DocumentGeneratorMain() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {displayedTemplates.map((template) => (
+                  {displayedTemplates?.map((template) => (
                     <div
                       key={template.uuid}
                       onClick={() => handleTemplateClick(template.uuid)}
@@ -472,7 +472,7 @@ export default function DocumentGeneratorMain() {
                 </div>
               )}
 
-              {displayedTemplates.length === 0 && !isLoading && (
+              {displayedTemplates?.length === 0 && !isLoading && (
                 <div className="bg-white rounded-xl p-12 shadow-sm border border-[#E1E8F5] text-center">
                   <FileText className="w-16 h-16 text-[#344767]/30 mx-auto mb-4" />
                   <h3 className="text-[#1B2A49] font-semibold text-lg mb-2">
