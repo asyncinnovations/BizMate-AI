@@ -260,20 +260,47 @@ const CreateInvoicePage: React.FC = () => {
     );
   }, [currentInvoice]);
 
+  /////////////////////////
+  //Compute Totals
+  ////////////////////////
+  const computeTotals = async (subtotal: number, vatRate: number) => {
+    try {
+      const response = await axiosInstance.post(`/invoices/compute-totals`, {
+        subtotal,
+        vatRate,
+      });
+
+      if (response.status === 200) {
+        console.log("This is a total", response.data);
+        setCurrentInvoice((prev) => ({
+          ...prev,
+          vat: response.data.vat,
+          total: response.data.total,
+        }));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   // Calculate invoice totals whenever items change
   useEffect(() => {
     const subtotal = currentInvoice.invoice_items?.reduce(
       (sum, item) => (sum = sum + item.amount),
       0
     );
-    const vat = subtotal * 0.05; //5% VAT for uae
-    const total = vat + subtotal;
+    const vatRate = 5; //5% VAT for uae
+
+    computeTotals(subtotal, vatRate);
+
+    // const vat = subtotal * 0.05; //5% VAT for uae
+    // const total = vat + subtotal;
 
     setCurrentInvoice((prev) => ({
       ...prev,
       subtotal,
-      vat,
-      total,
+      // vat,
+      // total,
     }));
   }, [currentInvoice.invoice_items]);
 

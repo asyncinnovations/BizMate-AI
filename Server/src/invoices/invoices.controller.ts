@@ -51,10 +51,10 @@ export class InvoicesController {
     ////////////////////////////////////////////////////////
     // GATEWAY CHECKING (Comment Out for developement purpose)
     ////////////////////////////////////////////////////////
-    // await this.upgService.user_active_gateway_service(
-    //   data.user_id,
-    //   data.gateway_name
-    // );
+    await this.upgService.user_active_gateway_service(
+      data.user_id,
+      data.gateway_name
+    );
 
     const invoiceData = {
       user_id: data.user_id,
