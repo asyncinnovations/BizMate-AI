@@ -19,6 +19,7 @@ exports.ChatgptModule = ChatgptModule = __decorate([
         imports: [config_1.ConfigModule.forRoot()],
         providers: [chatgpt_service_1.ChatgptService],
         controllers: [chatgpt_controller_1.ChatgptController],
+        exports: [chatgpt_service_1.ChatgptService],
     })
 ], ChatgptModule);
 //# sourceMappingURL=chatgpt.module.js.map

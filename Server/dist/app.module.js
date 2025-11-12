@@ -13,7 +13,6 @@ const auth_module_1 = require("./auth/auth.module");
 const user_entity_1 = require("./auth/user.entity");
 const chatgpt_module_1 = require("./chatgpt/chatgpt.module");
 const templates_module_1 = require("./templates/templates.module");
-const passport_1 = require("@nestjs/passport");
 const jwt_1 = require("@nestjs/jwt");
 const templates_entity_1 = require("./templates/templates.entity");
 const template_field_module_1 = require("./template_field/template_field.module");
@@ -24,6 +23,15 @@ const user_payment_gateway_module_1 = require("./user_payment_gateway/user_payme
 const user_payment_gateway_entity_1 = require("./user_payment_gateway/user_payment_gateway.entity");
 const ai_reminder_module_1 = require("./ai_reminder/ai_reminder.module");
 const ai_reminder_entity_1 = require("./ai_reminder/ai_reminder.entity");
+const client_lists_module_1 = require("./client_lists/client_lists.module");
+const client_lists_entity_1 = require("./client_lists/client_lists.entity");
+const user_integration_module_1 = require("./user_integration/user_integration.module");
+const ai_reply_hub_chat_module_1 = require("./ai_reply_hub_chat/ai_reply_hub_chat.module");
+const ai_reply_hub_chat_entity_1 = require("./ai_reply_hub_chat/ai_reply_hub_chat.entity");
+const config_1 = require("@nestjs/config");
+const user_business_info_module_1 = require("./user_business_info/user_business_info.module");
+const user_business_info_entity_1 = require("./user_business_info/user_business_info.entity");
+const user_integration_entity_1 = require("./user_integration/user_integration.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -33,12 +41,11 @@ exports.AppModule = AppModule = __decorate([
         providers: [],
         exports: [],
         imports: [
-            passport_1.PassportModule,
+            config_1.ConfigModule.forRoot({ isGlobal: true }),
             jwt_1.JwtModule.register({
                 secret: process.env.JWT_SECRET || "BizMateAI",
                 signOptions: { expiresIn: "1d" },
             }),
-            templates_module_1.TemplatesModule,
             typeorm_1.TypeOrmModule.forRoot({
                 type: "postgres",
                 host: process.env.DB_HOST,
@@ -54,6 +61,10 @@ exports.AppModule = AppModule = __decorate([
                     invoices_entity_1.InvoiceEntity,
                     user_payment_gateway_entity_1.UserPaymentGatewayEntity,
                     ai_reminder_entity_1.AiReminder,
+                    client_lists_entity_1.ClientList,
+                    ai_reply_hub_chat_entity_1.AiReplyHubChat,
+                    user_business_info_entity_1.UserBusinessInfo,
+                    user_integration_entity_1.UserIntegration,
                 ],
             }),
             auth_module_1.AuthModule,
@@ -63,6 +74,10 @@ exports.AppModule = AppModule = __decorate([
             invoices_module_1.InvoicesModule,
             user_payment_gateway_module_1.UserPaymentGatewayModule,
             ai_reminder_module_1.AiReminderModule,
+            client_lists_module_1.ClientListsModule,
+            user_integration_module_1.UserIntegrationModule,
+            ai_reply_hub_chat_module_1.AiReplyHubChatModule,
+            user_business_info_module_1.UserBusinessInfoModule,
         ],
     })
 ], AppModule);
