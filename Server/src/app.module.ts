@@ -15,18 +15,26 @@ import { UserPaymentGatewayModule } from "./user_payment_gateway/user_payment_ga
 import { UserPaymentGatewayEntity } from "./user_payment_gateway/user_payment_gateway.entity";
 import { AiReminderModule } from "./ai_reminder/ai_reminder.module";
 import { AiReminder } from "./ai_reminder/ai_reminder.entity";
+import { ClientListsModule } from "./client_lists/client_lists.module";
+import { ClientList } from "./client_lists/client_lists.entity";
+import { UserIntegrationModule } from "./user_integration/user_integration.module";
+import { AiReplyHubChatModule } from "./ai_reply_hub_chat/ai_reply_hub_chat.module";
+import { AiReplyHubChat } from "./ai_reply_hub_chat/ai_reply_hub_chat.entity";
+import { ConfigModule } from "@nestjs/config";
+import { UserBusinessInfoModule } from "./user_business_info/user_business_info.module";
+import { UserBusinessInfo } from "./user_business_info/user_business_info.entity";
+import { UserIntegration } from "./user_integration/user_integration.entity";
 
 @Module({
   controllers: [],
   providers: [],
   exports: [],
   imports: [
-    PassportModule,
+    ConfigModule.forRoot({ isGlobal: true }),
     JwtModule.register({
       secret: process.env.JWT_SECRET || "BizMateAI",
       signOptions: { expiresIn: "1d" },
     }),
-    TemplatesModule,
     TypeOrmModule.forRoot({
       type: "postgres",
       host: process.env.DB_HOST,
@@ -42,6 +50,10 @@ import { AiReminder } from "./ai_reminder/ai_reminder.entity";
         InvoiceEntity,
         UserPaymentGatewayEntity,
         AiReminder,
+        ClientList,
+        AiReplyHubChat,
+        UserBusinessInfo,
+        UserIntegration,
       ],
     }),
     AuthModule,
@@ -51,6 +63,10 @@ import { AiReminder } from "./ai_reminder/ai_reminder.entity";
     InvoicesModule,
     UserPaymentGatewayModule,
     AiReminderModule,
+    ClientListsModule,
+    UserIntegrationModule,
+    AiReplyHubChatModule,
+    UserBusinessInfoModule,
   ],
 })
 export class AppModule {}
