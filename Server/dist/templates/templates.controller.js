@@ -16,9 +16,9 @@ exports.TemplatesController = void 0;
 const common_1 = require("@nestjs/common");
 const templates_service_1 = require("./templates.service");
 const auth_guard_1 = require("../guards/auth/auth.guard");
-const PdfService_1 = require("../common/PdfService");
+const PdfService_1 = require("../services/PdfService");
 const path_1 = require("path");
-const EmailService_1 = require("../common/EmailService");
+const EmailService_1 = require("../services/EmailService");
 let TemplatesController = class TemplatesController {
     templatesService;
     pdfService;
@@ -63,7 +63,7 @@ let TemplatesController = class TemplatesController {
     async get_all_template() {
         const templates = await this.templatesService.get_all_template_service();
         if (!templates || templates.length === 0) {
-            return { message: "No templates found", status: 404 };
+            return { message: "No templates found", status: 404, data: [] };
         }
         return { message: "All templates", data: templates };
     }
@@ -73,7 +73,7 @@ let TemplatesController = class TemplatesController {
         }
         const template = await this.templatesService.single_template_service(id);
         if (!template) {
-            return { message: "Template not found", status: 404 };
+            return { message: "No templates found", status: 404, data: [] };
         }
         return { message: "Template found", data: template };
     }
@@ -102,7 +102,11 @@ let TemplatesController = class TemplatesController {
         }
         const templates = await this.templatesService.user_template_service(user_id);
         if (!templates || templates.length === 0) {
-            return { message: "No templates found for this user", status: 404 };
+            return {
+                message: "No templates found for this user",
+                status: 404,
+                data: [],
+            };
         }
         return { message: "User templates found", data: templates };
     }

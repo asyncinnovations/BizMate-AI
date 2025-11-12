@@ -1,6 +1,6 @@
 import { TemplatesService } from "./templates.service";
-import { PdfService } from "src/common/PdfService";
-import { EmailService } from "src/common/EmailService";
+import { PdfService } from "src/services/PdfService";
+import { EmailService } from "src/services/EmailService";
 export declare class TemplatesController {
     private readonly templatesService;
     private readonly pdfService;
@@ -13,7 +13,7 @@ export declare class TemplatesController {
     get_all_template(): Promise<{
         message: string;
         status: number;
-        data?: undefined;
+        data: never[];
     } | {
         message: string;
         data: import("./templates.entity").TemplateEntity[];
@@ -22,7 +22,7 @@ export declare class TemplatesController {
     single_template(id: string): Promise<{
         message: string;
         status: number;
-        data?: undefined;
+        data: never[];
     } | {
         message: string;
         data: import("./templates.entity").TemplateEntity;
@@ -35,7 +35,7 @@ export declare class TemplatesController {
     user_template(user_id: string): Promise<{
         message: string;
         status: number;
-        data?: undefined;
+        data: never[];
     } | {
         message: string;
         data: import("./templates.entity").TemplateEntity[];
@@ -53,7 +53,12 @@ export declare class TemplatesController {
         message: string;
         response: {
             success: boolean;
-            message: string;
+            response: any;
+            error?: undefined;
+        } | {
+            success: boolean;
+            error: any;
+            response?: undefined;
         };
     }>;
 }

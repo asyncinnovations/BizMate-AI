@@ -18,6 +18,10 @@ module.exports = {
         type: Sequelize.UUID,
         allowNull: false,
       },
+      placeholder: {
+        type: Sequelize.STRING(255),
+        allowNull: true,
+      },
       field_name: {
         type: Sequelize.STRING(100),
         allowNull: false,

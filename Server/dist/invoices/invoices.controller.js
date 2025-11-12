@@ -17,8 +17,8 @@ const common_1 = require("@nestjs/common");
 const invoices_service_1 = require("./invoices.service");
 const auth_guard_1 = require("../guards/auth/auth.guard");
 const node_path_1 = require("node:path");
-const PdfService_1 = require("../common/PdfService");
-const EmailService_1 = require("../common/EmailService");
+const PdfService_1 = require("../services/PdfService");
+const EmailService_1 = require("../services/EmailService");
 const user_payment_gateway_service_1 = require("../user_payment_gateway/user_payment_gateway.service");
 let InvoicesController = class InvoicesController {
     invoicesService;
@@ -40,7 +40,6 @@ let InvoicesController = class InvoicesController {
         if (!data.items || !Array.isArray(data.items) || data.items.length === 0) {
             throw new common_1.BadRequestException("Invoice items are required.");
         }
-        await this.upgService.user_active_gateway_service(data.user_id, data.gateway_name);
         const invoiceData = {
             user_id: data.user_id,
             invoice_number: data.invoice_number,

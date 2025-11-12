@@ -13,7 +13,7 @@ import {
 } from "@nestjs/common";
 import { UserPaymentGatewayService } from "./user_payment_gateway.service";
 import { JwtGuard } from "src/guards/auth/auth.guard";
-import { PaymentService } from "src/common/PaymentService";
+import { PaymentService } from "src/services/PaymentService";
 
 @Controller("user_payment_gateway")
 @UseGuards(JwtGuard)

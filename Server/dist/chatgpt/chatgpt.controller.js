@@ -21,7 +21,7 @@ let ChatgptController = class ChatgptController {
         this.gptService = gptService;
     }
     async chat(prompt) {
-        const reply = await this.gptService.generateResponse(prompt);
+        const reply = await this.gptService.generate_response_service(prompt);
         return { reply };
     }
     send_document_form() {

@@ -67,6 +67,7 @@ export class TemplateFieldController {
     const data: any = {
       template_id: body.template_id,
       field_name: body.field_name?.trim(),
+      placeholder: body.placeholder,
       field_value: body.field_value || null,
       field_type: body.field_type || null,
       required: body.required ?? false,
@@ -150,6 +151,52 @@ export class TemplateFieldController {
         data
       );
     return { message: "Template field updated successfully", response };
+  }
+  //////////////////////////////////////////////////////////////////////
+  // UPDATE SINGLE FIELD BY UUID
+  //////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////
+  // Bulk Update Template Fields
+  ///////////////////////////////////////////////////////////////
+  @Patch("bulk_update/:tid")
+  @HttpCode(HttpStatus.OK)
+  async bulk_update_template_field(
+    @Param("tid", new ParseUUIDPipe()) template_id: string,
+    @Body() data: any[]
+  ) {
+    console.log(template_id);
+    // Validate that `data` is an array
+    if (!Array.isArray(data) || data.length === 0) {
+      throw new BadRequestException(
+        "Request body must be a non-empty array of template fields"
+      );
+    }
+
+    // Validate each field object
+    data.forEach((field, index) => {
+      if (!field.id && !field.uuid) {
+        throw new BadRequestException(
+          `Each field must include 'id' or 'uuid' (item at index ${index})`
+        );
+      }
+      if (!field.template_id || field.template_id !== template_id) {
+        throw new BadRequestException(
+          `Each field must have a matching 'template_id' (item at index ${index})`
+        );
+      }
+    });
+
+    const response =
+      await this.templateFieldService.bulk_update_template_field_service(
+        template_id,
+        data
+      );
+
+    return {
+      message: "Template fields updated successfully",
+      success: true,
+      data: response,
+    };
   }
 
   //////////////////////////////////////////////////////////////////////

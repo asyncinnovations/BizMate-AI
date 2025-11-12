@@ -15,9 +15,9 @@ import {
 } from "@nestjs/common";
 import { TemplatesService } from "./templates.service";
 import { JwtGuard } from "src/guards/auth/auth.guard";
-import { PdfService } from "src/common/PdfService";
+import { PdfService } from "src/services/PdfService";
 import { join } from "path";
-import { EmailService } from "src/common/EmailService";
+import { EmailService } from "src/services/EmailService";
 
 @Controller("templates")
 @UseGuards(JwtGuard)
@@ -90,7 +90,7 @@ export class TemplatesController {
   async get_all_template() {
     const templates = await this.templatesService.get_all_template_service();
     if (!templates || templates.length === 0) {
-      return { message: "No templates found", status: 404 };
+      return { message: "No templates found", status: 404, data: [] };
     }
     return { message: "All templates", data: templates };
   }
@@ -107,7 +107,7 @@ export class TemplatesController {
 
     const template = await this.templatesService.single_template_service(id);
     if (!template) {
-      return { message: "Template not found", status: 404 };
+      return { message: "No templates found", status: 404, data: [] };
     }
 
     return { message: "Template found", data: template };
@@ -161,7 +161,11 @@ export class TemplatesController {
     const templates =
       await this.templatesService.user_template_service(user_id);
     if (!templates || templates.length === 0) {
-      return { message: "No templates found for this user", status: 404 };
+      return {
+        message: "No templates found for this user",
+        status: 404,
+        data: [],
+      };
     }
 
     return { message: "User templates found", data: templates };

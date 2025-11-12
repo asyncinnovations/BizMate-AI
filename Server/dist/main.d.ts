@@ -1,1 +1,1 @@
-export {};
+import "./jobs/reminderNotifier.js";

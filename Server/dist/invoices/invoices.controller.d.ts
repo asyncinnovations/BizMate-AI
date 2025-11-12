@@ -1,7 +1,7 @@
 import { InvoicesService } from "./invoices.service";
 import { InvoiceEntity } from "./invoices.entity";
-import { PdfService } from "src/common/PdfService";
-import { EmailService } from "src/common/EmailService";
+import { PdfService } from "src/services/PdfService";
+import { EmailService } from "src/services/EmailService";
 import { UserPaymentGatewayService } from "src/user_payment_gateway/user_payment_gateway.service";
 export declare class InvoicesController {
     private readonly invoicesService;
@@ -37,7 +37,12 @@ export declare class InvoicesController {
         message: string;
         response: {
             success: boolean;
-            message: string;
+            response: any;
+            error?: undefined;
+        } | {
+            success: boolean;
+            error: any;
+            response?: undefined;
         };
     }>;
 }

@@ -10,7 +10,10 @@ exports.AppService = void 0;
 const common_1 = require("@nestjs/common");
 let AppService = class AppService {
     getHello() {
-        return 'Hello World!';
+        return "Hello World!";
+    }
+    root_point_service() {
+        return { message: "Welcome To Bizmate-API", status: 200 };
     }
 };
 exports.AppService = AppService;

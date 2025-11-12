@@ -94,6 +94,7 @@ export class TemplateFieldService {
     data: Partial<TemplateFieldEntity>[]
   ) {
     const fields = await this.field_by_templateId_service(templateId);
+    console.log(fields)
     if (!fields.length)
       throw new NotFoundException("No fields found for this template");
     const updated = fields.map((field, i) => ({

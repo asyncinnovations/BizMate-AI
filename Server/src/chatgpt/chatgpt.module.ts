@@ -6,5 +6,6 @@ import { ConfigModule } from "@nestjs/config";
   imports: [ConfigModule.forRoot()],
   providers: [ChatgptService],
   controllers: [ChatgptController],
+  exports: [ChatgptService],
 })
 export class ChatgptModule {}
