@@ -100,8 +100,12 @@ const RegisterPage = () => {
         router.push("/login");
       }
     } catch (error) {
-      toast.error("Signup failed! Please check your details and try again.");
       console.log("Error occur while signup", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Signup failed! Please check your details and try again.";
+      toast.error(errorMessage);
     }
   };
 

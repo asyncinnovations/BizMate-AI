@@ -3,7 +3,6 @@
 
 import React, { useState } from "react";
 import { Settings } from "lucide-react";
-import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import PageHeader from "@/app/components/page-header/PageHeader";
 import SettingsSidebar from "./fragements/SettingsSidebar";
@@ -40,7 +39,6 @@ const SettingsPage = () => {
   };
 
   return (
-    <ProtectedRoute>
       <DashboardLayout>
         <div className="min-h-screen p-4 mb-8">
           <div className="w-full">
@@ -61,7 +59,6 @@ const SettingsPage = () => {
           </div>
         </div>
       </DashboardLayout>
-    </ProtectedRoute>
   );
 };
 
