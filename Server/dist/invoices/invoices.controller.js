@@ -40,7 +40,6 @@ let InvoicesController = class InvoicesController {
         if (!data.items || !Array.isArray(data.items) || data.items.length === 0) {
             throw new common_1.BadRequestException("Invoice items are required.");
         }
-        await this.upgService.user_active_gateway_service(data.user_id, data.gateway_name);
         const invoiceData = {
             user_id: data.user_id,
             invoice_number: data.invoice_number,

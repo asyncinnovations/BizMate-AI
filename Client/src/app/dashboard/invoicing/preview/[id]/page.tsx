@@ -1,7 +1,7 @@
 "use client";
 
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   Download,
@@ -13,6 +13,20 @@ import {
 } from "lucide-react";
 import Button from "@/app/components/ui/Button";
 import { getStatusBadge } from "@/lib/statusBadge";
+import axiosInstance from "@/utils/axiosInstance";
+import LoadingSpinner from "@/app/components/loading-spinner/LoadingSpinner";
+import toast from "react-hot-toast";
+
+interface FormField {
+  id: string;
+  name: keyof Invoice | string;
+  label: string;
+  type: "text" | "email" | "date" | "number" | "textarea" | "select";
+  placeholder: string;
+  required: boolean;
+  value: string;
+  options?: string[];
+}
 
 // TypeScript interfaces
 interface InvoiceItem {
@@ -25,81 +39,54 @@ interface InvoiceItem {
 }
 
 interface Invoice {
-  id: string;
-  invoiceNumber: string;
-  customerName: string;
-  customerEmail?: string;
-  customerAddress?: string;
-  invoiceDate: string;
-  dueDate: string;
-  paymentTerms: string;
-  items: InvoiceItem[];
+  user_id: string;
+  invoice_number: string;
+  customer_name: string;
+  customer_email: string;
+  customer_address: string;
+  invoice_date: string;
+  due_date: string;
+  payment_terms: string;
+  invoice_items: InvoiceItem[];
+  custom_fields: Record<string, FormField>;
   subtotal: number;
   vat: number;
   total: number;
   notes: string;
-  status: "paid" | "unpaid" | "draft";
-  createdAt: string;
+  status: "paid" | "unpaid" | "draft" | "saved";
 }
 
 const InvoicePreviewPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const invoiceId = params.id as string;
+  const [currentInvoice, setCurrentInvoice] = useState<Invoice | null>(null);
 
-  // Get invoice data from URL params (in real app, fetch from API)
-  const invoiceData = searchParams.get("data");
-  const currentInvoice: Invoice = invoiceData
-    ? JSON.parse(decodeURIComponent(invoiceData))
-    : {
-        id: invoiceId,
-        invoiceNumber: "INV-001",
-        customerName: "Sample Customer",
-        customerEmail: "customer@example.com",
-        customerAddress: "123 Business District, Dubai, UAE",
-        invoiceDate: new Date().toISOString().split("T")[0],
-        dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)
-          .toISOString()
-          .split("T")[0],
-        paymentTerms: "Net 15",
-        items: [
-          {
-            id: "1",
-            name: "Consulting Services",
-            description:
-              "Professional business consultation and strategic planning services for Q4 2024",
-            quantity: 1,
-            price: 1000,
-            amount: 1000,
-          },
-          {
-            id: "2",
-            name: "Technical Implementation",
-            description:
-              "System setup, configuration, and deployment of enterprise software solutions",
-            quantity: 2,
-            price: 750,
-            amount: 1500,
-          },
-        ],
-        subtotal: 2500,
-        vat: 125,
-        total: 2625,
-        notes:
-          "Thank you for your business. Payment is due within the specified terms. Please contact us with any questions regarding this invoice.",
-        status: "draft",
-        createdAt: new Date().toISOString(),
-      };
+  const fetchSingleInvoice = async () => {
+    try {
+      const response = await axiosInstance.get(`/invoices/single/${invoiceId}`);
+      if (response.status === 200) {
+        setCurrentInvoice(response.data);
+        // toast.success("Invoice created successfully!")
+      }
+    } catch (error) {
+      console.log(error);
+      // toast.error("Error occur while creating invoice")
+    }
+  };
+
+  useEffect(() => {
+    fetchSingleInvoice();
+  }, [invoiceId]);
 
   const handleDownloadPDF = (invoice: Invoice) => {
     // In a real app, this would generate a PDF
-    alert(`Downloading PDF for ${invoice.invoiceNumber}`);
+    alert(`Downloading PDF for ${invoice.invoice_number}`);
   };
 
   const handleSendEmail = (invoice: Invoice) => {
     // In a real app, this would send an email
-    alert(`Sending email for ${invoice.invoiceNumber}`);
+    alert(`Sending email for ${invoice.invoice_number}`);
   };
 
   const handlePrint = () => {
@@ -107,9 +94,13 @@ const InvoicePreviewPage: React.FC = () => {
     alert("Document Print Successfully!");
   };
 
+  if (!currentInvoice) {
+    return <LoadingSpinner fullScreen={true} />;
+  }
+
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-gray-50 p-6 mb-4">
+      <div className="min-h-screen p-4 mb-8">
         <div className="w-full">
           {/* Page Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
@@ -124,7 +115,7 @@ const InvoicePreviewPage: React.FC = () => {
             <div className="flex flex-wrap gap-3 mt-4 md:mt-0">
               <Button
                 onClick={() => router.push("/dashboard/invoicing")}
-                icon={<ArrowLeft className="w-4 h-4" />}
+                startIcon={<ArrowLeft className="w-4 h-4" />}
               >
                 Back to Invoices
               </Button>
@@ -141,10 +132,10 @@ const InvoicePreviewPage: React.FC = () => {
                   </div>
                   <div>
                     <h2 className="font-bold text-gray-900 text-lg">
-                      {currentInvoice.invoiceNumber}
+                      {currentInvoice.invoice_number}
                     </h2>
                     <p className="text-gray-600 text-sm">
-                      For {currentInvoice.customerName}
+                      For {currentInvoice.customer_name}
                     </p>
                   </div>
                 </div>
@@ -161,20 +152,20 @@ const InvoicePreviewPage: React.FC = () => {
                 <Button
                   onClick={handlePrint}
                   className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                  icon={<Printer className="w-4 h-4" />}
+                  startIcon={<Printer className="w-4 h-4" />}
                 >
                   Print
                 </Button>
                 <Button
                   onClick={() => handleDownloadPDF(currentInvoice)}
                   className="bg-[#f6a821] hover:bg-[#d18d18]"
-                  icon={<Download className="w-4 h-4" />}
+                  startIcon={<Download className="w-4 h-4" />}
                 >
                   Download PDF
                 </Button>
                 <Button
                   onClick={() => handleSendEmail(currentInvoice)}
-                  icon={<Send className="w-4 h-4" />}
+                  startIcon={<Send className="w-4 h-4" />}
                 >
                   Send to Customer
                 </Button>
@@ -212,13 +203,13 @@ const InvoicePreviewPage: React.FC = () => {
                     <div className="space-y-1 text-sm text-gray-600">
                       <div className="flex justify-between gap-4">
                         <span className="font-semibold">Invoice #:</span>
-                        <span>{currentInvoice.invoiceNumber}</span>
+                        <span>{currentInvoice.invoice_number}</span>
                       </div>
                       <div className="flex justify-between gap-4">
                         <span className="font-semibold">Date:</span>
                         <span>
                           {new Date(
-                            currentInvoice.invoiceDate
+                            currentInvoice.invoice_date
                           ).toLocaleDateString()}
                         </span>
                       </div>
@@ -226,13 +217,13 @@ const InvoicePreviewPage: React.FC = () => {
                         <span className="font-semibold">Due Date:</span>
                         <span className="font-semibold text-gray-900">
                           {new Date(
-                            currentInvoice.dueDate
+                            currentInvoice.due_date
                           ).toLocaleDateString()}
                         </span>
                       </div>
                       <div className="flex justify-between gap-4">
                         <span className="font-semibold">Terms:</span>
-                        <span>{currentInvoice.paymentTerms}</span>
+                        <span>{currentInvoice.payment_terms}</span>
                       </div>
                     </div>
                   </div>
@@ -261,16 +252,16 @@ const InvoicePreviewPage: React.FC = () => {
                       Bill To
                     </h3>
                     <div className="text-gray-900 font-semibold">
-                      {currentInvoice.customerName}
+                      {currentInvoice.customer_name}
                     </div>
-                    {currentInvoice.customerAddress && (
+                    {currentInvoice.customer_address && (
                       <div className="text-gray-600">
-                        {currentInvoice.customerAddress}
+                        {currentInvoice.customer_address}
                       </div>
                     )}
-                    {currentInvoice.customerEmail && (
+                    {currentInvoice.customer_email && (
                       <div className="text-gray-600">
-                        {currentInvoice.customerEmail}
+                        {currentInvoice.customer_email}
                       </div>
                     )}
                   </div>
@@ -296,7 +287,7 @@ const InvoicePreviewPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {currentInvoice.items.map((item) => (
+                      {currentInvoice.invoice_items.map((item) => (
                         <tr key={item.id}>
                           <td className="px-6 py-4">
                             <div className="text-sm font-medium text-gray-900">
@@ -312,10 +303,10 @@ const InvoicePreviewPage: React.FC = () => {
                             {item.quantity}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                            {item.price.toLocaleString()}.00
+                            {item.price.toLocaleString()}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">
-                            {item.amount.toLocaleString()}.00
+                            {item.amount.toLocaleString()}
                           </td>
                         </tr>
                       ))}
@@ -334,7 +325,7 @@ const InvoicePreviewPage: React.FC = () => {
                               Subtotal:
                             </td>
                             <td className="py-2 text-sm font-semibold text-gray-900 text-right">
-                              AED {currentInvoice.subtotal.toLocaleString()}.00
+                              AED {currentInvoice.subtotal.toLocaleString()}
                             </td>
                           </tr>
                           <tr>
@@ -342,7 +333,7 @@ const InvoicePreviewPage: React.FC = () => {
                               VAT (5%):
                             </td>
                             <td className="py-2 text-sm font-semibold text-gray-900 text-right">
-                              AED {currentInvoice.vat.toLocaleString()}.00
+                              AED {currentInvoice.vat.toLocaleString()}
                             </td>
                           </tr>
                           <tr className="border-t border-gray-200">
@@ -350,7 +341,7 @@ const InvoicePreviewPage: React.FC = () => {
                               Total Due:
                             </td>
                             <td className="py-3 font-bold text-lg text-gray-900 text-right">
-                              AED {currentInvoice.total.toLocaleString()}.00
+                              AED {currentInvoice.total.toLocaleString()}
                             </td>
                           </tr>
                         </tbody>
@@ -378,7 +369,7 @@ const InvoicePreviewPage: React.FC = () => {
                     </p>
                     <p>
                       Please include invoice number{" "}
-                      {currentInvoice.invoiceNumber} with your payment.
+                      {currentInvoice.invoice_number} with your payment.
                     </p>
                   </div>
                 </div>
@@ -423,7 +414,7 @@ const InvoicePreviewPage: React.FC = () => {
                 <Button
                   onClick={() => handleSendEmail(currentInvoice)}
                   className="text-sm"
-                  icon={<Send className="w-4 h-4" />}
+                  startIcon={<Send className="w-4 h-4" />}
                 >
                   Send to Customer
                 </Button>
@@ -432,31 +423,6 @@ const InvoicePreviewPage: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Print Styles */}
-      <style jsx global>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          .print-area,
-          .print-area * {
-            visibility: visible;
-          }
-          .print-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            padding: 0;
-            margin: 0;
-            background: white;
-          }
-          .no-print {
-            display: none !important;
-          }
-        }
-      `}</style>
     </DashboardLayout>
   );
 };

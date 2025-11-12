@@ -1,7 +1,7 @@
 "use client";
 
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FileText,
   CheckCircle,
@@ -17,6 +17,9 @@ import {
   Download,
   Eye,
   ChevronDown,
+  Trash2,
+  Edit,
+  RefreshCw,
 } from "lucide-react";
 import StatCard from "@/app/components/stat-card/StatCard";
 import Link from "next/link";
@@ -24,6 +27,22 @@ import { useRouter } from "next/navigation";
 import Button from "@/app/components/ui/Button";
 import { getStatusBadge } from "@/lib/statusBadge";
 import PageHeader from "@/app/components/page-header/PageHeader";
+import axiosInstance from "@/utils/axiosInstance";
+import { useAuth } from "@/context/AuthContext";
+import DropdownMenu from "@/app/components/ui/DropdownMenu";
+import toast from "react-hot-toast";
+import LoadingSpinner from "@/app/components/loading-spinner/LoadingSpinner";
+
+interface FormField {
+  id: string;
+  name: keyof Invoice | string;
+  label: string;
+  type: "text" | "email" | "date" | "number" | "textarea" | "select";
+  placeholder: string;
+  required: boolean;
+  value: string;
+  options?: string[];
+}
 
 // TypeScript interfaces
 interface InvoiceItem {
@@ -36,21 +55,22 @@ interface InvoiceItem {
 }
 
 interface Invoice {
-  id: string;
-  invoiceNumber: string;
-  customerName: string;
-  customerEmail?: string;
-  customerAddress?: string;
-  invoiceDate: string;
-  dueDate: string;
-  paymentTerms: string;
+  uuid: string;
+  user_id: string;
+  invoice_number: string;
+  customer_name: string;
+  customer_email: string;
+  customer_address: string;
+  invoice_date: string;
+  due_date: string;
+  payment_terms: string;
   items: InvoiceItem[];
+  custom_fields: Record<string, FormField>;
   subtotal: number;
   vat: number;
   total: number;
   notes: string;
   status: "paid" | "unpaid" | "draft" | "saved";
-  createdAt: string;
 }
 
 const InvoiceListPage: React.FC = () => {
@@ -61,124 +81,15 @@ const InvoiceListPage: React.FC = () => {
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
   const router = useRouter();
-
-  // Sample data for demonstration
-
-  const sampleInvoices: Invoice[] = [
-    {
-      id: "1",
-      invoiceNumber: "INV-001",
-      customerName: "ABC Trading LLC",
-      customerEmail: "accounts@abctrading.ae",
-      invoiceDate: "2023-03-15",
-      dueDate: "2023-03-30",
-      paymentTerms: "Net 15",
-      items: [
-        {
-          id: "1-1",
-          name: "AI Consulting Services",
-          description: "Business advisory and AI implementation consultation",
-          quantity: 5,
-          price: 1000,
-          amount: 5000,
-        },
-      ],
-      subtotal: 5000,
-      vat: 250,
-      total: 5250,
-      notes: "Payment due within 15 days. Thank you for your business.",
-      status: "paid",
-      createdAt: "2023-03-15T10:30:00Z",
-    },
-    {
-      id: "2",
-      invoiceNumber: "INV-002",
-      customerName: "XYZ Consulting",
-      customerEmail: "finance@xyzconsulting.ae",
-      invoiceDate: "2023-03-22",
-      dueDate: "2023-04-06",
-      paymentTerms: "Net 15",
-      items: [
-        {
-          id: "2-1",
-          name: "AI Document Preparation",
-          description: "Smart contract and agreement drafting using AI",
-          quantity: 2,
-          price: 500,
-          amount: 1000,
-        },
-        {
-          id: "2-2",
-          name: "AI Compliance Review",
-          description: "VAT filing compliance check with AI analysis",
-          quantity: 3,
-          price: 600,
-          amount: 1800,
-        },
-      ],
-      subtotal: 2800,
-      vat: 140,
-      total: 2940,
-      notes: "Please process payment before due date.",
-      status: "unpaid",
-      createdAt: "2023-03-22T14:45:00Z",
-    },
-    {
-      id: "3",
-      invoiceNumber: "INV-003",
-      customerName: "Tech Solutions ME",
-      customerEmail: "billing@techsolutions.ae",
-      invoiceDate: "2023-04-01",
-      dueDate: "2023-04-16",
-      paymentTerms: "Net 15",
-      items: [
-        {
-          id: "3-1",
-          name: "AI Integration Services",
-          description: "Custom AI solution integration",
-          quantity: 10,
-          price: 750,
-          amount: 7500,
-        },
-      ],
-      subtotal: 7500,
-      vat: 375,
-      total: 7875,
-      notes: "Thank you for your continued partnership.",
-      status: "paid",
-      createdAt: "2023-04-01T09:15:00Z",
-    },
-    {
-      id: "4",
-      invoiceNumber: "INV-004",
-      customerName: "Digital Futures FZCO",
-      customerEmail: "payments@digitalfutures.ae",
-      invoiceDate: "2023-04-10",
-      dueDate: "2023-04-25",
-      paymentTerms: "Net 15",
-      items: [
-        {
-          id: "4-1",
-          name: "AI Predictive Analytics",
-          description: "Revenue forecasting with machine learning",
-          quantity: 8,
-          price: 1200,
-          amount: 9600,
-        },
-      ],
-      subtotal: 9600,
-      vat: 480,
-      total: 10080,
-      notes: "AI-generated insights included",
-      status: "unpaid",
-      createdAt: "2023-04-10T11:20:00Z",
-    },
-  ];
+  const { user, loading } = useAuth();
+  const userId = !loading ? user?.user.user_id : "";
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [userInvoices, setUserInvoices] = useState<Invoice[]>([]);
 
   const statsData = [
     {
       title: "Total Invoices",
-      value: "10",
+      value: userInvoices.length,
       subtitle: "+2 from last month",
       icon: <FileText className="w-6 h-6" />,
       iconBg: "bg-blue-100",
@@ -189,8 +100,10 @@ const InvoiceListPage: React.FC = () => {
     },
     {
       title: "Paid Invoices",
-      value: "3",
-      subtitle: "81.6% success rate",
+      value: userInvoices.filter((invoice) => invoice.status === "paid").length,
+      subtitle: `${
+        userInvoices.filter((invoice) => invoice.status === "paid").length
+      } paid invoices`,
       icon: <CheckCircle className="w-6 h-6" />,
       iconBg: "bg-green-100",
       iconColor: "text-green-600",
@@ -199,9 +112,12 @@ const InvoiceListPage: React.FC = () => {
       badgeColor: "text-green-600",
     },
     {
-      title: "Pending Amount",
-      value: "AED 40",
-      subtitle: "12 unpaid invoices",
+      title: "UnPaid Invoices",
+      value: userInvoices.filter((invoice) => invoice.status === "unpaid")
+        .length,
+      subtitle: `${
+        userInvoices.filter((invoice) => invoice.status === "unpaid").length
+      } unpaid invoices`,
       icon: <AlertTriangle className="w-6 h-6" />,
       iconBg: "bg-amber-100",
       iconColor: "text-amber-600",
@@ -211,7 +127,9 @@ const InvoiceListPage: React.FC = () => {
     },
     {
       title: "Total Revenue",
-      value: "AED 200",
+      value: `AED ${userInvoices
+        .filter((invoice) => invoice.status === "paid")
+        .reduce((total, invoice) => total + Number(invoice.total | 0), 0)}`,
       subtitle: "+15.2% from last quarter",
       icon: <DollarSign className="w-6 h-6" />,
       iconBg: "bg-purple-100",
@@ -222,23 +140,128 @@ const InvoiceListPage: React.FC = () => {
     },
   ];
 
+  /////////////////////////////////
+  // Fetch all user invoices
+  /////////////////////////////////
+  const fetchUserInvoices = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axiosInstance.get(`/invoices/user/${userId}`);
+      if (response.status === 200) {
+        console.log(response.data);
+        const invoices = response.data;
+        setUserInvoices(invoices);
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user && !loading) {
+      fetchUserInvoices();
+    }
+  }, [user, loading]);
+
+  /////////////////////////////////
+  // Send Invoice to customer
+  /////////////////////////////////
   const handleSendInvoice = (invoiceId: string) => {
     alert(`Invoice ${invoiceId} sent successfully with AI optimization!`);
   };
 
+  /////////////////////////////////
+  // DownLoad Pdf
+  /////////////////////////////////
   const handleDownloadPDF = (invoice: Invoice) => {
-    alert(`Downloading AI-optimized PDF for ${invoice.invoiceNumber}`);
+    alert(`Downloading AI-optimized PDF for ${invoice.invoice_number}`);
   };
 
-  const filteredInvoices = sampleInvoices.filter((invoice) => {
+  /////////////////////////////////
+  // Delete Invoice
+  /////////////////////////////////
+  const handleDeleteInvoice = async (invoiceId: string) => {
+    if (
+      confirm(
+        "Are you sure you want to delete this invoice? This action cannot be undone."
+      )
+    ) {
+      try {
+        setIsLoading(true);
+        const response = await axiosInstance.delete(
+          `/invoices/delete/${invoiceId}`
+        );
+        if (response.status === 200) {
+          toast.success(response.data.message);
+          fetchUserInvoices();
+        }
+      } catch (error) {
+        console.log("Error while deleting the invoice", error);
+        toast.error("Error while deleting the invoice.");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  /////////////////////////////
+  // Update Invoice Status
+  ////////////////////////////
+  const handleChangeStatus = async (invoiceId: string) => {
+    const selectedInvoice = userInvoices.find(
+      (invoice) => invoice.uuid === invoiceId
+    );
+    const newInvoiceStatus =
+      selectedInvoice?.status.toLowerCase() === "unpaid" ? "paid" : "unpaid";
+    if (
+      confirm(
+        `Are you sure you want to mark this invoice as "${newInvoiceStatus}"?`
+      )
+    ) {
+      try {
+        setIsLoading(true);
+
+        const response = await axiosInstance.patch(
+          `/invoices/update/status/${invoiceId}`,
+          { status: newInvoiceStatus }
+        );
+        if (response.status === 200) {
+          toast.success("Invoice status updated successfully!");
+          fetchUserInvoices();
+        }
+      } catch (error) {
+        console.log("Error occur while updating status", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  /////////////////////////////////
+  // Update invoice
+  /////////////////////////////////
+  const handleUpdateInvoice = (invoiceId: string) => {
+    router.push(`/dashboard/invoicing/new?id=${invoiceId}`);
+  };
+
+  /////////////////////////////////
+  // Search or Filter invoices
+  /////////////////////////////////
+  const filteredInvoices = userInvoices.filter((invoice) => {
     const matchesSearch =
-      invoice.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase());
+      invoice?.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice?.invoice_number.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus =
       statusFilter === "all" || invoice.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  if (isLoading) {
+    return <LoadingSpinner fullScreen={true} />;
+  }
 
   return (
     <DashboardLayout>
@@ -302,7 +325,10 @@ const InvoiceListPage: React.FC = () => {
                   {/* Filter Dropdown */}
                   <div className="relative">
                     <button
-                      onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowFilterDropdown(!showFilterDropdown);
+                      }}
                       className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors duration-200 w-full lg:w-auto justify-between"
                     >
                       <div className="flex items-center gap-2">
@@ -317,7 +343,7 @@ const InvoiceListPage: React.FC = () => {
                     </button>
 
                     {showFilterDropdown && (
-                      <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-300 rounded-xl shadow-lg z-10">
+                      <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-300 rounded-xl shadow-lg z-20">
                         <div className="p-2">
                           <div className="text-xs font-semibold text-gray-500 px-3 py-2 uppercase tracking-wide">
                             Filter by Status
@@ -341,7 +367,7 @@ const InvoiceListPage: React.FC = () => {
                                   : "bg-gray-100 text-gray-600"
                               }`}
                             >
-                              {sampleInvoices.length}
+                              {userInvoices.length}
                             </span>
                           </button>
                           <button
@@ -358,7 +384,7 @@ const InvoiceListPage: React.FC = () => {
                             <span>Paid</span>
                             <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
                               {
-                                sampleInvoices.filter(
+                                userInvoices.filter(
                                   (inv) => inv.status === "paid"
                                 ).length
                               }
@@ -378,7 +404,7 @@ const InvoiceListPage: React.FC = () => {
                             <span>Unpaid</span>
                             <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
                               {
-                                sampleInvoices.filter(
+                                userInvoices.filter(
                                   (inv) => inv.status === "unpaid"
                                 ).length
                               }
@@ -392,7 +418,7 @@ const InvoiceListPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto min-h-[60vh]">
               <table className="w-full">
                 <thead className="bg-gradient-to-r from-[#1B2A49] to-[#2D4A7C]">
                   <tr>
@@ -422,7 +448,7 @@ const InvoiceListPage: React.FC = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredInvoices.map((invoice) => (
                     <tr
-                      key={invoice.id}
+                      key={invoice.uuid}
                       className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/30 transition-all duration-200 group"
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -432,7 +458,7 @@ const InvoiceListPage: React.FC = () => {
                           </div>
                           <div>
                             <div className="text-sm font-bold text-[#1B2A49]">
-                              {invoice.invoiceNumber}
+                              {invoice.invoice_number}
                             </div>
                             <div className="text-xs text-gray-500">
                               AI Managed
@@ -442,20 +468,20 @@ const InvoiceListPage: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-semibold text-[#344767]">
-                          {invoice.customerName}
+                          {invoice.customer_name}
                         </div>
-                        {invoice.customerEmail && (
+                        {invoice.customer_email && (
                           <div className="text-sm text-gray-500">
-                            {invoice.customerEmail}
+                            {invoice.customer_email}
                           </div>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-[#344767]">
                         <div>
-                          {new Date(invoice.invoiceDate).toLocaleDateString()}
+                          {new Date(invoice.invoice_date).toLocaleDateString()}
                         </div>
                         <div className="text-xs text-gray-500">
-                          Due {new Date(invoice.dueDate).toLocaleDateString()}
+                          Due {new Date(invoice.due_date).toLocaleDateString()}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -485,14 +511,14 @@ const InvoiceListPage: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <Link
-                            href={`/dashboard/invoicing/preview/${invoice.id}`}
+                            href={`/dashboard/invoicing/preview/${invoice.uuid}`}
                             className="p-2 text-gray-600 hover:text-[#1B2A49] hover:bg-blue-50 rounded-lg transition-all duration-200"
                             title="View"
                           >
                             <Eye className="w-4 h-4" />
                           </Link>
                           <button
-                            onClick={() => handleSendInvoice(invoice.id)}
+                            onClick={() => handleSendInvoice(invoice.uuid)}
                             className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200"
                             title="Send"
                           >
@@ -505,6 +531,42 @@ const InvoiceListPage: React.FC = () => {
                           >
                             <Download className="w-4 h-4" />
                           </button>
+
+                          {/* More Actions Dropdown - FIXED USAGE */}
+                          <DropdownMenu
+                            items={[
+                              {
+                                label: "Update Invoice",
+                                onClick: () =>
+                                  handleUpdateInvoice(invoice.uuid),
+                                icon: <Edit className="w-4 h-4" />,
+                                description: "Edit invoice details",
+                                variant: "default",
+                              },
+                              {
+                                label: "Change Status",
+                                onClick: () => handleChangeStatus(invoice.uuid),
+                                icon: <RefreshCw className="w-4 h-4" />,
+                                description: `Mark as ${
+                                  invoice.status.toLowerCase() === "paid"
+                                    ? "unpaid"
+                                    : "paid"
+                                }`,
+                                variant: "success",
+                              },
+                              {
+                                label: "Delete Invoice",
+                                onClick: () =>
+                                  handleDeleteInvoice(invoice.uuid),
+                                icon: <Trash2 className="w-4 h-4" />,
+                                description: "Remove permanently",
+                                variant: "destructive",
+                              },
+                            ]}
+                            triggerLabel="Invoice Actions"
+                            align="right"
+                            triggerClassName="p-2 text-gray-600 hover:text-[#1B2A49] hover:bg-blue-50 rounded-lg transition-all duration-200"
+                          />
                         </div>
                       </td>
                     </tr>
@@ -529,7 +591,7 @@ const InvoiceListPage: React.FC = () => {
                     <Button
                       onClick={() => router.push("/dashboard/invoicing/new")}
                       className="bg-gradient-to-r from-[#1B2A49] to-[#2D4A7C] hover:from-[#2D4A7C] hover:to-[#1B2A49] shadow-lg hover:shadow-xl transition-all duration-200 text-white"
-                      icon={<Plus className="w-4 h-4" />}
+                      startIcon={<Plus className="w-4 h-4" />}
                     >
                       Create AI Invoice
                     </Button>

@@ -16,6 +16,7 @@ import {
   ArrowLeft,
   Upload,
   Image,
+  SendIcon,
 } from "lucide-react";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import PageHeader from "@/app/components/page-header/PageHeader";
@@ -25,6 +26,7 @@ import toast from "react-hot-toast";
 import Card from "@/app/components/ui/Card";
 import axiosInstance from "@/utils/axiosInstance";
 import { useAuth } from "@/context/AuthContext";
+import Button from "../ui/Button";
 
 interface FieldConfig {
   id: string;
@@ -686,9 +688,12 @@ export default function DocumentForm() {
         : `/dashboard/documents/preview/${templateName}?data=${encodeURIComponent(
             JSON.stringify(formData)
           )}`;
-      setTimeout(() => {
-        router.push(previewPath);
-      }, isCustomTemplate ? 2000 : 0);
+      setTimeout(
+        () => {
+          router.push(previewPath);
+        },
+        isCustomTemplate ? 2000 : 0
+      );
     } else {
       toast.error("Template save Failed. Preview not generated.");
     }
@@ -1216,14 +1221,20 @@ export default function DocumentForm() {
                 </form>
 
                 {/* Action Buttons */}
-                <div className="flex items-center mt-8 pt-6 border-t border-[#E1E8F5]">
-                  <button
-                    onClick={handleSaveAndPreview}
-                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-[#1B2A49] text-white rounded-lg hover:bg-[#1B2A49]/90 transition-colors font-semibold"
+                <div className="flex items-center space-x-4 pt-6 border-t border-[#E1E8F5]">
+                  <Button
+                    onClick={() => router.push("/dashboard/documents")}
+                    className="border border-[#E1E8F5] text-[#344767] bg-white hover:bg-[#F4F7FA] shadow-sm"
                   >
-                    <Save className="w-5 h-5" />
+                    Cancel
+                  </Button>
+                  <Button
+                   onClick={handleSaveAndPreview}
+                   startIcon={<SendIcon className="w-5 h-5" />}
+                   className="flex-1"
+                  >
                     Save & Preview
-                  </button>
+                  </Button>
                 </div>
               </Card>
             </div>
