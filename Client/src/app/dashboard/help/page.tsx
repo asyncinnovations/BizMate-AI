@@ -18,7 +18,7 @@ import {
   HeadphonesIcon,
   Bot,
 } from "lucide-react";
-import DashboardLayout from "@/app/components/layout/DashboardLayout";
+import DashboardLayout from "@/components/layout/DashboardLayout";
 
 const AIHelpCenter = () => {
   const popularArticles = [

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight, Sparkles, Calendar } from "lucide-react";
-import Modal from "@/app/components/ui/Modal";
+import Modal from "@/components/ui/Modal";
 import ReminderCard from "../reminder-card/ReminderCard";
 
 // Type definitions

@@ -3,8 +3,8 @@
 
 import React, { useState } from "react";
 import { Settings } from "lucide-react";
-import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import PageHeader from "@/app/components/page-header/PageHeader";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import PageHeader from "@/components/page-header/PageHeader";
 import SettingsSidebar from "./fragements/SettingsSidebar";
 import AccountSecurityTab from "./fragements/AccountSecurityTab";
 import SubscriptionBillingTab from "./fragements/SubscriptionBillingTab";
@@ -39,26 +39,23 @@ const SettingsPage = () => {
   };
 
   return (
-      <DashboardLayout>
-        <div className="min-h-screen p-4 mb-8">
-          <div className="w-full">
-            <PageHeader
-              title="Settings"
-              icon={<Settings />}
-              description="Configure your platform preferences and controls"
-            />
+    <DashboardLayout>
+      <div className="min-h-screen p-4 mb-8">
+        <div className="w-full">
+          <PageHeader
+            title="Settings"
+            icon={<Settings />}
+            description="Configure your platform preferences and controls"
+          />
 
-            <div className="grid lg:grid-cols-4 gap-6 relative">
-              <SettingsSidebar
-                activeTab={activeTab}
-                onTabChange={setActiveTab}
-              />
+          <div className="grid lg:grid-cols-4 gap-6 relative">
+            <SettingsSidebar activeTab={activeTab} onTabChange={setActiveTab} />
 
-              <div className="lg:col-span-3 space-y-6">{renderActiveTab()}</div>
-            </div>
+            <div className="lg:col-span-3 space-y-6">{renderActiveTab()}</div>
           </div>
         </div>
-      </DashboardLayout>
+      </div>
+    </DashboardLayout>
   );
 };
 

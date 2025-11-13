@@ -23,8 +23,8 @@ import {
   Bell,
   BellOff,
 } from "lucide-react";
-import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import Button from "@/app/components/ui/Button";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import Button from "@/components/ui/Button";
 
 interface ChatMessage {
   id: string;

@@ -1,8 +1,8 @@
-import DocumentForm from '@/app/components/document-form/DocumentForm'
-import React from 'react'
+import DocumentForm from "@/components/document-form/DocumentForm";
+import React from "react";
 
 const page = () => {
-  return <DocumentForm />
-}
+  return <DocumentForm />;
+};
 
-export default page
+export default page;

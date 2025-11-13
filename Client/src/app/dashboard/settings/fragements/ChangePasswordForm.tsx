@@ -3,7 +3,7 @@
 
 import React, { useState } from "react";
 import { Lock, Eye, EyeOff } from "lucide-react";
-import SectionCard from "@/app/components/section-card/SectionCard";
+import SectionCard from "@/components/section-card/SectionCard";
 
 const ChangePasswordForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);

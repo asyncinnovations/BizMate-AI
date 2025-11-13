@@ -23,11 +23,11 @@ import {
   Database,
   Wand2,
 } from "lucide-react";
-import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import Modal from "@/app/components/ui/Modal";
-import Button from "@/app/components/ui/Button";
-import PageHeader from "@/app/components/page-header/PageHeader";
-import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import Modal from "@/components/ui/Modal";
+import Button from "@/components/ui/Button";
+import PageHeader from "@/components/page-header/PageHeader";
+import ProtectedRoute from "@/components/protected-route/ProtectedRoute";
 
 // Type definitions
 interface TeamMember {

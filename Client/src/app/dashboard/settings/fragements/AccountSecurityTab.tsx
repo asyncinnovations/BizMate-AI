@@ -12,8 +12,8 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import SectionCard from "@/app/components/section-card/SectionCard";
-import ToggleSwitch from "@/app/components/ui/ToggleSwitch";
+import SectionCard from "@/components/section-card/SectionCard";
+import ToggleSwitch from "@/components/ui/ToggleSwitch";
 import ChangePasswordForm from "./ChangePasswordForm";
 
 const AccountSecurityTab: React.FC = () => {

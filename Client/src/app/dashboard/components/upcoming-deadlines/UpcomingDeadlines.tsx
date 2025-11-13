@@ -1,8 +1,8 @@
 import React from "react";
 import { Calendar, AlertTriangle, Users, Building2 } from "lucide-react";
-import Button from "@/app/components/ui/Button";
+import Button from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
-import Card from "@/app/components/ui/Card";
+import Card from "@/components/ui/Card";
 
 const UpcomingDeadlines = () => {
   const router = useRouter();

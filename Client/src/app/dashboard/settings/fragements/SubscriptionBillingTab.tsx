@@ -1,18 +1,11 @@
-// app/settings/components/SubscriptionBillingTab.tsx
 "use client";
 
 import React, { useState } from "react";
-import {
-  CreditCard,
-  Wallet,
-  FileText,
-  RefreshCw,
-  Check,
-  Download,
-  Trash2,
-} from "lucide-react";
-import SectionCard from "@/app/components/section-card/SectionCard";
-import ToggleSwitch from "@/app/components/ui/ToggleSwitch";
+import { CreditCard, FileText, RefreshCw, Check, Download } from "lucide-react";
+import SectionCard from "@/components/section-card/SectionCard";
+import ToggleSwitch from "@/components/ui/ToggleSwitch";
+import Button from "@/components/ui/Button";
+import PaymentMethods from "@/components/payment-methods/PaymentMethods";
 
 const SubscriptionBillingTab: React.FC = () => {
   const [autoRenew, setAutoRenew] = useState(true);
@@ -53,46 +46,15 @@ const SubscriptionBillingTab: React.FC = () => {
           </div>
         </div>
         <div className="flex gap-3">
-          <button className="px-6 py-3 border-2 border-[#2E69A4] text-[#2E69A4] rounded-lg hover:bg-[#2E69A4] hover:text-white transition-colors font-medium">
-            Change Plan
-          </button>
-          <button className="px-6 py-3 border border-[#E1E8F5] text-[#344767] rounded-lg hover:bg-[#F4F7FA] transition-colors">
+          <Button>Change Plan</Button>
+          <Button className="border bg-transparent border-[#344767] text-[#344767] rounded-lg hover:bg-[#F4F7FA] transition-colors">
             Cancel Subscription
-          </button>
+          </Button>
         </div>
       </SectionCard>
 
-      <SectionCard title="Payment Methods" icon={Wallet}>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-[#1B2A49]">
-            Payment Methods
-          </h2>
-          <button className="px-4 py-2 bg-[#1B2A49] text-white rounded-lg hover:bg-[#2E69A4] transition-colors text-sm">
-            Add Payment Method
-          </button>
-        </div>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-4 bg-[#F4F7FA] rounded-lg">
-            <div className="flex items-center gap-3">
-              <CreditCard className="w-5 h-5 text-[#2E69A4]" />
-              <div>
-                <p className="font-medium text-[#1B2A49]">
-                  Visa ending in 4242
-                </p>
-                <p className="text-sm text-[#344767]">Expires 12/2025</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs bg-[#2E69A4] text-white px-2 py-1 rounded">
-                Default
-              </span>
-              <button className="text-[#344767] hover:text-red-500">
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </SectionCard>
+      {/* Payment Methods Component */}
+      <PaymentMethods />
 
       <SectionCard title="Billing History" icon={FileText}>
         <div className="space-y-3">

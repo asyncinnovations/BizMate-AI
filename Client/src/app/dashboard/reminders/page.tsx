@@ -10,11 +10,11 @@ import {
   TrendingUp,
   Brain,
 } from "lucide-react";
-import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import Modal from "@/app/components/ui/Modal";
-import ReminderCalendar from "@/app/components/calendar/Calendar";
-import ReminderCard from "@/app/components/reminder-card/ReminderCard";
-import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import Modal from "@/components/ui/Modal";
+import ReminderCalendar from "@/components/calendar/Calendar";
+import ReminderCard from "@/components/reminder-card/ReminderCard";
+import ProtectedRoute from "@/components/protected-route/ProtectedRoute";
 
 // Type definitions (type alias)
 type ReminderStatus = "pending" | "completed";

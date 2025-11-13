@@ -3,8 +3,8 @@
 
 import React, { useState } from "react";
 import { Mail, MessageSquare, Bell } from "lucide-react";
-import SectionCard from "@/app/components/section-card/SectionCard";
-import ToggleSwitch from "@/app/components/ui/ToggleSwitch";
+import SectionCard from "@/components/section-card/SectionCard";
+import ToggleSwitch from "@/components/ui/ToggleSwitch";
 
 const NotificationsTab: React.FC = () => {
   const [emailNotifications, setEmailNotifications] = useState(true);

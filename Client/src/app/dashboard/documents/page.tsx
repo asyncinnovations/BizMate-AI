@@ -19,14 +19,14 @@ import {
   Send,
   FileSignature,
 } from "lucide-react";
-import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import StatCard from "@/app/components/stat-card/StatCard";
-import PageHeader from "@/app/components/page-header/PageHeader";
-import Modal from "@/app/components/ui/Modal";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import StatCard from "@/components/stat-card/StatCard";
+import PageHeader from "@/components/page-header/PageHeader";
+import Modal from "@/components/ui/Modal";
 import { useAuth } from "@/context/AuthContext";
 import axiosInstance from "@/utils/axiosInstance";
 import toast from "react-hot-toast";
-import LoadingSpinner from "@/app/components/loading-spinner/LoadingSpinner";
+import LoadingSpinner from "@/components/loading-spinner/LoadingSpinner";
 
 interface DocumentTemplate {
   uuid: string;

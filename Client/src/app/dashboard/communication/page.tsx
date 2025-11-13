@@ -23,13 +23,13 @@ import {
   MessageCircle,
   LucideIcon,
 } from "lucide-react";
-import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import StatCard from "@/app/components/stat-card/StatCard";
-import Modal from "@/app/components/ui/Modal";
-import ReplyCard from "@/app/components/auto-reply-card/ReplyCard";
-import SocialAccounts from "@/app/components/social_accounts/SocialAccounts";
-import Button from "@/app/components/ui/Button";
-import PageHeader from "@/app/components/page-header/PageHeader";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import StatCard from "@/components/stat-card/StatCard";
+import Modal from "@/components/ui/Modal";
+import ReplyCard from "@/components/auto-reply-card/ReplyCard";
+import SocialAccounts from "@/components/social_accounts/SocialAccounts";
+import Button from "@/components/ui/Button";
+import PageHeader from "@/components/page-header/PageHeader";
 
 // Type definitions
 interface Reply {

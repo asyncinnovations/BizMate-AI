@@ -10,7 +10,7 @@ import {
   Edit3,
   CheckCheck,
 } from "lucide-react";
-import Modal from "@/app/components/ui/Modal";
+import Modal from "@/components/ui/Modal";
 
 interface Reply {
   id: number;

@@ -3,8 +3,8 @@
 
 import React, { useState } from "react";
 import { Globe, Bot, Database, Shield } from "lucide-react";
-import SectionCard from "@/app/components/section-card/SectionCard";
-import ToggleSwitch from "@/app/components/ui/ToggleSwitch";
+import SectionCard from "@/components/section-card/SectionCard";
+import ToggleSwitch from "@/components/ui/ToggleSwitch";
 
 const AIAssistantTab: React.FC = () => {
   const [smartSuggestions, setSmartSuggestions] = useState(true);

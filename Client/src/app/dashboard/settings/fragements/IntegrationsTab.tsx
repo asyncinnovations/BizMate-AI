@@ -1,7 +1,7 @@
 // app/settings/components/IntegrationsTab.tsx
 import React from "react";
 import { Plug, Wallet, Calendar, MessageSquare, Instagram } from "lucide-react";
-import SectionCard from "@/app/components/section-card/SectionCard";
+import SectionCard from "@/components/section-card/SectionCard";
 
 const IntegrationsTab: React.FC = () => {
   return (
@@ -13,7 +13,9 @@ const IntegrationsTab: React.FC = () => {
               <MessageSquare className="w-6 h-6 text-green-600" />
               <div>
                 <p className="font-medium text-[#1B2A49]">WhatsApp Business</p>
-                <p className="text-sm text-[#344767]">Connect for automated customer replies</p>
+                <p className="text-sm text-[#344767]">
+                  Connect for automated customer replies
+                </p>
               </div>
             </div>
             <button className="px-4 py-2 bg-[#1B2A49] text-white rounded-lg hover:bg-[#2E69A4] transition-colors text-sm">
@@ -25,7 +27,9 @@ const IntegrationsTab: React.FC = () => {
               <Instagram className="w-6 h-6 text-pink-600" />
               <div>
                 <p className="font-medium text-[#1B2A49]">Instagram Business</p>
-                <p className="text-sm text-[#344767]">Sync your Instagram business account</p>
+                <p className="text-sm text-[#344767]">
+                  Sync your Instagram business account
+                </p>
               </div>
             </div>
             <button className="px-4 py-2 bg-[#1B2A49] text-white rounded-lg hover:bg-[#2E69A4] transition-colors text-sm">
@@ -45,7 +49,9 @@ const IntegrationsTab: React.FC = () => {
                 <p className="text-sm text-[#344767]">Accept online payments</p>
               </div>
             </div>
-            <span className="text-sm text-[#2E69A4] font-medium">Connected</span>
+            <span className="text-sm text-[#2E69A4] font-medium">
+              Connected
+            </span>
           </div>
           <div className="flex items-center justify-between p-4 bg-[#F4F7FA] rounded-lg hover:bg-[#E1E8F5] transition-colors">
             <div className="flex items-center gap-3">
@@ -69,7 +75,9 @@ const IntegrationsTab: React.FC = () => {
               <Calendar className="w-6 h-6 text-[#2E69A4]" />
               <div>
                 <p className="font-medium text-[#1B2A49]">Google Calendar</p>
-                <p className="text-sm text-[#344767]">Sync reminders with Google Calendar</p>
+                <p className="text-sm text-[#344767]">
+                  Sync reminders with Google Calendar
+                </p>
               </div>
             </div>
             <button className="px-4 py-2 bg-[#1B2A49] text-white rounded-lg hover:bg-[#2E69A4] transition-colors text-sm">
@@ -81,7 +89,9 @@ const IntegrationsTab: React.FC = () => {
               <Calendar className="w-6 h-6 text-[#2E69A4]" />
               <div>
                 <p className="font-medium text-[#1B2A49]">Outlook</p>
-                <p className="text-sm text-[#344767]">Sync with Microsoft Outlook</p>
+                <p className="text-sm text-[#344767]">
+                  Sync with Microsoft Outlook
+                </p>
               </div>
             </div>
             <button className="px-4 py-2 bg-[#1B2A49] text-white rounded-lg hover:bg-[#2E69A4] transition-colors text-sm">

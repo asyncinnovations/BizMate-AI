@@ -43,10 +43,10 @@ import {
   Globe,
   BookOpen,
 } from "lucide-react";
-import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import StatCard from "@/app/components/stat-card/StatCard";
-import PageHeader from "@/app/components/page-header/PageHeader";
-import Modal from "@/app/components/ui/Modal";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import StatCard from "@/components/stat-card/StatCard";
+import PageHeader from "@/components/page-header/PageHeader";
+import Modal from "@/components/ui/Modal";
 
 interface ComplianceItem {
   id: string;

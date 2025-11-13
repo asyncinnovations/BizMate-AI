@@ -1,5 +1,5 @@
 import React from "react";
-import PublicLayout from "../components/layout/PublicLayout";
+import PublicLayout from "@/components/layout/PublicLayout";
 
 const page = () => {
   return (

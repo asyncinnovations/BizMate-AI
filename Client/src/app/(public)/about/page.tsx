@@ -1,12 +1,8 @@
-import TypeWriter from "@/app/components/type-writer/TypeWriter";
+import TypeWriter from "@/components/type-writer/TypeWriter";
 import React from "react";
 
 const page = () => {
-  return (
-    <div>
-      
-    </div>
-  );
+  return <div></div>;
 };
 
 export default page;

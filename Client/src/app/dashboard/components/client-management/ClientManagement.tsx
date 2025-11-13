@@ -1,8 +1,8 @@
 import React from "react";
 
 import { FileText, Users, Calendar, MessageCircle } from "lucide-react";
-import Button from "@/app/components/ui/Button";
-import Card from "@/app/components/ui/Card";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
 
 const ClientManagement = () => {
   const clients = [
