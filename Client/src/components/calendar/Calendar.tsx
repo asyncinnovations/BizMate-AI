@@ -2,36 +2,51 @@ import React, { useState } from "react";
 import { ChevronLeft, ChevronRight, Sparkles, Calendar } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import ReminderCard from "../reminder-card/ReminderCard";
+import { formatDate } from "@/utils/formatDate";
 
 // Type definitions
-type ReminderStatus = "pending" | "completed";
-type ReminderPriority = "high" | "medium" | "low";
+type ReminderStatus = "pending" | "sent" | "completed" | "missed";
 type ReminderType = "VAT" | "License" | "Payroll" | "Custom";
 
 interface Reminder {
-  id: number;
+  uuid: string;
   title: string;
+  description: string;
   type: ReminderType;
-  date: string;
-  time: string;
+  reminder_date: string;
+  notify_before: number;
+  notify_channels: {
+    email: boolean;
+    whatsapp: boolean;
+    push: boolean;
+  };
+  recurrence_rule: string;
   status: ReminderStatus;
-  assignedTo: string | null;
-  priority: ReminderPriority;
-  aiGenerated: boolean;
-  aiConfidence: number | null;
 }
 
 interface ReminderCalendarProps {
   reminders: Reminder[];
   typeColors: Record<ReminderType, string>;
+  onDelete: (uuid: string) => void;
+  onUpdate: (reminder: Reminder) => void;
+  onToggleStatus: (reminder: Reminder) => void;
+  showCalendarModal: boolean;
+  setShowCalendarModal: (state: boolean) => void;
 }
 
-const ReminderCalendar = ({ reminders, typeColors }: ReminderCalendarProps) => {
+const ReminderCalendar = ({
+  reminders,
+  typeColors,
+  onDelete,
+  onUpdate,
+  onToggleStatus,
+  showCalendarModal,
+  setShowCalendarModal,
+}: ReminderCalendarProps) => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectedDateReminders, setSelectedDateReminders] = useState<
     Reminder[]
   >([]);
-  const [showRemindersModal, setShowRemindersModal] = useState<boolean>(false);
   const [selectedDate, setSelectedDate] = useState<string>("");
 
   const monthNames: string[] = [
@@ -51,10 +66,11 @@ const ReminderCalendar = ({ reminders, typeColors }: ReminderCalendarProps) => {
 
   const dayNames: string[] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  const priorityColors: Record<ReminderPriority, string> = {
-    high: "bg-red-100 text-red-700 border-red-200",
-    medium: "bg-amber-100 text-amber-700 border-amber-200",
-    low: "bg-blue-100 text-blue-700 border-blue-200",
+  const statusColors: Record<ReminderStatus, string> = {
+    pending: "bg-yellow-100 text-yellow-700",
+    sent: "bg-blue-100 text-blue-700",
+    completed: "bg-green-100 text-green-700",
+    missed: "bg-red-100 text-red-700",
   };
 
   const getDaysInMonth = (date: Date): number => {
@@ -77,7 +93,8 @@ const ReminderCalendar = ({ reminders, typeColors }: ReminderCalendarProps) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(
       day
     ).padStart(2, "0")}`;
-    return reminders.filter((r) => r.date === dateStr);
+    console.log(dateStr);
+    return reminders.filter((r) => r.reminder_date.split("T")[0] === dateStr);
   };
 
   const isToday = (year: number, month: number, day: number): boolean => {
@@ -96,7 +113,7 @@ const ReminderCalendar = ({ reminders, typeColors }: ReminderCalendarProps) => {
     ).padStart(2, "0")}`;
     setSelectedDateReminders(dateReminders);
     setSelectedDate(dateStr);
-    setShowRemindersModal(true);
+    setShowCalendarModal(true);
   };
 
   const previousMonth = (): void => {
@@ -113,34 +130,6 @@ const ReminderCalendar = ({ reminders, typeColors }: ReminderCalendarProps) => {
 
   const goToToday = (): void => {
     setCurrentDate(new Date());
-  };
-
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const diffTime = date.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "Tomorrow";
-    if (diffDays < 0) return `${Math.abs(diffDays)} days ago`;
-    return `in ${diffDays} days`;
-  };
-
-  // Handler functions for reminder actions
-  const handleToggleStatus = (id: number): void => {
-    // This would typically update the reminders in the parent component
-    console.log("Toggle status for reminder:", id);
-  };
-
-  const handleEdit = (reminder: Reminder): void => {
-    // This would typically open the edit form in the parent component
-    console.log("Edit reminder:", reminder);
-  };
-
-  const handleDelete = (id: number): void => {
-    // This would typically delete the reminder in the parent component
-    console.log("Delete reminder:", id);
   };
 
   const renderCalendar = () => {
@@ -173,10 +162,13 @@ const ReminderCalendar = ({ reminders, typeColors }: ReminderCalendarProps) => {
         day
       );
 
-      const hasPendingReminders = dayReminders.some(
-        (r) => r.status === "pending"
+      // const hasPendingReminders = dayReminders.some(
+      //   (r) => r.status === "pending"
+      // );
+
+      const hasMissedReminders = dayReminders.some(
+        (r) => r.status === "missed"
       );
-      const hasHighPriority = dayReminders.some((r) => r.priority === "high");
 
       days.push(
         <div
@@ -191,7 +183,7 @@ const ReminderCalendar = ({ reminders, typeColors }: ReminderCalendarProps) => {
           className={`min-h-[100px] bg-white rounded-xl border-2 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] cursor-pointer group ${
             today
               ? "border-[#2E69A4] shadow-lg ring-2 ring-[#2E69A4] ring-opacity-30"
-              : hasHighPriority
+              : hasMissedReminders
               ? "border-red-200 hover:border-red-300"
               : "border-[#E1E8F5] hover:border-[#2E69A4]"
           } ${dayReminders.length > 0 ? "hover:bg-blue-50" : ""}`}
@@ -203,7 +195,7 @@ const ReminderCalendar = ({ reminders, typeColors }: ReminderCalendarProps) => {
                 className={`text-sm font-bold transition-all ${
                   today
                     ? "text-[#2E69A4] text-lg"
-                    : hasHighPriority
+                    : hasMissedReminders
                     ? "text-red-600"
                     : "text-[#344767] group-hover:text-[#2E69A4]"
                 }`}
@@ -228,7 +220,7 @@ const ReminderCalendar = ({ reminders, typeColors }: ReminderCalendarProps) => {
             <div className="flex-grow overflow-hidden space-y-1.5">
               {dayReminders.slice(0, 1).map((reminder) => (
                 <div
-                  key={reminder.id}
+                  key={reminder.uuid}
                   className={`text-xs p-2 rounded-lg ${
                     typeColors[reminder.type]
                   } truncate flex items-center gap-1.5 shadow-sm hover:shadow-md transition-all transform hover:scale-105 ${
@@ -236,16 +228,9 @@ const ReminderCalendar = ({ reminders, typeColors }: ReminderCalendarProps) => {
                   }`}
                   title={reminder.title}
                 >
-                  {reminder.aiGenerated && (
-                    <Sparkles className="w-3 h-3 flex-shrink-0 animate-pulse" />
-                  )}
                   {reminder.status === "completed" && (
                     <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></span>
                   )}
-                  {reminder.priority === "high" &&
-                    reminder.status !== "completed" && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0 animate-pulse"></span>
-                    )}
                   <span className="truncate font-medium">{reminder.title}</span>
                 </div>
               ))}
@@ -264,7 +249,7 @@ const ReminderCalendar = ({ reminders, typeColors }: ReminderCalendarProps) => {
   };
 
   const totalRemindersThisMonth = reminders.filter((r) => {
-    const reminderDate = new Date(r.date);
+    const reminderDate = new Date(r.reminder_date);
     return (
       reminderDate.getMonth() === currentDate.getMonth() &&
       reminderDate.getFullYear() === currentDate.getFullYear()
@@ -345,23 +330,23 @@ const ReminderCalendar = ({ reminders, typeColors }: ReminderCalendarProps) => {
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-red-500"></div>
-            <span className="text-[#344767]">High Priority</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-3 h-3 text-[#F6A821]" />
-            <span className="text-[#344767]">AI Generated</span>
+            <span className="text-[#344767]">Missed</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-green-500"></div>
             <span className="text-[#344767]">Completed</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-3 h-3 text-[#F6A821]" />
+            <span className="text-[#344767]">AI Generated</span>
           </div>
         </div>
       </div>
 
       {/* Reminders Modal */}
       <Modal
-        isOpen={showRemindersModal}
-        onClose={() => setShowRemindersModal(false)}
+        isOpen={showCalendarModal}
+        onClose={() => setShowCalendarModal(false)}
         title={`Reminders for ${formatModalDate(selectedDate)}`}
         titleIcon={<Calendar className="w-5 h-5 text-white" />}
         size="lg"
@@ -376,13 +361,13 @@ const ReminderCalendar = ({ reminders, typeColors }: ReminderCalendarProps) => {
             <div className="space-y-4">
               {selectedDateReminders.map((reminder) => (
                 <ReminderCard
-                  key={reminder.id}
+                  key={reminder.uuid}
                   reminder={reminder}
                   typeColors={typeColors}
-                  priorityColors={priorityColors}
-                  onToggleStatus={handleToggleStatus}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
+                  statusColors={statusColors}
+                  onToggleStatus={onToggleStatus}
+                  onUpdate={onUpdate}
+                  onDelete={onDelete}
                   formatDate={formatDate}
                 />
               ))}
@@ -395,7 +380,7 @@ const ReminderCalendar = ({ reminders, typeColors }: ReminderCalendarProps) => {
             {selectedDateReminders.length !== 1 ? "s" : ""}
           </span>
           <button
-            onClick={() => setShowRemindersModal(false)}
+            onClick={() => setShowCalendarModal(false)}
             className="px-4 py-2 bg-[#2E69A4] text-white rounded-lg hover:bg-[#1B2A49] transition-colors"
           >
             Close
