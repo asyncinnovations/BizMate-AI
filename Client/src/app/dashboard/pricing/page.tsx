@@ -2,8 +2,8 @@
 
 import React from "react";
 import { Sparkles, Building2, Rocket } from "lucide-react";
-import PlanCard from "@/app/components/plan-card/PlanCard";
-import DashboardLayout from "@/app/components/layout/DashboardLayout";
+import PlanCard from "@/components/plan-card/PlanCard";
+import DashboardLayout from "@/components/layout/DashboardLayout";
 
 // Main Pricing Page Component
 export default function PricingPage() {

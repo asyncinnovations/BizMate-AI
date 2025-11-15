@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Bell,
   Plus,
@@ -8,184 +8,97 @@ import {
   Filter,
   Sparkles,
   TrendingUp,
-  Brain,
+  RefreshCcw,
 } from "lucide-react";
-import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import Modal from "@/app/components/ui/Modal";
-import ReminderCalendar from "@/app/components/calendar/Calendar";
-import ReminderCard from "@/app/components/reminder-card/ReminderCard";
-import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import Modal from "@/components/ui/Modal";
+import ReminderCalendar from "@/components/calendar/Calendar";
+import ReminderCard from "@/components/reminder-card/ReminderCard";
+import axiosInstance from "@/utils/axiosInstance";
+import toast from "react-hot-toast";
+import { useAuth } from "@/context/AuthContext";
+import { formatDate } from "@/utils/formatDate";
+import Button from "@/components/ui/Button";
+import LoadingSpinner from "@/components/loading-spinner/LoadingSpinner";
 
 // Type definitions (type alias)
-type ReminderStatus = "pending" | "completed";
-type ReminderPriority = "high" | "low" | "medium";
+type ReminderStatus = "pending" | "sent" | "completed" | "missed";
 type ReminderType = "VAT" | "License" | "Payroll" | "Custom";
 
 interface Reminder {
-  id: number;
+  uuid: string;
   title: string;
+  description: string;
   type: ReminderType;
-  date: string;
-  time: string;
+  reminder_date: string;
+  notify_before: number;
+  notify_channels: {
+    email: boolean;
+    whatsapp: boolean;
+    push: boolean;
+  };
+  recurrence_rule: string;
   status: ReminderStatus;
-  assignedTo: string | null;
-  priority: ReminderPriority;
-  aiGenerated: boolean;
-  aiConfidence: number | null;
-}
-
-interface Notification {
-  id: number;
-  message: string;
-  time: string;
-  read: boolean;
-  type: "warning" | "alert" | "success" | "info";
-  aiGenerated: boolean;
 }
 
 interface FormData {
+  user_id: string;
   title: string;
+  description: string;
   type: ReminderType;
-  date: string;
-  time: string;
-  assignedTo: string;
+  reminder_date: string;
+  notify_before: number;
+  notify_channels: {
+    email: boolean;
+    whatsapp: boolean;
+    push: boolean;
+  };
+  recurrence_rule: string;
 }
 
 type ViewMode = "list" | "calendar";
 
 const AIRemindersPage = () => {
-  const [reminders, setReminders] = useState<Reminder[]>([
-    {
-      id: 1,
-      title: "VAT Filing Deadline Q3 2025",
-      type: "VAT",
-      date: "2025-10-28",
-      time: "17:00",
-      status: "pending",
-      assignedTo: "Ahmed Khan",
-      priority: "high",
-      aiGenerated: true,
-      aiConfidence: 95,
-    },
-    {
-      id: 2,
-      title: "Trade License Renewal",
-      type: "License",
-      date: "2025-11-15",
-      time: "09:00",
-      status: "pending",
-      assignedTo: null,
-      priority: "high",
-      aiGenerated: true,
-      aiConfidence: 98,
-    },
-    {
-      id: 3,
-      title: "Monthly Payroll Processing",
-      type: "Payroll",
-      date: "2025-10-05",
-      time: "10:00",
-      status: "completed",
-      assignedTo: "Sara Ali",
-      priority: "medium",
-      aiGenerated: false,
-      aiConfidence: null,
-    },
-    {
-      id: 4,
-      title: "Client Meeting - Contract Review",
-      type: "Custom",
-      date: "2025-10-03",
-      time: "14:00",
-      status: "pending",
-      assignedTo: null,
-      priority: "low",
-      aiGenerated: false,
-      aiConfidence: null,
-    },
-    {
-      id: 5,
-      title: "Q4 Tax Return Filing",
-      type: "VAT",
-      date: "2025-10-15",
-      time: "16:00",
-      status: "pending",
-      assignedTo: "Ahmed Khan",
-      priority: "high",
-      aiGenerated: true,
-      aiConfidence: 92,
-    },
-    {
-      id: 6,
-      title: "Insurance Policy Renewal",
-      type: "Custom",
-      date: "2025-10-20",
-      time: "11:00",
-      status: "pending",
-      assignedTo: null,
-      priority: "medium",
-      aiGenerated: true,
-      aiConfidence: 88,
-    },
-  ]);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [recurringReminders, setRecurringReminders] = useState<Reminder[]>([]);
+  const [showRecurring, setShowRecurring] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: 1,
-      message: "AI detected VAT filing deadline approaching in 27 days",
-      time: "2 hours ago",
-      read: false,
-      type: "warning",
-      aiGenerated: true,
-    },
-    {
-      id: 2,
-      message: "Your Trade License expires in 45 days - Auto-reminder created",
-      time: "5 hours ago",
-      read: false,
-      type: "alert",
-      aiGenerated: true,
-    },
-    {
-      id: 3,
-      message: "Payroll reminder completed successfully",
-      time: "1 day ago",
-      read: true,
-      type: "success",
-      aiGenerated: false,
-    },
-    {
-      id: 4,
-      message: "AI suggests scheduling quarterly review meeting",
-      time: "3 hours ago",
-      read: false,
-      type: "info",
-      aiGenerated: true,
-    },
-  ]);
+  const { loading, user } = useAuth();
 
   const [showForm, setShowForm] = useState<boolean>(false);
-  const [showNotifications, setShowNotifications] = useState<boolean>(false);
-  const [viewMode, setViewMode] = useState<ViewMode>("calendar");
+  const [showCalendarModal, setShowCalendarModal] = useState<boolean>(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
 
   const [formData, setFormData] = useState<FormData>({
+    user_id: !loading ? user?.user.user_id : "",
     title: "",
+    description: "",
     type: "Custom",
-    date: "",
-    time: "",
-    assignedTo: "",
+    reminder_date: "",
+    notify_before: 1,
+    notify_channels: {
+      email: true,
+      whatsapp: true,
+      push: false,
+    },
+    recurrence_rule: "none",
   });
 
   const reminderTypes: ReminderType[] = ["VAT", "License", "Payroll", "Custom"];
-
-  const priorityColors: Record<ReminderPriority, string> = {
-    high: "bg-red-100 text-red-700 border-red-200",
-    medium: "bg-amber-100 text-amber-700 border-amber-200",
-    low: "bg-blue-100 text-blue-700 border-blue-200",
-  };
+  const notifyBeforeOptions = [
+    { name: "1 day", value: 1 },
+    { name: "2 days", value: 2 },
+    { name: "3 days", value: 3 },
+    { name: "4 days", value: 4 },
+    { name: "5 days", value: 5 },
+    { name: "6 days", value: 6 },
+    { name: "7 days", value: 7 },
+  ];
+  const recurrenceOptions = ["none", "monthly", "quarterly", "yearly"];
 
   const typeColors: Record<ReminderType, string> = {
     VAT: "bg-purple-100 text-purple-700",
@@ -194,104 +107,248 @@ const AIRemindersPage = () => {
     Custom: "bg-gray-100 text-gray-700",
   };
 
-  const handleSubmit = (): void => {
-    if (!formData.title || !formData.date || !formData.time) return;
+  const statusColors: Record<ReminderStatus, string> = {
+    pending: "bg-yellow-100 text-yellow-700",
+    sent: "bg-blue-100 text-blue-700",
+    completed: "bg-green-100 text-green-700",
+    missed: "bg-red-100 text-red-700",
+  };
 
-    if (editingReminder) {
-      setReminders(
-        reminders.map((r) =>
-          r.id === editingReminder.id
-            ? {
-                ...r,
-                ...formData,
-                assignedTo: formData.assignedTo || null,
-                aiGenerated: false,
-                aiConfidence: null,
-              }
-            : r
-        )
+  /////////////////////////
+  // Fetch all reminders
+  //////////////////////////
+  const fetchAllReminders = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axiosInstance.get(
+        `/ai_reminder/user/${user?.user.user_id}`
+      );
+      if (response.status === 200) {
+        console.log(response.data.response);
+        setReminders(response.data.response);
+      }
+    } catch (error) {
+      console.log("Error occur while getting reminders", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  //////////////////////////
+  //Fetch Recurring Reminders
+  /////////////////////////
+  const fetchRecurringReminders = async () => {
+    try {
+      const response = await axiosInstance.get(
+        `/ai_reminder/recurring/${user?.user.user_id}`
       );
 
-      setEditingReminder(null);
-    } else {
-      const newReminder: Reminder = {
-        id: Date.now(),
-        title: formData.title,
-        date: formData.date,
-        time: formData.time,
-        assignedTo: formData.assignedTo || null,
-        status: "pending",
-        priority: "medium",
-        type: formData.type,
-        aiGenerated: false,
-        aiConfidence: null,
-      };
+      if (response.status === 200) {
+        setRecurringReminders(response.data.response);
+      }
+    } catch (error) {
+      console.log("Error occur while getting recurring reminders", error);
+    }
+  };
 
-      setReminders([...reminders, newReminder]);
+  useEffect(() => {
+    if (!loading && user?.user.user_id) {
+      fetchAllReminders();
+      fetchRecurringReminders();
+    }
+  }, [loading, user]);
+
+  //////////////////////////
+  // Create reminder
+  /////////////////////////
+  const handleCreateReminder = async () => {
+    if (!formData.title || !formData.reminder_date) {
+      return toast.error("Fill all the required fields!");
     }
 
-    setFormData({
-      title: "",
-      type: "Custom",
-      date: "",
-      time: "",
-      assignedTo: "",
-    });
+    try {
+      const response = await axiosInstance.post(
+        "/ai_reminder/create",
+        formData
+      );
+      if (response.status === 201) {
+        toast.success("Reminder created successfully!");
+        setReminders((prev) => [...prev, response.data.response]);
+        fetchRecurringReminders();
+        console.log(response.data);
+      }
+    } catch (error) {
+      console.log("Error occur while creating reminder", error);
+    } finally {
+      setFormData({
+        user_id: !loading ? user?.user.user_id : "",
+        title: "",
+        description: "",
+        type: "Custom",
+        reminder_date: "",
+        notify_before: 1,
+        notify_channels: {
+          email: true,
+          whatsapp: true,
+          push: false,
+        },
+        recurrence_rule: "none",
+      });
 
-    setShowForm(false);
+      setShowForm(false);
+    }
   };
 
-  const handleEdit = (reminder: Reminder): void => {
-    setEditingReminder(reminder);
-    setFormData({
-      title: reminder.title,
-      date: reminder.date,
-      time: reminder.time,
-      type: reminder.type,
-      assignedTo: reminder.assignedTo || "",
-    });
+  //////////////////////////
+  // Delete reminder
+  /////////////////////////
+  const handleDelete = async (uuid: string) => {
+    if (confirm("Are you sure you to want to delete the reminder?")) {
+      try {
+        const response = await axiosInstance.delete(
+          `/ai_reminder/delete/${uuid}`
+        );
+        if (response.status === 200) {
+          toast.success("Reminder deleted!");
+          fetchRecurringReminders();
+          setReminders((prev) => prev.filter((r) => r.uuid !== uuid));
+        }
+      } catch (error) {
+        console.log("Error occur while deleting reminder", error);
+      } finally {
+        setShowCalendarModal(false);
+      }
+    }
+  };
+
+  /////////////////////
+  // Update Reminder
+  //////////////////////
+  const handleUpdateReminder = async () => {
+    if (!formData.title || !formData.reminder_date) {
+      return toast.error("Fill all the required fields!");
+    }
+
+    try {
+      const response = await axiosInstance.put(
+        `/ai_reminder/update/${editingReminder?.uuid}`,
+        formData
+      );
+
+      if (response.status === 200) {
+        toast.success("Reminder updated successfully!");
+        fetchRecurringReminders();
+        setReminders((prev) =>
+          prev.map((r) =>
+            r.uuid === editingReminder?.uuid
+              ? { ...r, ...response.data.response }
+              : r
+          )
+        );
+      }
+    } catch (error) {
+      console.log("Error occur while updating the reminder", error);
+    } finally {
+      setShowForm(false);
+    }
+  };
+
+  /////////////////////////
+  // Update Reminder Status
+  ///////////////////////////
+  const toggleStatus = async (reminder: Reminder) => {
+    if (reminder.status === "sent" || reminder.status === "missed") {
+      return toast.error(
+        `You can't change status as its already marked as ${reminder.status}`
+      );
+    }
+
+    try {
+      const updatedStatus =
+        reminder.status.toLowerCase() === "pending" ? "completed" : "pending";
+      const response = await axiosInstance.patch(
+        `/ai_reminder/update/status/${reminder.uuid}`,
+        {
+          status: updatedStatus,
+        }
+      );
+      if (response.status === 200) {
+        toast.success("Status updated successfully!");
+        setReminders(
+          reminders.map((r) =>
+            r.uuid === reminder.uuid ? { ...r, status: updatedStatus } : r
+          )
+        );
+      }
+    } catch (error) {
+      console.log("Error occur while updating reminder status", error);
+    }
+  };
+
+  /////////////////////////
+  // Update Reminder Modal Open
+  ///////////////////////////
+  const handleUpdateModalOpen = (reminder: Reminder) => {
     setShowForm(true);
+    setShowCalendarModal(false);
+    setEditingReminder(reminder);
+    console.log(reminder);
+    setFormData({
+      ...formData,
+      title: reminder.title,
+      description: reminder.description,
+      type: reminder.type,
+      reminder_date: new Date(reminder.reminder_date)
+        .toISOString()
+        .split("T")[0],
+      notify_before: reminder.notify_before,
+      notify_channels: reminder.notify_channels,
+      recurrence_rule: reminder.recurrence_rule,
+    });
   };
 
-  const handleDelete = (id: number): void => {
-    setReminders(reminders.filter((r) => r.id !== id));
+  /////////////////////////
+  // Create Reminder Modal Open
+  ///////////////////////////
+  const handleCreateModalOpen = () => {
+    setEditingReminder(null);
+    setShowForm(true);
+    setFormData({
+      user_id: !loading ? user?.user.user_id : "",
+      title: "",
+      description: "",
+      type: "Custom",
+      reminder_date: "",
+      notify_before: 1,
+      notify_channels: {
+        email: true,
+        whatsapp: true,
+        push: false,
+      },
+      recurrence_rule: "none",
+    });
   };
 
-  const toggleStatus = (id: number): void => {
-    setReminders(
-      reminders.map((r) =>
-        r.id === id
-          ? { ...r, status: r.status === "pending" ? "completed" : "pending" }
-          : r
-      )
-    );
-  };
-
-  const markNotificationRead = (id: number): void => {
-    setNotifications(
-      notifications.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
+  /////////////////////////
+  // Notify Channel Change
+  ///////////////////////////
+  const handleNotifyChannelChange = (
+    channel: keyof FormData["notify_channels"]
+  ) => {
+    setFormData({
+      ...formData,
+      notify_channels: {
+        ...formData.notify_channels,
+        [channel]: !formData.notify_channels[channel],
+      },
+    });
   };
 
   const filteredReminders = reminders.filter((r) => {
     const typeMatch = filterType === "all" || r.type === filterType;
-    const statusMatch = filterType === "all" || r.status === filterStatus;
+    const statusMatch = filterStatus === "all" || r.status === filterStatus;
     return typeMatch && statusMatch;
   });
-
-  const unreadCount = notifications.filter((n) => !n.read).length;
-
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const diffTime = date.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "Tomorrow";
-    if (diffDays < 0) return `${Math.abs(diffDays)} days ago`;
-    return `in ${diffDays} days`;
-  };
 
   return (
     <DashboardLayout>
@@ -315,33 +372,25 @@ const AIRemindersPage = () => {
               </div>
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => setShowNotifications(true)}
-                  className="relative bg-white p-3 rounded-lg shadow-sm border border-[#E1E8F5] hover:shadow-md transition-all hover:scale-105"
+                  onClick={() => setShowRecurring(true)}
+                  className="relative bg-white p-3 rounded-lg shadow-sm border border-[#E1E8F5] hover:shadow-md transition-all"
+                  title="View Recurring Reminders"
                 >
-                  <Bell className="w-5 h-5 text-[#344767]" />
-                  {unreadCount > 0 && (
+                  <RefreshCcw className="w-5 h-5 text-[#344767]" />
+
+                  {recurringReminders.length > 0 && (
                     <span className="absolute -top-1 -right-1 bg-[#F6A821] text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-semibold animate-bounce">
-                      {unreadCount}
+                      {recurringReminders.length}
                     </span>
                   )}
                 </button>
-                <button
-                  onClick={() => {
-                    setShowForm(true);
-                    setEditingReminder(null);
-                    setFormData({
-                      title: "",
-                      type: "Custom",
-                      date: "",
-                      time: "",
-                      assignedTo: "",
-                    });
-                  }}
-                  className="bg-gradient-to-r from-[#1B2A49] to-[#2E69A4] text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:shadow-lg transition-all hover:scale-105"
+                <Button
+                  onClick={handleCreateModalOpen}
+                  startIcon={<Plus className="w-5 h-5" />}
+                  className="bg-gradient-to-r from-[#1B2A49] to-[#2E69A4]"
                 >
-                  <Plus className="w-5 h-5" />
                   New Reminder
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -377,7 +426,9 @@ const AIRemindersPage = () => {
                   >
                     <option value="all">All Status</option>
                     <option value="pending">Pending</option>
+                    <option value="sent">Sent</option>
                     <option value="completed">Completed</option>
+                    <option value="missed">Missed</option>
                   </select>
                   <div className="ml-auto flex gap-2">
                     <button
@@ -411,32 +462,43 @@ const AIRemindersPage = () => {
                 <ReminderCalendar
                   reminders={filteredReminders}
                   typeColors={typeColors}
+                  onToggleStatus={toggleStatus}
+                  onDelete={handleDelete}
+                  onUpdate={handleUpdateModalOpen}
+                  showCalendarModal={showCalendarModal}
+                  setShowCalendarModal={setShowCalendarModal}
                 />
               ) : (
                 <div className="space-y-4">
-                  {filteredReminders.length === 0 ? (
-                    <div className="bg-white p-12 rounded-xl shadow-sm border border-[#E1E8F5] text-center">
-                      <Bell className="w-16 h-16 text-[#E1E8F5] mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold text-[#344767] mb-2">
-                        No reminders found
-                      </h3>
-                      <p className="text-sm text-[#344767] opacity-70">
-                        Create your first reminder or let AI auto-detect them
-                      </p>
-                    </div>
+                  {!isLoading ? (
+                    filteredReminders.length === 0 ? (
+                      <div className="bg-white p-12 rounded-xl shadow-sm border border-[#E1E8F5] text-center">
+                        <Bell className="w-16 h-16 text-[#E1E8F5] mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-[#344767] mb-2">
+                          No reminders found
+                        </h3>
+                        <p className="text-sm text-[#344767] opacity-70">
+                          Create your first reminder or let AI auto-detect them
+                        </p>
+                      </div>
+                    ) : (
+                      filteredReminders.map((reminder) => (
+                        <ReminderCard
+                          key={reminder.uuid}
+                          reminder={reminder}
+                          typeColors={typeColors}
+                          statusColors={statusColors}
+                          onToggleStatus={toggleStatus}
+                          onUpdate={handleUpdateModalOpen}
+                          onDelete={handleDelete}
+                          formatDate={formatDate}
+                        />
+                      ))
+                    )
                   ) : (
-                    filteredReminders.map((reminder) => (
-                      <ReminderCard
-                        key={reminder.id}
-                        reminder={reminder}
-                        typeColors={typeColors}
-                        priorityColors={priorityColors}
-                        onToggleStatus={toggleStatus}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                        formatDate={formatDate}
-                      />
-                    ))
+                    <div className="flex items-center justify-center p-15">
+                      <LoadingSpinner size="w-8 h-8" />
+                    </div>
                   )}
                 </div>
               )}
@@ -476,28 +538,7 @@ const AIRemindersPage = () => {
                       <Sparkles className="w-4 h-4 text-purple-600" />
                       <span className="text-sm text-[#344767]">AI Created</span>
                     </div>
-                    <span className="font-bold text-purple-600 text-lg">
-                      {reminders.filter((r) => r.aiGenerated).length}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* AI Insights */}
-              <div className="bg-gradient-to-br from-[#1B2A49] to-[#2E69A4] p-5 rounded-xl shadow-lg text-white">
-                <div className="flex items-center gap-2 mb-4">
-                  <Brain className="w-5 h-5 text-[#F6A821]" />
-                  <h3 className="font-semibold">AI Insights</h3>
-                </div>
-                <div className="space-y-3 text-sm text-[#1b2a49]">
-                  <div className="bg-white bg-opacity-10 backdrop-blur-sm p-3 rounded-lg">
-                    <p className="opacity-90">Peak reminder times: 9-11 AM</p>
-                  </div>
-                  <div className="bg-white bg-opacity-10 backdrop-blur-sm p-3 rounded-lg">
-                    <p className="opacity-90">Avg completion time: 2.5 days</p>
-                  </div>
-                  <div className="bg-white bg-opacity-10 backdrop-blur-sm p-3 rounded-lg">
-                    <p className="opacity-90">Next auto-scan: 3 hours</p>
+                    <span className="font-bold text-purple-600 text-lg">0</span>
                   </div>
                 </div>
               </div>
@@ -549,7 +590,7 @@ const AIRemindersPage = () => {
             }}
             title={editingReminder ? "Edit Reminder" : "Create New Reminder"}
             titleIcon={<Plus className="w-5 h-5 text-white" />}
-            size="md"
+            size="lg"
           >
             <div className="p-6">
               <div className="space-y-4">
@@ -567,166 +608,225 @@ const AIRemindersPage = () => {
                     placeholder="Enter reminder title"
                   />
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-[#344767] mb-2">
-                    Type *
+                    Description
                   </label>
-                  <select
-                    value={formData.type}
+                  <textarea
+                    value={formData.description}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        type: e.target.value as ReminderType,
-                      })
+                      setFormData({ ...formData, description: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767]"
-                  >
-                    {reminderTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
+                    className="w-full px-4 py-2 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] resize-none"
+                    placeholder="Enter reminder description"
+                    rows={3}
+                  />
                 </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-[#344767] mb-2">
-                      Date *
+                      Type *
+                    </label>
+                    <select
+                      value={formData.type}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          type: e.target.value as ReminderType,
+                        })
+                      }
+                      className="w-full px-4 py-2 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767]"
+                    >
+                      {reminderTypes.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[#344767] mb-2">
+                      Reminder Date *
                     </label>
                     <input
                       type="date"
-                      value={formData.date}
+                      value={formData.reminder_date}
                       onChange={(e) =>
-                        setFormData({ ...formData, date: e.target.value })
+                        setFormData({
+                          ...formData,
+                          reminder_date: e.target.value,
+                        })
                       }
                       className="w-full px-4 py-2 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767]"
                     />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[#344767] mb-2">
+                      Notify Before
+                    </label>
+                    <select
+                      value={formData.notify_before}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          notify_before: Number(e.target.value),
+                        })
+                      }
+                      className="w-full px-4 py-2 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767]"
+                    >
+                      {notifyBeforeOptions.map((option) => (
+                        <option key={option.name} value={option.value}>
+                          {option.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[#344767] mb-2">
-                      Time *
+                      Recurrence
                     </label>
-                    <input
-                      type="time"
-                      value={formData.time}
+                    <select
+                      value={formData.recurrence_rule}
                       onChange={(e) =>
-                        setFormData({ ...formData, time: e.target.value })
+                        setFormData({
+                          ...formData,
+                          recurrence_rule: e.target.value,
+                        })
                       }
                       className="w-full px-4 py-2 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767]"
-                    />
+                    >
+                      {recurrenceOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option === "none"
+                            ? "No Recurrence"
+                            : option.charAt(0).toUpperCase() + option.slice(1)}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-[#344767] mb-2">
-                    Assign to Team Member (Optional)
+                    Notification Channels
                   </label>
-                  <input
-                    type="text"
-                    value={formData.assignedTo}
-                    onChange={(e) =>
-                      setFormData({ ...formData, assignedTo: e.target.value })
-                    }
-                    className="w-full px-4 py-2 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767]"
-                    placeholder="Enter team member name"
-                  />
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.notify_channels.email}
+                        onChange={() => handleNotifyChannelChange("email")}
+                        className="rounded border-[#E1E8F5] text-[#2E69A4] focus:ring-[#2E69A4]"
+                      />
+                      <span className="text-sm text-[#344767]">Email</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.notify_channels.whatsapp}
+                        onChange={() => handleNotifyChannelChange("whatsapp")}
+                        className="rounded border-[#E1E8F5] text-[#2E69A4] focus:ring-[#2E69A4]"
+                      />
+                      <span className="text-sm text-[#344767]">Whatsapp</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.notify_channels.push}
+                        onChange={() => handleNotifyChannelChange("push")}
+                        className="rounded border-[#E1E8F5] text-[#2E69A4] focus:ring-[#2E69A4]"
+                      />
+                      <span className="text-sm text-[#344767]">Push</span>
+                    </label>
+                  </div>
                 </div>
+
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
                   <Sparkles className="w-4 h-4 text-[#2E69A4] flex-shrink-0 mt-0.5" />
                   <p className="text-xs text-[#344767]">
-                    <strong>AI Tip:</strong> Our AI will automatically analyze
-                    this reminder and suggest optimal notification times.
+                    <strong>Note:</strong> Set your preferred reminder date and
+                    notification preferences.
                   </p>
                 </div>
                 <div className="flex gap-3 pt-4">
-                  <button
+                  <Button
+                    className="border border-[#E1E8F5] text-[#344767] hover:bg-[#F4F7FA] bg-transparent flex-1"
                     onClick={() => {
                       setShowForm(false);
                       setEditingReminder(null);
                     }}
-                    className="flex-1 px-4 py-2 border border-[#E1E8F5] text-[#344767] rounded-lg hover:bg-[#F4F7FA] transition-colors"
                   >
                     Cancel
-                  </button>
-                  <button
-                    onClick={handleSubmit}
-                    className="flex-1 px-4 py-2 bg-gradient-to-r from-[#1B2A49] to-[#2E69A4] text-white rounded-lg hover:shadow-lg transition-all hover:scale-105"
+                  </Button>
+                  <Button
+                    className="flex-2"
+                    onClick={
+                      editingReminder
+                        ? handleUpdateReminder
+                        : handleCreateReminder
+                    }
                   >
                     {editingReminder ? "Update" : "Create"} Reminder
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
           </Modal>
 
-          {/* Notifications Modal */}
+          {/* Reminders Modal */}
           <Modal
-            isOpen={showNotifications}
-            showCloseButton={true}
-            onClose={() => setShowNotifications(false)}
-            title="Notifications"
-            titleIcon={<Bell className="w-5 h-5 text-white" />}
-            size="md"
-            className="max-h-[600px] flex flex-col"
+            isOpen={showRecurring}
+            onClose={() => setShowRecurring(false)}
+            title={"Recurring Reminders"}
+            titleIcon={<Calendar className="w-5 h-5 text-white" />}
+            size="lg"
           >
-            <div className="overflow-y-auto flex-1">
-              {notifications.length === 0 ? (
-                <div className="p-12 text-center">
-                  <Bell className="w-16 h-16 text-[#E1E8F5] mx-auto mb-4" />
-                  <p className="text-[#344767]">No notifications</p>
+            <div className="p-6 max-h-[70vh] overflow-y-auto">
+              {recurringReminders.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <Calendar className="w-16 h-16 text-[#C8D4E7] mb-4" />
+                  <h3 className="text-lg font-semibold text-[#1B2A49] mb-1">
+                    No Recurring Reminders
+                  </h3>
+                  <p className="text-sm text-[#6B7A99]">
+                    You haven’t created any recurring reminders yet.
+                  </p>
                 </div>
               ) : (
-                <div className="divide-y divide-[#E1E8F5]">
-                  {notifications.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className={`p-4 hover:bg-[#F4F7FA] transition-colors cursor-pointer ${
-                        notification.read
-                          ? "opacity-60"
-                          : "bg-blue-50 bg-opacity-30"
-                      }`}
-                      onClick={() => markNotificationRead(notification.id)}
-                    >
-                      <div className="flex items-start gap-3 ">
-                        <div
-                          className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-                            notification.type === "warning"
-                              ? "bg-[#F6A821]"
-                              : notification.type === "alert"
-                              ? "bg-red-500"
-                              : notification.type === "info"
-                              ? "bg-blue-500"
-                              : "bg-green-500"
-                          }`}
-                        />
-                        <div className="flex-grow">
-                          <div className="flex items-center gap-2 mb-1">
-                            {notification.aiGenerated && (
-                              <span className="px-2 py-0.5 rounded-full text-xs font-medium text-white bg-[#F6A821] bg-opacity-20 text-[#F6A821] flex items-center gap-1">
-                                <Sparkles className="w-3 h-3" />
-                                AI Generated
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-[#344767] mb-1">
-                            {notification.message}
-                          </p>
-                          <span className="text-xs text-[#344767] opacity-60">
-                            {notification.time}
-                          </span>
-                        </div>
-                        {!notification.read && (
-                          <div className="w-2 h-2 bg-[#2E69A4] rounded-full flex-shrink-0 mt-2" />
-                        )}
-                      </div>
-                    </div>
+                <div className="space-y-4">
+                  {recurringReminders.map((reminder) => (
+                    <ReminderCard
+                      key={reminder.uuid}
+                      reminder={reminder}
+                      typeColors={typeColors}
+                      statusColors={statusColors}
+                      onToggleStatus={toggleStatus}
+                      onUpdate={handleUpdateModalOpen}
+                      onDelete={handleDelete}
+                      formatDate={formatDate}
+                    />
                   ))}
                 </div>
               )}
             </div>
-            <div className="p-4 border-t border-[#E1E8F5] bg-[#F4F7FA]">
-              <button className="w-full text-center text-sm text-[#2E69A4] font-medium hover:underline">
-                Mark all as read
-              </button>
+
+            <div className="p-4 border-t border-[#E1E8F5] bg-[#F4F7FA] flex justify-between items-center">
+              <span className="text-sm text-[#344767]">
+                {recurringReminders.length} reminder
+                {recurringReminders.length !== 1 ? "s" : ""}
+              </span>
+              <Button
+                className="px-4 py-2"
+                onClick={() => setShowRecurring(false)}
+              >
+                Close
+              </Button>
             </div>
           </Modal>
         </div>

@@ -11,9 +11,9 @@ import {
   Target,
   Plus,
 } from "lucide-react";
-import DashboardLayout from "../components/layout/DashboardLayout";
-import Button from "../components/ui/Button";
-import StatCard from "../components/stat-card/StatCard";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import Button from "../../components/ui/Button";
+import StatCard from "../../components/stat-card/StatCard";
 import UpcomingDeadlines from "./components/upcoming-deadlines/UpcomingDeadlines";
 import RecentDocuments from "./components/recent-documents/RecentDocuments";
 import ExpenseTracking from "./components/expense-tracking/ExpenseTracking";
@@ -21,8 +21,8 @@ import BusinessHealth from "./components/business-health/BusinessHealth";
 import ClientManagement from "./components/client-management/ClientManagement";
 import AiInsights from "./components/ai-insights/AiInsights";
 import { useRouter } from "next/navigation";
-import PageHeader from "../components/page-header/PageHeader";
-import Card from "../components/ui/Card";
+import PageHeader from "../../components/page-header/PageHeader";
+import Card from "../../components/ui/Card";
 
 const Dashboard = () => {
   const router = useRouter();

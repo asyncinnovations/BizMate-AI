@@ -21,8 +21,8 @@ import {
   CheckCircle,
   UserRound,
 } from "lucide-react";
-import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import PageHeader from "@/app/components/page-header/PageHeader";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import PageHeader from "@/components/page-header/PageHeader";
 
 const ProfilePage = () => {
   const [profileImage, setProfileImage] = useState(null);

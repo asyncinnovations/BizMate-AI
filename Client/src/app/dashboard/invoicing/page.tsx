@@ -1,6 +1,6 @@
 "use client";
 
-import DashboardLayout from "@/app/components/layout/DashboardLayout";
+import DashboardLayout from "@/components/layout/DashboardLayout";
 import React, { useEffect, useState } from "react";
 import {
   FileText,
@@ -21,17 +21,17 @@ import {
   Edit,
   RefreshCw,
 } from "lucide-react";
-import StatCard from "@/app/components/stat-card/StatCard";
+import StatCard from "@/components/stat-card/StatCard";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Button from "@/app/components/ui/Button";
+import Button from "@/components/ui/Button";
 import { getStatusBadge } from "@/lib/statusBadge";
-import PageHeader from "@/app/components/page-header/PageHeader";
+import PageHeader from "@/components/page-header/PageHeader";
 import axiosInstance from "@/utils/axiosInstance";
 import { useAuth } from "@/context/AuthContext";
-import DropdownMenu from "@/app/components/ui/DropdownMenu";
+import DropdownMenu from "@/components/ui/DropdownMenu";
 import toast from "react-hot-toast";
-import LoadingSpinner from "@/app/components/loading-spinner/LoadingSpinner";
+import LoadingSpinner from "@/components/loading-spinner/LoadingSpinner";
 
 interface FormField {
   id: string;

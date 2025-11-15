@@ -1,7 +1,7 @@
 import React from "react";
 import { Wallet, Building2, Users, Plus, Zap } from "lucide-react";
-import Button from "@/app/components/ui/Button";
-import Card from "@/app/components/ui/Card";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
 
 const ExpenseTracking = () => {
   const expenses = [

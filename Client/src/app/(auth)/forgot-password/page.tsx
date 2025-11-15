@@ -1,6 +1,6 @@
 "use client";
 
-import PublicLayout from "@/app/components/layout/PublicLayout";
+import PublicLayout from "@/components/layout/PublicLayout";
 import { useRouter } from "next/navigation";
 import React from "react";
 

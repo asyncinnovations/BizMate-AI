@@ -1,7 +1,7 @@
 // app/settings/components/ComplianceLegalTab.tsx
 import React from "react";
 import { FileText, Check, ChevronRight } from "lucide-react";
-import SectionCard from "@/app/components/section-card/SectionCard";
+import SectionCard from "@/components/section-card/SectionCard";
 
 const ComplianceLegalTab: React.FC = () => {
   return (

@@ -1,6 +1,5 @@
 "use client";
 
-import PublicLayout from "@/app/components/layout/PublicLayout";
 import {
   ArrowLeft,
   Briefcase,
@@ -14,12 +13,12 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
-import TypeWriter from "@/app/components/type-writer/TypeWriter";
+import TypeWriter from "@/components/type-writer/TypeWriter";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import InputField from "@/app/components/ui/InputField";
-import Button from "@/app/components/ui/Button";
+import InputField from "@/components/ui/InputField";
+import Button from "@/components/ui/Button";
 
 interface FormError {
   full_name: string;

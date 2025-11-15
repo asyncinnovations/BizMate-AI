@@ -1,6 +1,6 @@
 "use client";
 
-import DashboardLayout from "@/app/components/layout/DashboardLayout";
+import DashboardLayout from "@/components/layout/DashboardLayout";
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -11,10 +11,10 @@ import {
   Printer,
   CheckCircle,
 } from "lucide-react";
-import Button from "@/app/components/ui/Button";
+import Button from "@/components/ui/Button";
 import { getStatusBadge } from "@/lib/statusBadge";
 import axiosInstance from "@/utils/axiosInstance";
-import LoadingSpinner from "@/app/components/loading-spinner/LoadingSpinner";
+import LoadingSpinner from "@/components/loading-spinner/LoadingSpinner";
 import toast from "react-hot-toast";
 
 interface FormField {

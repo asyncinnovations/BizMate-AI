@@ -18,12 +18,12 @@ import {
   Image,
   SendIcon,
 } from "lucide-react";
-import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import PageHeader from "@/app/components/page-header/PageHeader";
-import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
-import Modal from "@/app/components/ui/Modal";
+import DashboardLayout from "../layout/DashboardLayout";
+import PageHeader from "@/components/page-header/PageHeader";
+import ProtectedRoute from "@/components/protected-route/ProtectedRoute";
+import Modal from "@/components/ui/Modal";
 import toast from "react-hot-toast";
-import Card from "@/app/components/ui/Card";
+import Card from "@/components/ui/Card";
 import axiosInstance from "@/utils/axiosInstance";
 import { useAuth } from "@/context/AuthContext";
 import Button from "../ui/Button";
@@ -54,7 +54,7 @@ interface ErrorTypes {
   main: Record<string, string>;
   footer: Record<string, string>;
 }
-
+ 
 interface NewFieldTypes {
   field_name: string;
   field_type: string;
@@ -1229,9 +1229,9 @@ export default function DocumentForm() {
                     Cancel
                   </Button>
                   <Button
-                   onClick={handleSaveAndPreview}
-                   startIcon={<SendIcon className="w-5 h-5" />}
-                   className="flex-1"
+                    onClick={handleSaveAndPreview}
+                    startIcon={<SendIcon className="w-5 h-5" />}
+                    className="flex-1"
                   >
                     Save & Preview
                   </Button>

@@ -1,9 +1,9 @@
 "use client";
 
-import DashboardLayout from "@/app/components/layout/DashboardLayout";
+import DashboardLayout from "@/components/layout/DashboardLayout";
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Button from "@/app/components/ui/Button";
+import Button from "@/components/ui/Button";
 import {
   Plus,
   Sparkles,
@@ -24,14 +24,14 @@ import {
   Info,
   Star,
 } from "lucide-react";
-import PageHeader from "@/app/components/page-header/PageHeader";
-import Card from "@/app/components/ui/Card";
-import SectionCard from "@/app/components/section-card/SectionCard";
-import Modal from "@/app/components/ui/Modal";
+import PageHeader from "@/components/page-header/PageHeader";
+import Card from "@/components/ui/Card";
+import SectionCard from "@/components/section-card/SectionCard";
+import Modal from "@/components/ui/Modal";
 import { useAuth } from "@/context/AuthContext";
 import axiosInstance from "@/utils/axiosInstance";
 import toast from "react-hot-toast";
-import LoadingSpinner from "@/app/components/loading-spinner/LoadingSpinner";
+import LoadingSpinner from "@/components/loading-spinner/LoadingSpinner";
 
 // TypeScript interfaces
 interface InvoiceItem {
@@ -72,6 +72,15 @@ interface FormField {
   options?: string[];
 }
 
+interface PaymentMethod {
+  uuid: string;
+  user_id: string;
+  gateway_name: string;
+  credentails: Record<string, string>;
+  is_active: boolean;
+  created_at: string;
+}
+
 const CreateInvoicePage: React.FC = () => {
   const { user, loading } = useAuth();
   const searchParams = useSearchParams();
@@ -80,6 +89,8 @@ const CreateInvoicePage: React.FC = () => {
   const isEditingMode = !!invoice_id;
 
   const router = useRouter();
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [selectedMethod, setSelectedMethod] = useState("");
   const [currentInvoice, setCurrentInvoice] = useState<Invoice>({
     user_id: !loading
       ? user?.user.user_id
@@ -135,6 +146,36 @@ const CreateInvoicePage: React.FC = () => {
     value: "",
     required: false,
   });
+
+  //////////////////////////////////////
+  //Fetch User Active Payment Methods
+  ///////////////////////////////////////
+  const fetchPaymentMethods = async () => {
+    if (loading || !user?.user.user_id) {
+      toast.error("User id is not loaded yet!");
+      return;
+    }
+
+    try {
+      const response = await axiosInstance.get(
+        `/user_payment_gateway/user/${user.user.user_id}`
+      );
+      if (response.status === 200) {
+        const activeMethods = response.data.response.filter(
+          (method: PaymentMethod) => method.is_active
+        );
+        setPaymentMethods(activeMethods);
+      }
+    } catch (error) {
+      console.log("Error occur while fetching payment methods");
+    }
+  };
+
+  useEffect(() => {
+    if (!loading && user?.user.user_id) {
+      fetchPaymentMethods();
+    }
+  }, [loading, user?.user.user_id]);
 
   //////////////////////////////////////
   //Fetch invoice details in editing mode
@@ -530,6 +571,11 @@ const CreateInvoicePage: React.FC = () => {
   //Handle Save and Preview Invoice Function
   //////////////////////////////////////////
   const handleSaveandPreviewInvoice = async () => {
+    if (!selectedMethod) {
+      toast.error("Select payment method first!");
+      return;
+    }
+
     try {
       if (isEditingMode) {
         const response = await axiosInstance.put(
@@ -608,10 +654,10 @@ const CreateInvoicePage: React.FC = () => {
           <input
             type={field.type}
             {...commonProps}
-            readOnly={field.name === "invoiceNumber"}
+            readOnly={field.name === "invoice_number"}
             className={
               commonProps.className +
-              (field.name === "invoiceNumber" ? " bg-gray-50" : "")
+              (field.name === "invoice_number" ? " bg-gray-50" : "")
             }
           />
         );
@@ -710,7 +756,7 @@ const CreateInvoicePage: React.FC = () => {
                         <div className="flex items-center justify-between">
                           <label className="text-[#1B2A49] font-semibold text-sm flex items-center gap-2">
                             {field.label}
-                            {field.name === "customerName" && (
+                            {field.name === "customer_name" && (
                               <Lightbulb className="w-3 h-3 text-amber-500" />
                             )}
                             {field.required && (
@@ -804,22 +850,48 @@ const CreateInvoicePage: React.FC = () => {
 
                       {showPaymentMethod && (
                         <div className="space-y-3 relative group">
-                          <div className="flex items-center justify-between">
-                            <label className="block text-[#1B2A49] font-semibold text-sm">
-                              Payment Method
-                            </label>
-                          </div>
-                          <select className="w-full px-4 py-3 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] bg-white">
-                            <option value="">Select Payment Method</option>
-                            <option value="bank_transfer">Bank Transfer</option>
-                            <option value="credit_card">Credit Card</option>
-                            <option value="paypal">PayPal</option>
-                            <option value="cash">Cash</option>
-                            <option value="check">Check</option>
-                            <option value="digital_wallet">
-                              Digital Wallet
-                            </option>
-                          </select>
+                          {paymentMethods.length === 0 ? (
+                            // No active payment method
+                            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800 flex flex-col items-start gap-2">
+                              <p>No active payment method exists.</p>
+                              <Button
+                                startIcon={<Plus className="w-4 h-4" />}
+                                onClick={() =>
+                                  router.push("/dashboard/settings")
+                                }
+                                className="px-4 py-2 text-sm font-medium"
+                              >
+                                Add Payment Method
+                              </Button>
+                            </div>
+                          ) : (
+                            // Show dropdown with active gateways
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between">
+                                <label className="block text-[#1B2A49] font-semibold text-sm">
+                                  Payment Method
+                                </label>
+                              </div>
+                              <select
+                                className="w-full px-4 py-3 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] bg-white"
+                                value={selectedMethod}
+                                onChange={(e) =>
+                                  setSelectedMethod(e.target.value)
+                                }
+                              >
+                                <option value="">Select Payment Method</option>
+                                {paymentMethods.map((method) => (
+                                  <option
+                                    key={method.uuid}
+                                    value={method.gateway_name}
+                                    className="capitalize"
+                                  >
+                                    {method.gateway_name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

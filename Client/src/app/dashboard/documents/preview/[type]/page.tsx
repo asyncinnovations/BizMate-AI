@@ -15,9 +15,9 @@ import {
   Printer,
   ArrowLeft,
 } from "lucide-react";
-import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import PageHeader from "@/app/components/page-header/PageHeader";
-import Button from "@/app/components/ui/Button";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import PageHeader from "@/components/page-header/PageHeader";
+import Button from "@/components/ui/Button";
 
 export default function DocumentPreviewPage() {
   const params = useParams();

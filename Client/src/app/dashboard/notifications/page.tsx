@@ -23,7 +23,7 @@ import {
   AlertTriangle,
   Sparkles,
 } from "lucide-react";
-import DashboardLayout from "@/app/components/layout/DashboardLayout";
+import DashboardLayout from "@/components/layout/DashboardLayout";
 
 const NotificationsPage = () => {
   const [activeFilter, setActiveFilter] = useState("all");
