@@ -20,7 +20,7 @@ export declare class UserBusinessInfoController {
     }>;
     delete_business_info(id: string): Promise<{
         message: string;
-        response: import("./user_business_info.entity").UserBusinessInfo | import("typeorm").DeleteResult;
+        response: import("typeorm").DeleteResult | import("./user_business_info.entity").UserBusinessInfo;
     }>;
     search_business_info(user_id: string, query: string): Promise<{
         message: string;

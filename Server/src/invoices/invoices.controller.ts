@@ -49,7 +49,7 @@ export class InvoicesController {
       throw new BadRequestException("Invoice items are required.");
     }
     ////////////////////////////////////////////////////////
-    // GATEWAY CHECKING (Comment Out for developement purpose)
+    // GATEWAY CHECKING
     ////////////////////////////////////////////////////////
     await this.upgService.user_active_gateway_service(
       data.user_id,
