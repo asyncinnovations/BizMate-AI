@@ -82,7 +82,7 @@ export default function DocumentGeneratorMain() {
         axiosInstance.get(`/templates/user/${user?.user?.user_id}`),
       ]);
       console.log("Successfully fetched templates", allRes, userRes);
-      const preBuilt = allRes.data?.data.filter((temp) => temp.is_prebuilt);
+      const preBuilt = allRes.data?.data.filter((temp : DocumentTemplate) => temp.is_prebuilt);
       setPreBuiltTemplates(preBuilt);
       setCustomTemplates(userRes.data?.data);
     } catch (error) {

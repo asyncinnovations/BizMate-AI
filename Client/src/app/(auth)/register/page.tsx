@@ -12,9 +12,9 @@ import {
   UserPlus,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, ChangeEvent, FormEvent } from "react";
 import TypeWriter from "@/components/type-writer/TypeWriter";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import InputField from "@/components/ui/InputField";
@@ -27,12 +27,40 @@ interface FormError {
   phone: string;
 }
 
-const RegisterPage = () => {
-  const [showSelectBusiness, setShowSelectBusiness] = useState(true);
+interface FormData {
+  full_name: string;
+  email: string;
+  password: string;
+  phone: string;
+  company_name: string;
+  license_number: string;
+  vat_id: string;
+  idustry: string;
+  role: string;
+}
+
+interface BusinessOption {
+  label: string;
+  icon: React.ReactNode;
+  description: string;
+}
+
+interface Benefit {
+  icon: React.ReactNode;
+  text: string;
+}
+
+interface AuthResponse {
+  token?: string;
+  user?: Record<string, unknown>;
+}
+
+const RegisterPage: React.FC = () => {
+  const [showSelectBusiness, setShowSelectBusiness] = useState<boolean>(true);
   const router = useRouter();
   const [businessType, setBusinessType] = useState<string | null>("Freelancer");
   const [errors, setErrors] = useState<FormError | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     full_name: "",
     email: "",
     password: "",
@@ -44,21 +72,26 @@ const RegisterPage = () => {
     role: "business_owner", //default
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ): void => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Clear error when user starts typing
-    if (errors && errors[name as keyof errorType]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
+    // Clear error when user starts typing - FIXED TYPE ERROR
+    if (errors && errors[name as keyof FormError]) {
+      setErrors((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          [name]: "",
+        };
+      });
     }
   };
 
-  const validateForm = () => {
-    const newErrors = {
+  const validateForm = (): boolean => {
+    const newErrors: FormError = {
       full_name: "",
       email: "",
       password: "",
@@ -77,17 +110,16 @@ const RegisterPage = () => {
     setErrors(newErrors);
 
     const isValid = Object.values(newErrors).every((err) => err === "");
-
     return isValid;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
 
     if (!validateForm()) return;
 
     try {
-      const response = await axios.post(
+      const response = await axios.post<AuthResponse>(
         `${process.env.NEXT_PUBLIC_API_URL}/auth/signup`,
         formData
       );
@@ -98,17 +130,18 @@ const RegisterPage = () => {
         toast.success("Account created successfully!");
         router.push("/login");
       }
-    } catch (error) {
-      console.log("Error occur while signup", error);
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message?: string; error?: string }>;
       const errorMessage =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
+        err.response?.data?.message ||
+        err.response?.data?.error ||
         "Signup failed! Please check your details and try again.";
+
       toast.error(errorMessage);
     }
   };
 
-  const platformTexts = [
+  const platformTexts: string[] = [
     "Ready to Transform Your Business?",
     "AI-Powered Growth Starts Here",
     "Smart Compliance, Smarter Business",
@@ -116,7 +149,7 @@ const RegisterPage = () => {
     "Automate. Grow. Succeed.",
   ];
 
-  const businessOptions = [
+  const businessOptions: BusinessOption[] = [
     {
       label: "Freelancer",
       icon: <Briefcase className="w-4 h-4" />,
@@ -134,7 +167,7 @@ const RegisterPage = () => {
     },
   ];
 
-  const handleBusinessTypeSelect = (type: string) => {
+  const handleBusinessTypeSelect = (type: string): void => {
     setBusinessType(type);
     if (type === "Freelancer") {
       setShowSelectBusiness(true);
@@ -143,12 +176,12 @@ const RegisterPage = () => {
     }
   };
 
-  const handleBack = () => {
+  const handleBack = (): void => {
     setShowSelectBusiness(true);
     setBusinessType("Freelancer");
   };
 
-  const benefits = [
+  const benefits: Benefit[] = [
     {
       icon: <Shield className="w-4 h-4" />,
       text: "Bank-level security & data protection",

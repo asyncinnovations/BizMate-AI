@@ -25,7 +25,7 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import PageHeader from "@/components/page-header/PageHeader";
 
 const ProfilePage = () => {
-  const [profileImage, setProfileImage] = useState(null);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [activeSection, setActiveSection] = useState("personal");
 
@@ -46,8 +46,8 @@ const ProfilePage = () => {
     memberSince: "January 2024",
   });
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
         alert("File size should be less than 5MB");
@@ -55,13 +55,26 @@ const ProfilePage = () => {
       }
       const reader = new FileReader();
       reader.onloadend = () => {
-        setProfileImage(reader.result);
+        const result = reader.result;
+        if (typeof result === "string") {
+          setProfileImage(result);
+        }
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const InfoCard = ({ title, icon: Icon, children, className = "" }) => (
+  const InfoCard = ({
+    title,
+    icon: Icon,
+    children,
+    className = "",
+  }: {
+    title: string;
+    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+    children: React.ReactNode;
+    className?: string;
+  }) => (
     <div
       className={`bg-white rounded-xl shadow-sm border border-[#E1E8F5] p-6 hover:shadow-md transition-all duration-300 ${className}`}
     >
@@ -73,7 +86,17 @@ const ProfilePage = () => {
     </div>
   );
 
-  const InfoField = ({ label, value, icon: Icon, editable = false }) => (
+  const InfoField = ({
+    label,
+    value,
+    icon: Icon,
+    editable = false,
+  }: {
+    label: string;
+    value: string;
+    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+    editable: boolean;
+  }) => (
     <div className="space-y-2">
       <label className="text-sm font-medium text-[#344767]">{label}</label>
       <div className="flex items-center gap-3 p-3 bg-[#F4F7FA] rounded-lg">

@@ -42,7 +42,7 @@ interface Reminder {
 }
 
 interface FormData {
-  user_id: string;
+  user_id: string | unknown;
   title: string;
   description: string;
   type: ReminderType;
@@ -74,7 +74,7 @@ const AIRemindersPage = () => {
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
 
   const [formData, setFormData] = useState<FormData>({
-    user_id: !loading ? user?.user.user_id : "",
+    user_id:  user?.user.user_id,
     title: "",
     description: "",
     type: "Custom",

@@ -49,15 +49,26 @@ interface FieldConfig {
   uuid?: string; // Add uuid for existing fields from backend
 }
 
-interface ErrorTypes {
-  header: Record<string, string>;
-  main: Record<string, string>;
-  footer: Record<string, string>;
+interface ErrorFields {
+  [key: string]: string;
 }
- 
+
+interface ErrorTypes {
+  header: ErrorFields;
+  main: ErrorFields;
+  footer: ErrorFields;
+}
+
 interface NewFieldTypes {
   field_name: string;
-  field_type: string;
+  field_type:
+    | "text"
+    | "email"
+    | "date"
+    | "number"
+    | "textarea"
+    | "select"
+    | "file";
   placeholder: string;
   required: boolean;
 }
@@ -291,6 +302,7 @@ export default function DocumentForm() {
     if (!newField.field_name.trim()) return toast.error("Field name required!");
     const fieldToAdd = {
       ...newField,
+      id: generateUniqueId(),
       unique_id: generateUniqueId(),
     };
 
@@ -300,7 +312,7 @@ export default function DocumentForm() {
     toast.success("Field added!");
     setNewField({
       field_name: "",
-      field_type: "",
+      field_type: "text",
       placeholder: "",
       required: false,
     });
@@ -326,7 +338,7 @@ export default function DocumentForm() {
   //////////////////////////////////////////
   //  Delete Field
   //////////////////////////////////////////
-  const handleRemoveField = async (uniqueId: string) => {
+  const handleRemoveField = async (uniqueId: string | undefined) => {
     setFields((prev) => prev.filter((f) => f.unique_id !== uniqueId));
     toast.success("Field Deleted!");
     // try {
@@ -354,11 +366,12 @@ export default function DocumentForm() {
         f.unique_id === editingField.unique_id ? { ...f, ...updatedData } : f
       )
     );
+
     toast.success("Field Updated!");
     setEditingField(null);
     setNewField({
       field_name: "",
-      field_type: "",
+      field_type: "text",
       placeholder: "",
       required: false,
     });
@@ -629,7 +642,7 @@ export default function DocumentForm() {
   //  Validate Form Errors
   //////////////////////////////////////////
   const validateForm = () => {
-    const newErrors = {
+    const newErrors: ErrorTypes = {
       header: {},
       main: {},
       footer: {},
@@ -707,7 +720,7 @@ export default function DocumentForm() {
     setIsAddFieldModalOpen(false);
     setNewField({
       field_name: "",
-      field_type: "",
+      field_type: "text",
       placeholder: "",
       required: false,
     });
@@ -725,7 +738,7 @@ export default function DocumentForm() {
     setEditingField(null);
     setNewField({
       field_name: "",
-      field_type: "",
+      field_type: "text",
       placeholder: "",
       required: false,
     });
@@ -1254,8 +1267,9 @@ export default function DocumentForm() {
                       </span>
                       <span className="text-[#2E69A4] text-sm font-bold">
                         {Math.round(
-                          (Object.keys(formData).filter((key) => formData[key])
-                            .length /
+                          ((
+                            Object.keys(formData) as Array<keyof FormDataTypes>
+                          ).filter((key) => formData[key]).length /
                             (fields.length +
                               headerFields.length +
                               footerFields.length)) *
@@ -1269,9 +1283,11 @@ export default function DocumentForm() {
                         className="h-full bg-gradient-to-r from-[#2E69A4] to-[#1B2A49] transition-all duration-300"
                         style={{
                           width: `${
-                            (Object.keys(formData).filter(
-                              (key) => formData[key]
-                            ).length /
+                            ((
+                              Object.keys(formData) as Array<
+                                keyof FormDataTypes
+                              >
+                            ).filter((key) => formData[key]).length /
                               (fields.length +
                                 headerFields.length +
                                 footerFields.length)) *
@@ -1295,8 +1311,9 @@ export default function DocumentForm() {
                       <span className="text-[#344767]">Completed</span>
                       <span className="font-semibold text-[#2E69A4]">
                         {
-                          Object.keys(formData).filter((key) => formData[key])
-                            .length
+                          (
+                            Object.keys(formData) as Array<keyof FormDataTypes>
+                          ).filter((key) => formData[key]).length
                         }
                       </span>
                     </div>
@@ -1306,8 +1323,9 @@ export default function DocumentForm() {
                         {fields.length +
                           headerFields.length +
                           footerFields.length -
-                          Object.keys(formData).filter((key) => formData[key])
-                            .length}
+                          (
+                            Object.keys(formData) as Array<keyof FormDataTypes>
+                          ).filter((key) => formData[key]).length}
                       </span>
                     </div>
                   </div>
@@ -1371,7 +1389,17 @@ export default function DocumentForm() {
                 <select
                   value={newField.field_type}
                   onChange={(e) =>
-                    setNewField({ ...newField, field_type: e.target.value })
+                    setNewField({
+                      ...newField,
+                      field_type: e.target.value as
+                        | "number"
+                        | "select"
+                        | "textarea"
+                        | "text"
+                        | "email"
+                        | "date"
+                        | "file",
+                    })
                   }
                   className="w-full px-4 py-2.5 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-sm text-[#344767] bg-white"
                 >
@@ -1488,7 +1516,17 @@ export default function DocumentForm() {
                 <select
                   value={newField.field_type}
                   onChange={(e) =>
-                    setNewField({ ...newField, field_type: e.target.value })
+                    setNewField({
+                      ...newField,
+                      field_type: e.target.value as
+                        | "number"
+                        | "select"
+                        | "textarea"
+                        | "text"
+                        | "email"
+                        | "date"
+                        | "file",
+                    })
                   }
                   className="w-full px-4 py-2.5 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-sm text-[#344767] bg-white"
                 >

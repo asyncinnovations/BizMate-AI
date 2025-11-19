@@ -5,22 +5,15 @@ import {
   BellOff,
   CheckCheck,
   Trash2,
-  Filter,
   Clock,
   AlertCircle,
   FileText,
-  DollarSign,
   Calendar,
   MessageSquare,
   TrendingUp,
   ShieldAlert,
-  CreditCard,
   User,
   Settings as SettingsIcon,
-  CheckCircle,
-  XCircle,
-  Info,
-  AlertTriangle,
   Sparkles,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -74,7 +67,7 @@ const NotificationsPage = () => {
       ? notifications
       : notifications.filter((n) => n.category === activeFilter);
 
-  const markAsRead = (id) => {
+  const markAsRead = (id : number) => {
     setNotifications(
       notifications.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
@@ -84,7 +77,7 @@ const NotificationsPage = () => {
     setNotifications(notifications.map((n) => ({ ...n, read: true })));
   };
 
-  const deleteNotification = (id) => {
+  const deleteNotification = (id : number) => {
     setNotifications(notifications.filter((n) => n.id !== id));
   };
 

@@ -314,7 +314,7 @@ const ComplianceAssistancePage = () => {
               <div className="flex items-center gap-3">
                 <Button
                   className="bg-white py-2 border border-gray-300 text-gray-700 hover:bg-gray-50"
-                  icon={<Languages className="h-3 w-3" />}
+                  startIcon={<Languages className="h-3 w-3" />}
                 >
                   العربية
                 </Button>

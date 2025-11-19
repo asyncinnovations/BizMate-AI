@@ -133,7 +133,8 @@ const AnalyticsPage = () => {
             My Business Analytics
           </h1>
           <p className="text-gray-600 mt-2 dashboard-subtitle">
-            Welcome back! Here's what's happening with your business today.
+            Welcome back! Here&apos;s what&apos;s happening with your business
+            today.
           </p>
         </div>
 
@@ -265,9 +266,13 @@ const AnalyticsPage = () => {
                     innerRadius={60}
                     outerRadius={100}
                     labelLine={false}
-                    label={({ name, percent }) =>
-                      `${(percent * 100).toFixed(0)}%`
-                    }
+                    label={({
+                      name,
+                      percent,
+                    }: {
+                      name?: string;
+                      percent?: number;
+                    }) => `${((percent || 0) * 100).toFixed(0)}%`}
                     fill="#8884d8"
                     dataKey="value"
                   >

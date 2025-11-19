@@ -170,7 +170,7 @@ export class ClientListsController {
       exists: !!response,
       message: response ? "Client already exists" : "Client not found",
       data: response,
-    };
+    }; 
   }
 
   //////////////////////////////////////////////
