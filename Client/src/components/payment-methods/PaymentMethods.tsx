@@ -345,7 +345,7 @@ const PaymentMethods: React.FC = () => {
           >
             Connect Payment Gateway
           </Button>
-          {paymentMethods.length > 0 && (
+          {paymentMethods.length > 1 && (
             <Button
               onClick={deleteAllPaymentMethods}
               startIcon={<Trash className="w-4 h-4" />}

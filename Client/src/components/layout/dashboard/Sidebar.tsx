@@ -14,6 +14,7 @@ import {
   Wallet,
   Mail,
   Zap,
+  Contact,
   ShieldBan,
 } from "lucide-react";
 import React, { useRef, useEffect } from "react";
@@ -66,29 +67,40 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       color: "text-indigo-500",
       href: "/dashboard/compliance-licensing",
     },
+
+    // ⭐ NEW ITEM — Client Management (Position 6)
     {
       id: 6,
+      label: "Client Management",
+      icon: Contact, // or UserCircle / NotebookPen / FolderUser
+      color: "text-teal-400",
+      href: "/dashboard/client-management",
+    },
+
+    // shifted below
+    {
+      id: 7,
       label: "Auto-Reply Hub",
       icon: Mail,
       color: "text-pink-400",
       href: "/dashboard/communication",
     },
     {
-      id: 7,
+      id: 8,
       label: "Document Generator",
       icon: Zap,
       color: "text-yellow-400",
       href: "/dashboard/documents",
     },
     {
-      id: 8,
+      id: 9,
       label: "Business Analytics",
       icon: BarChart,
       color: "text-cyan-400",
       href: "/dashboard/analytics",
     },
     {
-      id: 9,
+      id: 10,
       label: "Team Management",
       icon: Users,
       color: "text-indigo-400",

@@ -1,8 +1,13 @@
-import DocumentForm from "@/components/document-form/DocumentForm";
-import React from "react";
+import DocumentForm from '@/components/document-form/DocumentForm';
+import LoadingSpinner from '@/components/loading-spinner/LoadingSpinner';
+import React, { Suspense } from 'react'
 
-const page = () => {
-  return <DocumentForm />;
-};
+const Page = () => {
+  return (
+    <Suspense fallback={<LoadingSpinner fullScreen={true} />}>
+      <DocumentForm />
+    </Suspense>
+  )
+}
 
-export default page;
+export default Page;

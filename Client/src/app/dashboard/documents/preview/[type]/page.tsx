@@ -102,7 +102,7 @@ export default function DocumentPreviewPage() {
 
             <div className="space-y-4">
               <p className="text-gray-700 leading-relaxed">
-                This Non-Disclosure Agreement (the "Agreement") is entered into
+                This Non-Disclosure Agreement (the &qout;Agreement&qout;) is entered into
                 on <strong>{formData.effectiveDate || "[Date]"}</strong> by and
                 between:
               </p>
@@ -146,7 +146,7 @@ export default function DocumentPreviewPage() {
                   2. DEFINITION OF CONFIDENTIAL INFORMATION
                 </h2>
                 <p className="text-gray-700 leading-relaxed">
-                  "Confidential Information" means any and all information
+                  &qout;Confidential Information&qout; means any and all information
                   disclosed by the Disclosing Party to the Receiving Party,
                   whether orally, in writing, or in any other form, including
                   but not limited to:
@@ -497,7 +497,7 @@ export default function DocumentPreviewPage() {
                 <p className="text-gray-700 leading-relaxed">
                   The Employee shall receive a monthly salary of{" "}
                   <strong>AED {formData.salary || "[Amount]"}</strong>, payable
-                  in accordance with the Employer's standard payroll schedule.
+                  in accordance with the Employer&apos;s standard payroll schedule.
                 </p>
                 {formData.benefits && (
                   <div className="mt-3 bg-white p-3 rounded border border-gray-200">
@@ -631,7 +631,7 @@ export default function DocumentPreviewPage() {
               <Button
                 onClick={handlePrint}
                 className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                icon={<Printer className="w-4 h-4" />}
+                startIcon={<Printer className="w-4 h-4" />}
               >
                 Print
               </Button>
@@ -639,7 +639,7 @@ export default function DocumentPreviewPage() {
                 onClick={handleDownload}
                 disabled={isDownloading}
                 className="bg-[#f6a821] hover:bg-[#d18d18]"
-                icon={
+                startIcon={
                   isDownloading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
@@ -651,7 +651,7 @@ export default function DocumentPreviewPage() {
               </Button>
               <Button
                 onClick={() => setShowEmailModal(true)}
-                icon={<Send className="w-4 h-4" />}
+                startIcon={<Send className="w-4 h-4" />}
               >
                 Send to Customer
               </Button>
@@ -707,7 +707,7 @@ export default function DocumentPreviewPage() {
               <Button
                 onClick={() => setShowEmailModal(true)}
                 className="text-sm"
-                icon={<Send className="w-4 h-4" />}
+                startIcon={<Send className="w-4 h-4" />}
               >
                 Send to Customer
               </Button>

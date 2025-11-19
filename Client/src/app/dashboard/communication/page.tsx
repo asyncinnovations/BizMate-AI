@@ -42,7 +42,7 @@ interface Reply {
   timestamp: string;
   customerName: string;
 }
-
+ 
 interface TrainingCategory {
   name: string;
   count: number;
@@ -275,7 +275,7 @@ export default function AutoReplyHub() {
                 icon: <BarChart3 size={20} />,
               },
               {
-                text: "Train AI",
+                text: "Upload Info",
                 onClick: () => setShowTrainModal(true),
                 icon: <Brain size={20} />,
                 className: "bg-[#F6A821] hover:bg-[#e29819]",

@@ -132,10 +132,10 @@ const AIHelpCenter = () => {
                   </p>
                   <div className="flex flex-wrap justify-center gap-3">
                     <span className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-sm hover:bg-blue-100 transition-colors cursor-pointer">
-                      "How to update my invoice information?"
+                      &qout;How to update my invoice information?&qout;
                     </span>
                     <span className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-sm hover:bg-blue-100 transition-colors cursor-pointer">
-                      "Understanding VAT return process"
+                      &qout;Understanding VAT return process&qout;
                     </span>
                   </div>
                 </div>
