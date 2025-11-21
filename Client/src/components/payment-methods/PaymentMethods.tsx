@@ -20,6 +20,9 @@ import Button from "../ui/Button";
 import { useAuth } from "@/context/AuthContext";
 import axiosInstance from "@/utils/axiosInstance";
 import toast from "react-hot-toast";
+import { IntegrationForm } from "../integration-form/IntegrationForm";
+import LoadingSpinner from "../loading-spinner/LoadingSpinner";
+import { renderDateTime } from "@/utils/renderDateTime";
 
 interface PaymentGateway {
   uuid: string;
@@ -34,6 +37,7 @@ const PaymentMethods: React.FC = () => {
   const { user, loading } = useAuth();
   const [showConnectModal, setShowConnectModal] = useState(false);
   const [selectedGateway, setSelectedGateway] = useState<string>("stripe");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [paymentMethods, setPaymentMethods] = useState<PaymentGateway[]>([]);
   const [credentials, setCredentials] = useState({
     publishable_key: "",
@@ -66,13 +70,21 @@ const PaymentMethods: React.FC = () => {
     },
   ];
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  /////////////////////////////////////
+  // Handle Input Change
+  /////////////////////////////////////
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setCredentials({
       ...credentials,
       [e.target.name]: e.target.value,
     });
   };
 
+  /////////////////////////////////////
+  // Handle Gateway Change (e.g , stripe ➡ paypal)
+  /////////////////////////////////////
   const handleGatewayChange = (gateway: string) => {
     setSelectedGateway(gateway);
     // Reset form when changing gateway
@@ -111,13 +123,15 @@ const PaymentMethods: React.FC = () => {
         payload
       );
       if (response.status === 201) {
-        toast.success(`Gateway connected successfully!`);
+        toast.success(`Gateway added successfully!`);
+        console.log(response.data);
         fetchUserPaymentMethods();
       }
     } catch (error) {
-      console.log("Error occur while connecting gateway", error);
+      console.log("Error occur while adding gateway", error);
     } finally {
       setShowConnectModal(false);
+      setSelectedGateway("stripe");
       // Reset form
       setCredentials({
         publishable_key: "",
@@ -136,14 +150,18 @@ const PaymentMethods: React.FC = () => {
   /////////////////////////////////////
   const fetchUserPaymentMethods = async () => {
     try {
+      setIsLoading(true);
       const response = await axiosInstance.get(
         `/user_payment_gateway/user/${user?.user.user_id}`
       );
       if (response.status === 200) {
         setPaymentMethods(response.data.response);
+        console.log(response.data);
       }
     } catch (error) {
       console.log("Error occur while fetching gateways", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -208,130 +226,9 @@ const PaymentMethods: React.FC = () => {
     }
   };
 
-  const renderGatewayForm = () => {
-    switch (selectedGateway) {
-      case "stripe":
-        return (
-          <>
-            <div>
-              <label className="block text-sm font-medium text-[#1B2A49] mb-2">
-                Publishable Key <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="publishable_key"
-                value={credentials.publishable_key}
-                onChange={handleInputChange}
-                placeholder="pk_live_..."
-                className="w-full px-4 py-3 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] focus:border-transparent transition-all"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#1B2A49] mb-2">
-                Secret Key <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="password"
-                name="secret_key"
-                value={credentials.secret_key}
-                onChange={handleInputChange}
-                placeholder="sk_live_..."
-                className="w-full px-4 py-3 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] focus:border-transparent transition-all"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#1B2A49] mb-2">
-                Webhook Secret
-              </label>
-              <input
-                type="password"
-                name="webhook_secret"
-                value={credentials.webhook_secret}
-                onChange={handleInputChange}
-                placeholder="whsec_..."
-                className="w-full px-4 py-3 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] focus:border-transparent transition-all"
-              />
-            </div>
-          </>
-        );
-
-      case "paypal":
-        return (
-          <>
-            <div>
-              <label className="block text-sm font-medium text-[#1B2A49] mb-2">
-                Client ID <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="client_id"
-                value={credentials.client_id}
-                onChange={handleInputChange}
-                placeholder="Enter PayPal Client ID"
-                className="w-full px-4 py-3 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] focus:border-transparent transition-all"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#1B2A49] mb-2">
-                Client Secret <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="password"
-                name="client_secret"
-                value={credentials.client_secret}
-                onChange={handleInputChange}
-                placeholder="Enter PayPal Client Secret"
-                className="w-full px-4 py-3 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] focus:border-transparent transition-all"
-              />
-            </div>
-          </>
-        );
-
-      case "telr":
-        return (
-          <>
-            <div>
-              <label className="block text-sm font-medium text-[#1B2A49] mb-2">
-                Store ID <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="store_id"
-                value={credentials.store_id}
-                onChange={handleInputChange}
-                placeholder="Enter Telr Store ID"
-                className="w-full px-4 py-3 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] focus:border-transparent transition-all"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#1B2A49] mb-2">
-                Auth Key <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="password"
-                name="auth_key"
-                value={credentials.auth_key}
-                onChange={handleInputChange}
-                placeholder="Enter Telr Auth Key"
-                className="w-full px-4 py-3 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] focus:border-transparent transition-all"
-              />
-            </div>
-          </>
-        );
-
-      default:
-        return null;
-    }
-  };
-
   const getGatewayIcon = (gateway: string) => {
     const option = gatewayOptions.find((opt) => opt.value === gateway);
     return option?.icon || <CreditCard className="w-5 h-5 text-[#2E69A4]" />;
-  };
-
-  const getGatewayDisplayName = (gateway: string) => {
-    const option = gatewayOptions.find((opt) => opt.value === gateway);
-    return option ? option.label : gateway;
   };
 
   return (
@@ -356,7 +253,11 @@ const PaymentMethods: React.FC = () => {
           )}
         </div>
 
-        {paymentMethods.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center p-20">
+            <LoadingSpinner />
+          </div>
+        ) : paymentMethods.length === 0 ? (
           <div className="text-center py-12 bg-[#F4F7FA] rounded-lg">
             <Wallet className="w-12 h-12 text-[#cacbcc] mx-auto mb-3" />
             <p className="text-[#344767] mb-4">
@@ -385,22 +286,14 @@ const PaymentMethods: React.FC = () => {
 
                   <div>
                     {/* Gateway Name */}
-                    <p className="font-medium text-[#1B2A49]">
-                      {getGatewayDisplayName(method.gateway_name)}
+                    <p className="font-medium text-[#1B2A49] capitalize">
+                      {method.gateway_name}
                     </p>
 
                     {/* Connected Date */}
                     {method.created_at && (
                       <p className="text-sm text-[#344767]">
-                        Connected at{" "}
-                        {new Date(method.created_at).toLocaleDateString(
-                          "en-US",
-                          {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          }
-                        )}
+                        Added on {renderDateTime(method.created_at)}
                       </p>
                     )}
                   </div>
@@ -425,20 +318,20 @@ const PaymentMethods: React.FC = () => {
                   </span>
 
                   {/* Toggle Button — always colored, darker on hover */}
-                  <button
+                  <Button
                     onClick={() =>
                       method.is_active
                         ? handleDeactivate(method.user_id, method.gateway_name)
                         : handleSetActive(method.user_id, method.gateway_name)
                     }
-                    className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${
+                    className={`text-xs px-3 py-1.5 ${
                       method.is_active
                         ? "bg-red-500 text-white hover:bg-red-600"
                         : "bg-green-500 text-white hover:bg-green-600"
                     }`}
                   >
                     {method.is_active ? "Deactivate" : "Activate"}
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))}
@@ -501,7 +394,13 @@ const PaymentMethods: React.FC = () => {
           </div>
 
           {/* Gateway-specific Form */}
-          <div className="space-y-4 mb-6">{renderGatewayForm()}</div>
+          <div className="space-y-4 mb-6">
+            <IntegrationForm
+              credentials={credentials}
+              onChange={handleInputChange}
+              selectedIntegration={selectedGateway}
+            />
+          </div>
 
           {/* Helper Text */}
           <div className="p-4 bg-[#F4F7FA] rounded-lg mb-6">
@@ -516,19 +415,19 @@ const PaymentMethods: React.FC = () => {
 
           {/* Modal Footer Actions */}
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#E1E8F5]">
-            <button
+            <Button
               onClick={() => setShowConnectModal(false)}
-              className="px-6 py-3 border border-[#E1E8F5] text-[#344767] rounded-lg hover:bg-[#F4F7FA] transition-colors font-medium"
+              className="bg-transparent border-[#dfdfdf] border-1  text-[#344767] rounded-lg hover:bg-[#F4F7FA]"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+
+            <Button
               onClick={handleConnect}
-              className="px-6 py-3 bg-[#2E69A4] text-white rounded-lg hover:bg-[#1B2A49] transition-colors font-medium flex items-center gap-2"
+              startIcon={<CheckCircle className="w-4 h-4" />}
             >
-              <Check className="w-4 h-4" />
               Connect Gateway
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>
