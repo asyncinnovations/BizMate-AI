@@ -5,7 +5,6 @@ import { CreditCard, FileText, RefreshCw, Check, Download } from "lucide-react";
 import SectionCard from "@/components/section-card/SectionCard";
 import ToggleSwitch from "@/components/ui/ToggleSwitch";
 import Button from "@/components/ui/Button";
-import PaymentMethods from "@/components/payment-methods/PaymentMethods";
 
 const SubscriptionBillingTab: React.FC = () => {
   const [autoRenew, setAutoRenew] = useState(true);
@@ -52,9 +51,6 @@ const SubscriptionBillingTab: React.FC = () => {
           </Button>
         </div>
       </SectionCard>
-
-      {/* Payment Methods Component */}
-      <PaymentMethods />
 
       <SectionCard title="Billing History" icon={FileText}>
         <div className="space-y-3">

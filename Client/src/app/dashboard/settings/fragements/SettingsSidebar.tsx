@@ -22,8 +22,8 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
   const tabs = [
     { id: "account", label: "Account & Security", icon: Shield },
     { id: "subscription", label: "Subscription & Billing", icon: CreditCard },
-    { id: "notifications", label: "Notifications", icon: Bell },
     { id: "integrations", label: "Integrations", icon: Plug },
+    { id: "notifications", label: "Notifications", icon: Bell },
     { id: "ai", label: "AI Assistant", icon: Bot },
     { id: "compliance", label: "Compliance & Legal", icon: FileText },
     { id: "danger", label: "Danger Zone", icon: AlertTriangle },
