@@ -25,6 +25,11 @@
   /* Borders & Shadows */
   --color-border: #e1e8f5;
   --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+  --success: #22c55e; /* Green */
+  --error: #ef4444; /* Red */
+  --warning: #f59e0b; /* Orange */
+  --info: #3b82f6; /* Blue */
 }
 
 /* Dark Theme */
