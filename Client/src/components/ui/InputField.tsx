@@ -17,10 +17,6 @@ interface InputFieldProps {
   error?: string;
   className?: string;
   required?: boolean;
-<<<<<<< HEAD
-  readOnly?: boolean;
-=======
->>>>>>> a4b01ef75c9113507dfa5fa1e5f3c8f4030c34fc
 }
 
 const InputField: React.FC<InputFieldProps> = ({
@@ -34,37 +30,16 @@ const InputField: React.FC<InputFieldProps> = ({
   error,
   className = "",
   required = false,
-<<<<<<< HEAD
-  readOnly = false,
-=======
->>>>>>> a4b01ef75c9113507dfa5fa1e5f3c8f4030c34fc
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === "password";
   const isTextarea = type === "textarea";
 
   const baseClasses =
-<<<<<<< HEAD
-    "w-full border text-[#344767] rounded-lg px-4 py-3 text-sm transition-all duration-200";
-
-  const focusClasses = readOnly
-    ? "focus:outline-none"
-    : "focus:outline-none focus:ring-2 focus:ring-[#2E69A4] focus:border-transparent";
-
-  const readonlyClasses = readOnly
-    ? "bg-gray-100 cursor-not-allowed text-gray-500 border-gray-200"
-    : "";
-
-  const mergedClasses = twMerge(
-    baseClasses,
-    focusClasses,
-    readonlyClasses,
-=======
     "w-full border text-[#344767] focus:outline-none focus:ring-2 focus:ring-[#2E69A4] focus:border-transparent rounded-lg px-4 py-3 text-sm transition-all duration-200";
 
   const mergedClasses = twMerge(
     baseClasses,
->>>>>>> a4b01ef75c9113507dfa5fa1e5f3c8f4030c34fc
     error ? "border-red-500" : "border-gray-300",
     className
   );
@@ -88,14 +63,8 @@ const InputField: React.FC<InputFieldProps> = ({
             id={name}
             name={name}
             value={value}
-<<<<<<< HEAD
-            onChange={readOnly ? undefined : onChange}
-            placeholder={placeholder}
-            readOnly={readOnly}
-=======
             onChange={onChange}
             placeholder={placeholder}
->>>>>>> a4b01ef75c9113507dfa5fa1e5f3c8f4030c34fc
             className={twMerge(mergedClasses, "min-h-[100px]")}
           />
         ) : (
@@ -104,21 +73,6 @@ const InputField: React.FC<InputFieldProps> = ({
             name={name}
             type={isPassword && showPassword ? "text" : type}
             value={value}
-<<<<<<< HEAD
-            onChange={readOnly ? undefined : onChange}
-            onBlur={onBlur}
-            placeholder={placeholder}
-            readOnly={readOnly}
-            className={twMerge(
-              mergedClasses,
-              isPassword ? "pr-10" : ""
-            )}
-          />
-        )}
-
-        {/* PASSWORD TOGGLE (disabled if readonly) */}
-        {isPassword && !readOnly && (
-=======
             onChange={onChange}
             onBlur={onBlur}
             placeholder={placeholder}
@@ -128,7 +82,6 @@ const InputField: React.FC<InputFieldProps> = ({
 
         {/* PASSWORD TOGGLE (only for input) */}
         {isPassword && (
->>>>>>> a4b01ef75c9113507dfa5fa1e5f3c8f4030c34fc
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}

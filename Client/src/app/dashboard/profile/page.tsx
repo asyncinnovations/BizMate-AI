@@ -23,10 +23,6 @@ import {
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import PageHeader from "@/components/page-header/PageHeader";
-<<<<<<< HEAD
-import BusinessInfo from "@/components/business-info/BusinessInfo";
-=======
->>>>>>> a4b01ef75c9113507dfa5fa1e5f3c8f4030c34fc
 
 const ProfilePage = () => {
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -252,8 +248,6 @@ const ProfilePage = () => {
                       icon={Globe}
                       editable
                     />
-<<<<<<< HEAD
-=======
                   </div>
                 </InfoCard>
               )}
@@ -317,17 +311,10 @@ const ProfilePage = () => {
                         </button>
                       </div>
                     </div>
->>>>>>> a4b01ef75c9113507dfa5fa1e5f3c8f4030c34fc
                   </div>
                 </InfoCard>
               )}
 
-<<<<<<< HEAD
-              {/* Business Information */}
-              {activeSection === "business" && <BusinessInfo />}
-
-=======
->>>>>>> a4b01ef75c9113507dfa5fa1e5f3c8f4030c34fc
               {/* Account Summary */}
               {activeSection === "account" && (
                 <div className="space-y-6">
