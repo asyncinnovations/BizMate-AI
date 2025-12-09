@@ -150,6 +150,7 @@ const IntegrationsTab: React.FC = () => {
   // Delete Single PLatform
   ///////////////////////////////
   const handleDeletePlatform = async (platformId: string) => {
+<<<<<<< HEAD
     if (confirm("Are you sure you to want to delete this platform?")) {
       try {
         const response = await axiosInstance.delete(
@@ -164,6 +165,20 @@ const IntegrationsTab: React.FC = () => {
       } catch (error) {
         console.log("Error occur while deleting platform", error);
       }
+=======
+    try {
+      const response = await axiosInstance.delete(
+        `/user_integration/delete/${platformId}`
+      );
+      if (response.status === 200) {
+        toast.success("Platform deleted successfully!");
+        setPlatforms((prev) =>
+          prev.filter((platform) => platform.uuid !== platformId)
+        );
+      }
+    } catch (error) {
+      console.log("Error occur while deleting platform", error);
+>>>>>>> a4b01ef75c9113507dfa5fa1e5f3c8f4030c34fc
     }
   };
 

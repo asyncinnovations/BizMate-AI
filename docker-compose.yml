@@ -1,12 +1,38 @@
 version: '3.9'
 
 services:
+<<<<<<< HEAD
+=======
+  # bizmate-db:
+  #   image: postgres:16-alpine
+  #   container_name: bizmate-db
+  #   restart: always
+  #   environment:
+  #     POSTGRES_USER: ${DB_USER}
+  #     POSTGRES_PASSWORD: ${DB_PASSWORD}
+  #     POSTGRES_DB: bizmate_db.sql
+  #   volumes:
+  #     - bizmate_data:/var/lib/postgresql/data
+  #     - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+  #   ports:
+  #     - "5433:5432"
+  #   networks:
+  #     - bizmate-net
+
+>>>>>>> a4b01ef75c9113507dfa5fa1e5f3c8f4030c34fc
   bizmate-backend:
     build: ./Server
     container_name: bizmate-backend
     restart: always
     environment:
+<<<<<<< HEAD
       PORT: 4040
+=======
+      # DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@bizmate-db:5432/${DB_NAME}
+      PORT: 4040
+    # depends_on:
+    #   - bizmate-db
+>>>>>>> a4b01ef75c9113507dfa5fa1e5f3c8f4030c34fc
     ports:
       - "4040:4040"
     networks:
@@ -17,6 +43,10 @@ services:
     container_name: bizmate-frontend
     restart: always
     environment:
+<<<<<<< HEAD
+=======
+      # NEXT_PUBLIC_API_URL: http://localhost:4040
+>>>>>>> a4b01ef75c9113507dfa5fa1e5f3c8f4030c34fc
       PORT: 3000
     depends_on:
       - bizmate-backend
@@ -25,6 +55,12 @@ services:
     networks:
       - bizmate-net
 
+<<<<<<< HEAD
+=======
+volumes:
+  bizmate_data:
+
+>>>>>>> a4b01ef75c9113507dfa5fa1e5f3c8f4030c34fc
 networks:
   bizmate-net:
     driver: bridge
