@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import PageHeader from "@/components/page-header/PageHeader";
+import BusinessInfo from "@/components/business-info/BusinessInfo";
 
 const ProfilePage = () => {
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -253,67 +254,7 @@ const ProfilePage = () => {
               )}
 
               {/* Business Information */}
-              {activeSection === "business" && (
-                <InfoCard title="Business Information" icon={Building2}>
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <InfoField
-                      label="Business Name"
-                      value={userData.businessName}
-                      icon={Building2}
-                      editable
-                    />
-                    <InfoField
-                      label="Trade License"
-                      value={userData.tradeLicense}
-                      icon={FileText}
-                      editable
-                    />
-                    <InfoField
-                      label="VAT Number"
-                      value={userData.vatNumber}
-                      icon={Hash}
-                      editable
-                    />
-                    <InfoField
-                      label="Industry"
-                      value={userData.industry}
-                      icon={Briefcase}
-                      editable
-                    />
-                    <InfoField
-                      label="Business Type"
-                      value={userData.businessType}
-                      icon={Building2}
-                      editable
-                    />
-                    <div className="md:col-span-2">
-                      <InfoField
-                        label="Address"
-                        value={userData.address}
-                        icon={MapPin}
-                        editable
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="text-sm font-medium text-[#344767] mb-3 block">
-                        Business Logo
-                      </label>
-                      <div className="border-2 border-dashed border-[#E1E8F5] rounded-xl p-8 text-center hover:border-[#2E69A4] transition-colors cursor-pointer bg-[#F4F7FA] hover:bg-[#F4F7FA]">
-                        <Upload className="w-12 h-12 text-[#344767] mx-auto mb-3" />
-                        <p className="text-[#344767] font-medium">
-                          Upload your business logo
-                        </p>
-                        <p className="text-sm text-[#344767] mt-1">
-                          PNG, JPG, SVG up to 5MB
-                        </p>
-                        <button className="mt-4 px-4 py-2 bg-[#1B2A49] text-white rounded-lg hover:bg-[#2E69A4] transition-colors text-sm">
-                          Choose File
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </InfoCard>
-              )}
+              {activeSection === "business" && <BusinessInfo />}
 
               {/* Account Summary */}
               {activeSection === "account" && (

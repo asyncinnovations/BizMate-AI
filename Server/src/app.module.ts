@@ -24,6 +24,17 @@ import { ConfigModule } from "@nestjs/config";
 import { UserBusinessInfoModule } from "./user_business_info/user_business_info.module";
 import { UserBusinessInfo } from "./user_business_info/user_business_info.entity";
 import { UserIntegration } from "./user_integration/user_integration.entity";
+import { ComplianceAssistantModule } from "./compliance_assistant_chat/compliance_assistant_chat.module";
+import { ComplianceHistoryModule } from "./compliance_history/compliance_history.module";
+import { ComplianceDocumentsModule } from "./compliance_documents/compliance_documents.module";
+import { ComplianceLicensingModule } from "./compliance_licensing/compliance_licensing.module";
+import { ComplianceAssistantChat } from "./compliance_assistant_chat/compliance_assistant_chat.entity";
+import { ComplianceDocument } from "./compliance_documents/compliance_documents.entity";
+import { NotificationsModule } from "./notifications/notifications.module";
+import { NotificationPreferencesModule } from "./notification_preferences/notification_preferences.module";
+import { ComplianceLicense } from "./compliance_licensing/compliance_licensing.entity";
+import { Notification } from "./notifications/notifications.entity";
+import { NotificationPreference } from "./notification_preferences/notification_preferences.entity";
 
 @Module({
   controllers: [],
@@ -54,6 +65,11 @@ import { UserIntegration } from "./user_integration/user_integration.entity";
         AiReplyHubChat,
         UserBusinessInfo,
         UserIntegration,
+        ComplianceAssistantChat,
+        ComplianceDocument,
+        ComplianceLicense,
+        Notification,
+        NotificationPreference,
       ],
     }),
     AuthModule,
@@ -67,6 +83,12 @@ import { UserIntegration } from "./user_integration/user_integration.entity";
     UserIntegrationModule,
     AiReplyHubChatModule,
     UserBusinessInfoModule,
+    ComplianceAssistantModule,
+    ComplianceHistoryModule,
+    ComplianceDocumentsModule,
+    ComplianceLicensingModule,
+    NotificationsModule,
+    NotificationPreferencesModule,
   ],
 })
 export class AppModule {}

@@ -32,6 +32,17 @@ const config_1 = require("@nestjs/config");
 const user_business_info_module_1 = require("./user_business_info/user_business_info.module");
 const user_business_info_entity_1 = require("./user_business_info/user_business_info.entity");
 const user_integration_entity_1 = require("./user_integration/user_integration.entity");
+const compliance_assistant_chat_module_1 = require("./compliance_assistant_chat/compliance_assistant_chat.module");
+const compliance_history_module_1 = require("./compliance_history/compliance_history.module");
+const compliance_documents_module_1 = require("./compliance_documents/compliance_documents.module");
+const compliance_licensing_module_1 = require("./compliance_licensing/compliance_licensing.module");
+const compliance_assistant_chat_entity_1 = require("./compliance_assistant_chat/compliance_assistant_chat.entity");
+const compliance_documents_entity_1 = require("./compliance_documents/compliance_documents.entity");
+const notifications_module_1 = require("./notifications/notifications.module");
+const notification_preferences_module_1 = require("./notification_preferences/notification_preferences.module");
+const compliance_licensing_entity_1 = require("./compliance_licensing/compliance_licensing.entity");
+const notifications_entity_1 = require("./notifications/notifications.entity");
+const notification_preferences_entity_1 = require("./notification_preferences/notification_preferences.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -65,6 +76,11 @@ exports.AppModule = AppModule = __decorate([
                     ai_reply_hub_chat_entity_1.AiReplyHubChat,
                     user_business_info_entity_1.UserBusinessInfo,
                     user_integration_entity_1.UserIntegration,
+                    compliance_assistant_chat_entity_1.ComplianceAssistantChat,
+                    compliance_documents_entity_1.ComplianceDocument,
+                    compliance_licensing_entity_1.ComplianceLicense,
+                    notifications_entity_1.Notification,
+                    notification_preferences_entity_1.NotificationPreference,
                 ],
             }),
             auth_module_1.AuthModule,
@@ -78,6 +94,12 @@ exports.AppModule = AppModule = __decorate([
             user_integration_module_1.UserIntegrationModule,
             ai_reply_hub_chat_module_1.AiReplyHubChatModule,
             user_business_info_module_1.UserBusinessInfoModule,
+            compliance_assistant_chat_module_1.ComplianceAssistantModule,
+            compliance_history_module_1.ComplianceHistoryModule,
+            compliance_documents_module_1.ComplianceDocumentsModule,
+            compliance_licensing_module_1.ComplianceLicensingModule,
+            notifications_module_1.NotificationsModule,
+            notification_preferences_module_1.NotificationPreferencesModule,
         ],
     })
 ], AppModule);

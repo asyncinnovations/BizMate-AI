@@ -79,4 +79,4 @@ CREATE TABLE documents (
     created_by INT REFERENCES users(user_id),
     created_at TIMESTAMP DEFAULT NOW()
 );
--- npx sequelize-cli migration:generate --name user_business_info-table
+-- npx sequelize-cli migration:generate --name compliance_documents-table
