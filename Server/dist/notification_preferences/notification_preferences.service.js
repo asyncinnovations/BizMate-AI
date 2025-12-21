@@ -22,20 +22,22 @@ let NotificationPreferencesService = class NotificationPreferencesService {
     constructor(preferenceRepository) {
         this.preferenceRepository = preferenceRepository;
     }
-    async createPreference(data) {
+    async create_preference_service(data) {
         const preference = this.preferenceRepository.create(data);
-        return this.preferenceRepository.save(preference);
+        const result = await this.preferenceRepository.save(preference);
+        return result;
     }
-    async updatePreference(preference_id, updates) {
+    async update_preference_service(preference_id, updates) {
         const pref = await this.preferenceRepository.find({
             where: { uuid: preference_id },
         });
         if (!pref)
             throw new common_1.HttpException("Preference not found", 404);
         Object.assign(pref, updates);
-        return this.preferenceRepository.save(pref);
+        const result = await this.preferenceRepository.save(pref);
+        return result;
     }
-    async getPreferenceById(preference_id) {
+    async single_preference_service(preference_id) {
         const pref = await this.preferenceRepository.findOne({
             where: { uuid: preference_id },
         });
@@ -43,16 +45,16 @@ let NotificationPreferencesService = class NotificationPreferencesService {
             throw new common_1.HttpException("Preference not found", 404);
         return pref;
     }
-    async getPreferencesByUser(user_id, company_id) {
+    async user_preference_service(user_id, company_id) {
         return this.preferenceRepository.find({ where: { user_id, company_id } });
     }
-    async deletePreference(preference_id) {
-        const pref = await this.getPreferenceById(preference_id);
+    async delete_preference_service(preference_id) {
+        const pref = await this.single_preference_service(preference_id);
         await this.preferenceRepository.remove(pref);
         return { message: "Preference deleted successfully" };
     }
-    async toggleChannel(preference_id, channel, enabled) {
-        const pref = await this.getPreferenceById(preference_id);
+    async toggle_channel_service(preference_id, channel, enabled) {
+        const pref = await this.single_preference_service(preference_id);
         switch (channel) {
             case "email":
                 pref.email_enabled = enabled;

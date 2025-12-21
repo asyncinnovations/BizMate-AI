@@ -25,11 +25,12 @@ let NotificationsService = class NotificationsService {
         this.notificationRepository = notificationRepository;
         this.preferenceRepository = preferenceRepository;
     }
-    async createNotification(data) {
+    async create_notification_service(data) {
         const notification = this.notificationRepository.create(data);
-        return await this.notificationRepository.save(notification);
+        const result = await this.notificationRepository.save(notification);
+        return result;
     }
-    async sendNotification(notification_id) {
+    async send_notification_service(notification_id) {
         const notification = await this.notificationRepository.findOne({
             where: { uuid: notification_id },
         });
@@ -58,13 +59,13 @@ let NotificationsService = class NotificationsService {
         await this.notificationRepository.save(notification);
         return notification;
     }
-    async getUserNotifications(user_id, company_id) {
+    async user_notification_service(user_id, company_id) {
         return this.notificationRepository.find({
             where: { user_id, company_id },
             order: { created_at: "DESC" },
         });
     }
-    async getNotificationById(notification_id) {
+    async single_notification_service(notification_id) {
         const notification = await this.notificationRepository.findOne({
             where: { uuid: notification_id },
         });
@@ -72,40 +73,23 @@ let NotificationsService = class NotificationsService {
             throw new common_1.HttpException("Notification not found", 404);
         return notification;
     }
-    async deleteNotification(notification_id) {
-        const notification = await this.getNotificationById(notification_id);
+    async delete_notification(notification_id) {
+        const notification = await this.single_notification_service(notification_id);
         await this.notificationRepository.remove(notification);
         return { message: "Notification deleted successfully" };
     }
-    async markAsRead(notification_id) {
-        const notification = await this.getNotificationById(notification_id);
+    async mark_read_notification_service(notification_id) {
+        const notification = await this.single_notification_service(notification_id);
         notification.status = notifications_entity_1.NotificationStatus.SENT;
         await this.notificationRepository.save(notification);
         return notification;
     }
-    async sendBulkNotifications(notifications) {
+    async send_bulk_notification_service(notifications) {
         const results = [];
         for (const notif of notifications) {
+            results.push(await this.send_notification_service(notif.uuid));
         }
         return results;
-    }
-    async getNotificationsByStatus(status) {
-        return this.notificationRepository.find({
-            where: { status },
-            order: { created_at: "DESC" },
-        });
-    }
-    async getNotificationsByReminder(reminder_id) {
-        return this.notificationRepository.find({
-            where: { reminder_id },
-            order: { created_at: "DESC" },
-        });
-    }
-    async getNotificationsByDocument(document_id) {
-        return this.notificationRepository.find({
-            where: { document_id },
-            order: { created_at: "DESC" },
-        });
     }
 };
 exports.NotificationsService = NotificationsService;

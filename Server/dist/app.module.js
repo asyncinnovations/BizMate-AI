@@ -43,6 +43,12 @@ const notification_preferences_module_1 = require("./notification_preferences/no
 const compliance_licensing_entity_1 = require("./compliance_licensing/compliance_licensing.entity");
 const notifications_entity_1 = require("./notifications/notifications.entity");
 const notification_preferences_entity_1 = require("./notification_preferences/notification_preferences.entity");
+const user_two_factor_settings_module_1 = require("./user_two_factor_settings/user_two_factor_settings.module");
+const two_factor_otps_module_1 = require("./two_factor_otps/two_factor_otps.module");
+const two_factor_recovery_codes_module_1 = require("./two_factor_recovery_codes/two_factor_recovery_codes.module");
+const subscription_plans_module_1 = require("./subscription_plans/subscription_plans.module");
+const user_subscription_module_1 = require("./user_subscription/user_subscription.module");
+const subscription_payments_module_1 = require("./subscription_payments/subscription_payments.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -100,6 +106,12 @@ exports.AppModule = AppModule = __decorate([
             compliance_licensing_module_1.ComplianceLicensingModule,
             notifications_module_1.NotificationsModule,
             notification_preferences_module_1.NotificationPreferencesModule,
+            user_two_factor_settings_module_1.UserTwoFactorSettingsModule,
+            two_factor_otps_module_1.TwoFactorOtpsModule,
+            two_factor_recovery_codes_module_1.TwoFactorRecoveryCodesModule,
+            subscription_plans_module_1.SubscriptionModule,
+            user_subscription_module_1.UserSubscriptionModule,
+            subscription_payments_module_1.SubscriptionPaymentsModule,
         ],
     })
 ], AppModule);

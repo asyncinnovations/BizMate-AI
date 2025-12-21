@@ -13,7 +13,7 @@ export class NotificationPreferencesService {
   ///////////////////////////////////////////////////////
   // CREATE PREFERENCES
   ///////////////////////////////////////////////////////
-  async createPreference(data: {
+  async create_preference_service(data: {
     user_id: string;
     company_id?: string;
     event_type: string;
@@ -23,13 +23,14 @@ export class NotificationPreferencesService {
     dashboard_enabled?: boolean;
   }) {
     const preference = this.preferenceRepository.create(data);
-    return this.preferenceRepository.save(preference);
+    const result = await this.preferenceRepository.save(preference);
+    return result;
   }
 
   ///////////////////////////////////////////////////////
   // UPDATE PREFERENCES
   ///////////////////////////////////////////////////////
-  async updatePreference(
+  async update_preference_service(
     preference_id: string,
     updates: Partial<NotificationPreference>
   ) {
@@ -38,13 +39,14 @@ export class NotificationPreferencesService {
     });
     if (!pref) throw new HttpException("Preference not found", 404);
     Object.assign(pref, updates);
-    return this.preferenceRepository.save(pref);
+    const result = await this.preferenceRepository.save(pref);
+    return result;
   }
 
   ///////////////////////////////////////////////////////
   // GET SINGLE PREFERENCES
   ///////////////////////////////////////////////////////
-  async getPreferenceById(preference_id: string) {
+  async single_preference_service(preference_id: string) {
     const pref = await this.preferenceRepository.findOne({
       where: { uuid: preference_id },
     });
@@ -55,15 +57,15 @@ export class NotificationPreferencesService {
   ///////////////////////////////////////////////////////
   // GET ALL PREFEERENCE
   ///////////////////////////////////////////////////////
-  async getPreferencesByUser(user_id: string, company_id?: string) {
+  async user_preference_service(user_id: string, company_id?: string) {
     return this.preferenceRepository.find({ where: { user_id, company_id } });
   }
 
   ///////////////////////////////////////////////////////
   // DELETE PREFERENCES
   ///////////////////////////////////////////////////////
-  async deletePreference(preference_id: string) {
-    const pref = await this.getPreferenceById(preference_id);
+  async delete_preference_service(preference_id: string) {
+    const pref = await this.single_preference_service(preference_id);
     await this.preferenceRepository.remove(pref);
     return { message: "Preference deleted successfully" };
   }
@@ -71,12 +73,12 @@ export class NotificationPreferencesService {
   ///////////////////////////////////////////////////////
   // ENABLE/DISABLE PREFERENECE
   ///////////////////////////////////////////////////////
-  async toggleChannel(
+  async toggle_channel_service(
     preference_id: string,
     channel: "email" | "sms" | "push" | "dashboard",
     enabled: boolean
   ) {
-    const pref = await this.getPreferenceById(preference_id);
+    const pref = await this.single_preference_service(preference_id);
     switch (channel) {
       case "email":
         pref.email_enabled = enabled;

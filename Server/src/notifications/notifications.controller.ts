@@ -7,6 +7,9 @@ import {
   Param,
   Body,
   Query,
+  HttpCode,
+  HttpStatus,
+  HttpException,
 } from "@nestjs/common";
 import { NotificationsService } from "./notifications.service";
 import {
@@ -22,83 +25,120 @@ export class NotificationsController {
   ///////////////////////////////////////////////////////
   // CREATE NOTIFICATION
   ///////////////////////////////////////////////////////
-  @Post()
-  async createNotification(@Body() body: any) {
-    return this.notificationsService.createNotification(body);
+  @Post("create")
+  @HttpCode(HttpStatus.CREATED)
+  async create_notification(@Body() body: any) {
+    try {
+      const response =
+        await this.notificationsService.create_notification_service(body);
+      return { message: "notification send success", response };
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
   }
 
   ///////////////////////////////////////////////////////
   // SEND NOTIFICATION
   ///////////////////////////////////////////////////////
-  @Put(":notification_id/send")
-  async sendNotification(@Param("notification_id") notification_id: string) {
-    return this.notificationsService.sendNotification(notification_id);
+  @Put("send/:notification_id")
+  @HttpCode(HttpStatus.CREATED)
+  async send_notification(@Param("notification_id") notification_id: string) {
+    try {
+      const response =
+        await this.notificationsService.send_notification_service(
+          notification_id
+        );
+      return { message: "notification send success", response };
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
   }
 
   ///////////////////////////////////////////////////////
   // GET USER NOTIFICATION
   ///////////////////////////////////////////////////////
   @Get("user/:user_id")
-  async getUserNotifications(
+  @HttpCode(HttpStatus.OK)
+  async user_notification(
     @Param("user_id") user_id: string,
     @Query("company_id") company_id?: string
   ) {
-    return this.notificationsService.getUserNotifications(user_id, company_id);
+    try {
+      const response =
+        await this.notificationsService.user_notification_service(
+          user_id,
+          company_id
+        );
+      return { message: "user notification get success", response };
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
   }
 
   ///////////////////////////////////////////////////////
   // GET SINGLE NOTIFICATION
   ///////////////////////////////////////////////////////
-  @Get(":notification_id")
-  async getNotificationById(@Param("notification_id") notification_id: string) {
-    return this.notificationsService.getNotificationById(notification_id);
-  }
-
-  ///////////////////////////////////////////////////////
-  // DELETE NOTIFICATION
-  ///////////////////////////////////////////////////////
-  @Delete(":notification_id")
-  async deleteNotification(@Param("notification_id") notification_id: string) {
-    return this.notificationsService.deleteNotification(notification_id);
+  @Get("single/:notification_id")
+  @HttpCode(HttpStatus.OK)
+  async single_notification(@Param("notification_id") notification_id: string) {
+    try {
+      const response =
+        await this.notificationsService.single_notification_service(
+          notification_id
+        );
+      return { message: "single notification get success", response };
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
   }
 
   ///////////////////////////////////////////////////////
   // MARK NOTIFICATION AS READ
   ///////////////////////////////////////////////////////
-  @Put(":notification_id/mark-read")
-  async markAsRead(@Param("notification_id") notification_id: string) {
-    return this.notificationsService.markAsRead(notification_id);
+  @Put("mark-read/:notification_id")
+  @HttpCode(HttpStatus.OK)
+  async mark_read_notification(
+    @Param("notification_id") notification_id: string
+  ) {
+    try {
+      const response =
+        await this.notificationsService.mark_read_notification_service(
+          notification_id
+        );
+      return { message: "notification marked as read", response };
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
   }
 
   ///////////////////////////////////////////////////////
   // SEND BULK NOTIFICATION
   ///////////////////////////////////////////////////////
   @Post("bulk-send")
-  async sendBulkNotifications(@Body() notifications: Notification[]) {
-    return this.notificationsService.sendBulkNotifications(notifications);
+  @HttpCode(HttpStatus.OK)
+  async send_bulk_notification(@Body() notifications: Notification[]) {
+    try {
+      const response =
+        await this.notificationsService.send_bulk_notification_service(
+          notifications
+        );
+      return { message: "bulk notification send success", response };
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
   }
-
   ///////////////////////////////////////////////////////
-  // GET NOTIFICATION BY STATUS
+  // DELETE NOTIFICATION
   ///////////////////////////////////////////////////////
-  @Get("status/:status")
-  async getNotificationsByStatus(@Param("status") status: NotificationStatus) {
-    return this.notificationsService.getNotificationsByStatus(status);
-  }
-
-  ///////////////////////////////////////////////////////
-  // GET REMINDER NOTIFICATION
-  ///////////////////////////////////////////////////////
-  @Get("reminder/:reminder_id")
-  async getNotificationsByReminder(@Param("reminder_id") reminder_id: string) {
-    return this.notificationsService.getNotificationsByReminder(reminder_id);
-  }
-
-  ///////////////////////////////////////////////////////
-  // GET DOCUMENT NOTIFICATION
-  ///////////////////////////////////////////////////////
-  @Get("document/:document_id")
-  async getNotificationsByDocument(@Param("document_id") document_id: string) {
-    return this.notificationsService.getNotificationsByDocument(document_id);
+  @Delete("delete/:notification_id")
+  @HttpCode(HttpStatus.OK)
+  async delete_notification(@Param("notification_id") notification_id: string) {
+    try {
+      const response =
+        await this.notificationsService.delete_notification(notification_id);
+      return { message: "notification delete success", response };
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
   }
 }

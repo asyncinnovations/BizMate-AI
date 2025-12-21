@@ -20,72 +20,114 @@ let NotificationPreferencesController = class NotificationPreferencesController 
     constructor(preferencesService) {
         this.preferencesService = preferencesService;
     }
-    async createPreference(body) {
-        return this.preferencesService.createPreference(body);
+    async create_preference(body) {
+        try {
+            const response = await this.preferencesService.create_preference_service(body);
+            return { message: "preference created", response };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
-    async updatePreference(preference_id, updates) {
-        return this.preferencesService.updatePreference(preference_id, updates);
+    async update_preference(preference_id, updates) {
+        try {
+            const response = await this.preferencesService.update_preference_service(preference_id, updates);
+            return { message: "preference updated", response };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
-    async getPreferenceById(preference_id) {
-        return this.preferencesService.getPreferenceById(preference_id);
+    async single_preference(preference_id) {
+        try {
+            const response = await this.preferencesService.single_preference_service(preference_id);
+            return { message: "single preference", response };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
-    async getPreferencesByUser(user_id, company_id) {
-        return this.preferencesService.getPreferencesByUser(user_id, company_id);
+    async user_preference(user_id, company_id) {
+        try {
+            const response = await this.preferencesService.user_preference_service(user_id, company_id);
+            return { message: "user preference", response };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
-    async deletePreference(preference_id) {
-        return this.preferencesService.deletePreference(preference_id);
+    async toggle_channel(preference_id, body) {
+        try {
+            const { channel, enabled } = body;
+            const response = await this.preferencesService.toggle_channel_service(preference_id, channel, enabled);
+            return { message: "toggle preference", response };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
-    async toggleChannel(preference_id, body) {
-        const { channel, enabled } = body;
-        return this.preferencesService.toggleChannel(preference_id, channel, enabled);
+    async delete_preference(preference_id) {
+        try {
+            const response = await this.preferencesService.delete_preference_service(preference_id);
+            return { message: "preference deleted", response };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
 };
 exports.NotificationPreferencesController = NotificationPreferencesController;
 __decorate([
-    (0, common_1.Post)(),
+    (0, common_1.Post)("create"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], NotificationPreferencesController.prototype, "createPreference", null);
+], NotificationPreferencesController.prototype, "create_preference", null);
 __decorate([
-    (0, common_1.Put)(":preference_id"),
+    (0, common_1.Put)("update/:preference_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("preference_id")),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
-], NotificationPreferencesController.prototype, "updatePreference", null);
+], NotificationPreferencesController.prototype, "update_preference", null);
 __decorate([
-    (0, common_1.Get)(":preference_id"),
+    (0, common_1.Get)("single/:preference_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("preference_id")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
-], NotificationPreferencesController.prototype, "getPreferenceById", null);
+], NotificationPreferencesController.prototype, "single_preference", null);
 __decorate([
     (0, common_1.Get)("user/:user_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("user_id")),
     __param(1, (0, common_1.Query)("company_id")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
-], NotificationPreferencesController.prototype, "getPreferencesByUser", null);
+], NotificationPreferencesController.prototype, "user_preference", null);
 __decorate([
-    (0, common_1.Delete)(":preference_id"),
-    __param(0, (0, common_1.Param)("preference_id")),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", Promise)
-], NotificationPreferencesController.prototype, "deletePreference", null);
-__decorate([
-    (0, common_1.Put)(":preference_id/toggle-channel"),
+    (0, common_1.Put)("toggle-channel/:preference_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("preference_id")),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
-], NotificationPreferencesController.prototype, "toggleChannel", null);
+], NotificationPreferencesController.prototype, "toggle_channel", null);
+__decorate([
+    (0, common_1.Delete)("delete/:preference_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Param)("preference_id")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], NotificationPreferencesController.prototype, "delete_preference", null);
 exports.NotificationPreferencesController = NotificationPreferencesController = __decorate([
     (0, common_1.Controller)("notification-preferences"),
     __metadata("design:paramtypes", [notification_preferences_service_1.NotificationPreferencesService])

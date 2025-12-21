@@ -21,7 +21,7 @@ export class NotificationsService {
   ///////////////////////////////////////////////////////
   // CEATE NOTIFICATIONS
   ///////////////////////////////////////////////////////
-  async createNotification(data: {
+  async create_notification_service(data: {
     user_id: string;
     company_id?: string;
     reminder_id?: string;
@@ -31,13 +31,14 @@ export class NotificationsService {
     message: string;
   }) {
     const notification = this.notificationRepository.create(data);
-    return await this.notificationRepository.save(notification);
+    const result = await this.notificationRepository.save(notification);
+    return result;
   }
 
   /////////////////////////////////////////////////////////////////////////
   // SEND NOTIFICATION AFTER PREF CHECK
   /////////////////////////////////////////////////////////////////////////
-  async sendNotification(notification_id: string) {
+  async send_notification_service(notification_id: string) {
     const notification = await this.notificationRepository.findOne({
       where: { uuid: notification_id },
     });
@@ -77,7 +78,7 @@ export class NotificationsService {
   ///////////////////////////////////////////////////////
   //  GET NOTIFICATION FOR USER
   ///////////////////////////////////////////////////////
-  async getUserNotifications(user_id: string, company_id?: string) {
+  async user_notification_service(user_id: string, company_id?: string) {
     return this.notificationRepository.find({
       where: { user_id, company_id },
       order: { created_at: "DESC" },
@@ -87,7 +88,7 @@ export class NotificationsService {
   ///////////////////////////////////////////////////////
   //  GET SINGLE NOTIFICATION
   ///////////////////////////////////////////////////////
-  async getNotificationById(notification_id: string) {
+  async single_notification_service(notification_id: string) {
     const notification = await this.notificationRepository.findOne({
       where: { uuid: notification_id },
     });
@@ -98,8 +99,9 @@ export class NotificationsService {
   ///////////////////////////////////////////////////////
   // DELETE NOTIFICAITON
   ///////////////////////////////////////////////////////
-  async deleteNotification(notification_id: string) {
-    const notification = await this.getNotificationById(notification_id);
+  async delete_notification(notification_id: string) {
+    const notification =
+      await this.single_notification_service(notification_id);
     await this.notificationRepository.remove(notification);
     return { message: "Notification deleted successfully" };
   }
@@ -107,8 +109,9 @@ export class NotificationsService {
   ///////////////////////////////////////////////////////
   // MARK NOTIFICATION AS READ
   ///////////////////////////////////////////////////////
-  async markAsRead(notification_id: string) {
-    const notification = await this.getNotificationById(notification_id);
+  async mark_read_notification_service(notification_id: string) {
+    const notification =
+      await this.single_notification_service(notification_id);
     notification.status = NotificationStatus.SENT; // or another status like READ
     await this.notificationRepository.save(notification);
     return notification;
@@ -117,38 +120,11 @@ export class NotificationsService {
   ///////////////////////////////////////////////////////
   // SEND BULK NOTIFICATION
   ///////////////////////////////////////////////////////
-  async sendBulkNotifications(notifications: Notification[]) {
-    const results = [];
+  async send_bulk_notification_service(notifications: any) {
+    const results: any = [];
     for (const notif of notifications) {
-      //   results.push(await this.sendNotification(notif.id));
+      results.push(await this.send_notification_service(notif.uuid));
     }
     return results;
-  }
-
-  ///////////////////////////////////////////////////////
-  // GET NOTIFICATION BY STATUS
-  ///////////////////////////////////////////////////////
-  async getNotificationsByStatus(status: NotificationStatus) {
-    return this.notificationRepository.find({
-      where: { status },
-      order: { created_at: "DESC" },
-    });
-  }
-
-  ///////////////////////////////////////////////////////
-  // GET NOTIFICATION BY REMINDER
-  ///////////////////////////////////////////////////////
-  async getNotificationsByReminder(reminder_id: string) {
-    return this.notificationRepository.find({
-      where: { reminder_id },
-      order: { created_at: "DESC" },
-    });
-  }
-
-  async getNotificationsByDocument(document_id: string) {
-    return this.notificationRepository.find({
-      where: { document_id },
-      order: { created_at: "DESC" },
-    });
   }
 }

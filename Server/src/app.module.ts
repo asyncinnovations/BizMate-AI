@@ -35,6 +35,13 @@ import { NotificationPreferencesModule } from "./notification_preferences/notifi
 import { ComplianceLicense } from "./compliance_licensing/compliance_licensing.entity";
 import { Notification } from "./notifications/notifications.entity";
 import { NotificationPreference } from "./notification_preferences/notification_preferences.entity";
+import { UserTwoFactorSettingsModule } from './user_two_factor_settings/user_two_factor_settings.module';
+import { TwoFactorOtpsModule } from './two_factor_otps/two_factor_otps.module';
+import { TwoFactorRecoveryCodesModule } from './two_factor_recovery_codes/two_factor_recovery_codes.module';
+import { SubscriptionModule } from './subscription_plans/subscription_plans.module';
+import { UserSubscriptionModule } from './user_subscription/user_subscription.module';
+import { SubscriptionPaymentsModule } from './subscription_payments/subscription_payments.module';
+import { WalletTransactionModule } from './wallet_transaction/wallet_transaction.module';
 
 @Module({
   controllers: [],
@@ -89,6 +96,13 @@ import { NotificationPreference } from "./notification_preferences/notification_
     ComplianceLicensingModule,
     NotificationsModule,
     NotificationPreferencesModule,
+    UserTwoFactorSettingsModule,
+    TwoFactorOtpsModule,
+    TwoFactorRecoveryCodesModule,
+    SubscriptionModule,
+    UserSubscriptionModule,
+    SubscriptionPaymentsModule,
+    WalletTransactionModule,
   ],
 })
 export class AppModule {}

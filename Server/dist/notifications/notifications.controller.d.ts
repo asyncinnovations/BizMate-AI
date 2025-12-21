@@ -1,20 +1,38 @@
 import { NotificationsService } from "./notifications.service";
-import { Notification, NotificationStatus } from "./notifications.entity";
+import { Notification } from "./notifications.entity";
 export declare class NotificationsController {
     private readonly notificationsService;
     constructor(notificationsService: NotificationsService);
-    createNotification(body: any): Promise<Notification>;
-    sendNotification(notification_id: string): Promise<Notification | {
+    create_notification(body: any): Promise<{
         message: string;
+        response: Notification;
     }>;
-    getUserNotifications(user_id: string, company_id?: string): Promise<Notification[]>;
-    getNotificationById(notification_id: string): Promise<Notification>;
-    deleteNotification(notification_id: string): Promise<{
+    send_notification(notification_id: string): Promise<{
         message: string;
+        response: Notification | {
+            message: string;
+        };
     }>;
-    markAsRead(notification_id: string): Promise<Notification>;
-    sendBulkNotifications(notifications: Notification[]): Promise<never[]>;
-    getNotificationsByStatus(status: NotificationStatus): Promise<Notification[]>;
-    getNotificationsByReminder(reminder_id: string): Promise<Notification[]>;
-    getNotificationsByDocument(document_id: string): Promise<Notification[]>;
+    user_notification(user_id: string, company_id?: string): Promise<{
+        message: string;
+        response: Notification[];
+    }>;
+    single_notification(notification_id: string): Promise<{
+        message: string;
+        response: Notification;
+    }>;
+    mark_read_notification(notification_id: string): Promise<{
+        message: string;
+        response: Notification;
+    }>;
+    send_bulk_notification(notifications: Notification[]): Promise<{
+        message: string;
+        response: any;
+    }>;
+    delete_notification(notification_id: string): Promise<{
+        message: string;
+        response: {
+            message: string;
+        };
+    }>;
 }
