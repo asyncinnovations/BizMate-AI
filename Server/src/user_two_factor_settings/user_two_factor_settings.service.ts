@@ -40,7 +40,7 @@ export class UserTwoFactorSettingsService {
     if (!user) throw new NotFoundException("User not found");
 
     const secret = authenticator.generateSecret();
-    const otpauthUrl = authenticator.keyuri(user.email, "YourAppName", secret);
+    const otpauthUrl = authenticator.keyuri(user.email, "bizmate-ai", secret);
 
     let settings = await this.twoFactorRepo.findOne({
       where: { user_id: userId },

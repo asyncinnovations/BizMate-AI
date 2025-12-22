@@ -10,13 +10,18 @@ exports.UserSubscriptionModule = void 0;
 const common_1 = require("@nestjs/common");
 const user_subscription_service_1 = require("./user_subscription.service");
 const user_subscription_controller_1 = require("./user_subscription.controller");
+const typeorm_1 = require("@nestjs/typeorm");
+const user_subscription_entity_1 = require("./user_subscription.entity");
+const user_entity_1 = require("../auth/user.entity");
+const subscription_plans_entity_1 = require("../subscription_plans/subscription_plans.entity");
 let UserSubscriptionModule = class UserSubscriptionModule {
 };
 exports.UserSubscriptionModule = UserSubscriptionModule;
 exports.UserSubscriptionModule = UserSubscriptionModule = __decorate([
     (0, common_1.Module)({
+        imports: [typeorm_1.TypeOrmModule.forFeature([user_subscription_entity_1.UserSubscription, subscription_plans_entity_1.SubscriptionPlan, user_entity_1.AuthUsers])],
         providers: [user_subscription_service_1.UserSubscriptionService],
-        controllers: [user_subscription_controller_1.UserSubscriptionController]
+        controllers: [user_subscription_controller_1.UserSubscriptionController],
     })
 ], UserSubscriptionModule);
 //# sourceMappingURL=user_subscription.module.js.map

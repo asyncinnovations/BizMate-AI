@@ -7,7 +7,10 @@ import { Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 import { SubscriptionPlan } from "./subscription_plans.entity";
 import { AuthUsers } from "src/auth/user.entity";
-import { UserSubscription } from "src/user_subscription/user_subscription.entity";
+import {
+  SubscriptionStatus,
+  UserSubscription,
+} from "src/user_subscription/user_subscription.entity";
 
 @Injectable()
 export class SubscriptionPlanService {
@@ -23,14 +26,23 @@ export class SubscriptionPlanService {
   ///////////////////////////////////////////
   // List All Active Subscription Plans
   ///////////////////////////////////////////
-  async getAllPlans(): Promise<SubscriptionPlan[]> {
+  async all_subscription_plan_service(): Promise<SubscriptionPlan[]> {
     return this.planRepo.find({ where: { is_active: true } });
+  }
+
+  ///////////////////////////////////////////
+  // CREATE SUBSCRIPTION PLAN
+  ///////////////////////////////////////////
+  async create_subscription_plan_service(data: any) {
+    const response = this.planRepo.create(data);
+    const result = await this.planRepo.save(response);
+    return result;
   }
 
   ///////////////////////////////////////////
   // Subscribe a User to a Plan
   ///////////////////////////////////////////
-  async subscribeUser(userId: string, planId: string) {
+  async subscribe_subscription_plan_service(userId: string, planId: string) {
     const user = await this.userRepo.findOne({ where: { uuid: userId } });
     if (!user) throw new NotFoundException("User not found");
 
@@ -44,10 +56,11 @@ export class SubscriptionPlanService {
     endDate.setDate(endDate.getDate() + plan.duration_days);
 
     const subscription = this.userSubscriptionRepo.create({
+      user_id: userId,
       plan_id: planId,
       end_date: endDate,
       start_date: startDate,
-      //   status: "active",
+      // status: "active",
     });
 
     return this.userSubscriptionRepo.save(subscription);
@@ -56,21 +69,25 @@ export class SubscriptionPlanService {
   ///////////////////////////////////////////
   // Get Current Subscription of a User
   ///////////////////////////////////////////
-  async getUserSubscription(userId: string): Promise<UserSubscription | null> {
+  async user_subscription_plan_service(
+    userId: string
+  ): Promise<UserSubscription | null> {
     return this.userSubscriptionRepo.findOne({
       where: {
         user_id: userId,
-        //  status: "active"
+        status: SubscriptionStatus.ACTIVE,
       },
-      relations: ["plan"],
+      // relations: ["subscription_plans"],
     });
   }
 
   ///////////////////////////////////////////
   // Cancel a User Subscription
   ///////////////////////////////////////////
-  async cancelSubscription(userId: string): Promise<UserSubscription> {
-    const subscription: any = await this.getUserSubscription(userId);
+  async cancel_subscription_plan_service(
+    userId: string
+  ): Promise<UserSubscription> {
+    const subscription: any = await this.user_subscription_plan_service(userId);
     if (!subscription)
       throw new NotFoundException("Active subscription not found");
 
@@ -82,7 +99,7 @@ export class SubscriptionPlanService {
   ///////////////////////////////////////////
   // Expire Subscriptions Past End Date
   ///////////////////////////////////////////
-  async expireSubscriptions(): Promise<void> {
+  async expire_subscription_plan_service(): Promise<void> {
     const now = new Date();
     const subscriptions: any = await this.userSubscriptionRepo.find({
       where: {
@@ -101,11 +118,11 @@ export class SubscriptionPlanService {
   ///////////////////////////////////////////
   // Upgrade Subscription
   ///////////////////////////////////////////
-  async upgradeSubscription(
+  async upgrade_subscription_plan_service(
     userId: string,
     newPlanId: string
   ): Promise<UserSubscription> {
-    const currentSub: any = await this.getUserSubscription(userId);
+    const currentSub: any = await this.user_subscription_plan_service(userId);
     if (!currentSub)
       throw new NotFoundException("Active subscription not found");
 
@@ -137,11 +154,11 @@ export class SubscriptionPlanService {
   ///////////////////////////////////////////
   // Downgrade Subscription
   ///////////////////////////////////////////
-  async downgradeSubscription(
+  async downgrade_subscription_plan_service(
     userId: string,
     newPlanId: string
   ): Promise<UserSubscription> {
-    const currentSub: any = await this.getUserSubscription(userId);
+    const currentSub: any = await this.user_subscription_plan_service(userId);
     if (!currentSub)
       throw new NotFoundException("Active subscription not found");
 

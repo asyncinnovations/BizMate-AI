@@ -10,13 +10,17 @@ exports.TwoFactorRecoveryCodesModule = void 0;
 const common_1 = require("@nestjs/common");
 const two_factor_recovery_codes_service_1 = require("./two_factor_recovery_codes.service");
 const two_factor_recovery_codes_controller_1 = require("./two_factor_recovery_codes.controller");
+const typeorm_1 = require("@nestjs/typeorm");
+const two_factor_recovery_codes_entity_1 = require("./two_factor_recovery_codes.entity");
+const user_entity_1 = require("../auth/user.entity");
 let TwoFactorRecoveryCodesModule = class TwoFactorRecoveryCodesModule {
 };
 exports.TwoFactorRecoveryCodesModule = TwoFactorRecoveryCodesModule;
 exports.TwoFactorRecoveryCodesModule = TwoFactorRecoveryCodesModule = __decorate([
     (0, common_1.Module)({
+        imports: [typeorm_1.TypeOrmModule.forFeature([two_factor_recovery_codes_entity_1.TwoFactorRecoveryCode, user_entity_1.AuthUsers])],
         providers: [two_factor_recovery_codes_service_1.TwoFactorRecoveryCodesService],
-        controllers: [two_factor_recovery_codes_controller_1.TwoFactorRecoveryCodesController]
+        controllers: [two_factor_recovery_codes_controller_1.TwoFactorRecoveryCodesController],
     })
 ], TwoFactorRecoveryCodesModule);
 //# sourceMappingURL=two_factor_recovery_codes.module.js.map

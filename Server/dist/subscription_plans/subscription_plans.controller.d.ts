@@ -1,28 +1,32 @@
 import { SubscriptionPlanService } from "./subscription_plans.service";
-export declare class SubscriptionController {
+export declare class SubscriptionPlanController {
     private readonly subscriptionService;
     constructor(subscriptionService: SubscriptionPlanService);
-    getAllPlans(): Promise<{
+    create_subscription_plan(body: any): Promise<{
+        message: string;
+        response: import("./subscription_plans.entity").SubscriptionPlan[];
+    }>;
+    all_subscription_plan(): Promise<{
         success: boolean;
         plans: import("./subscription_plans.entity").SubscriptionPlan[];
     }>;
-    subscribeUser(userId: string, planId: string): Promise<{
+    subscribe_subscription_plan(userId: string, planId: string): Promise<{
         success: boolean;
         subscription: import("../user_subscription/user_subscription.entity").UserSubscription;
     }>;
-    getUserSubscription(userId: string): Promise<{
+    user_subscription_plan(userId: string): Promise<{
         success: boolean;
         subscription: import("../user_subscription/user_subscription.entity").UserSubscription | null;
     }>;
-    cancelSubscription(userId: string): Promise<{
+    cancel_subscription_plan(userId: string): Promise<{
         success: boolean;
         subscription: import("../user_subscription/user_subscription.entity").UserSubscription;
     }>;
-    upgradeSubscription(userId: string, newPlanId: string): Promise<{
+    upgrade_subscription_plan(userId: string, newPlanId: string): Promise<{
         success: boolean;
         subscription: import("../user_subscription/user_subscription.entity").UserSubscription;
     }>;
-    downgradeSubscription(userId: string, newPlanId: string): Promise<{
+    downgrade_subscription_plan(userId: string, newPlanId: string): Promise<{
         success: boolean;
         subscription: import("../user_subscription/user_subscription.entity").UserSubscription;
     }>;

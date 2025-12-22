@@ -21,21 +21,37 @@ let TwoFactorRecoveryCodesController = class TwoFactorRecoveryCodesController {
         this.recoveryService = recoveryService;
     }
     async generateRecoveryCodes(user_id) {
-        const codes = await this.recoveryService.generateRecoveryCodes(user_id);
-        return { success: true, codes };
+        try {
+            const codes = await this.recoveryService.generateRecoveryCodes(user_id);
+            return { message: "recovery codes generated", success: true, codes };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
     async verifyRecoveryCode(user_id, code) {
-        const isValid = await this.recoveryService.verifyRecoveryCode(user_id, code);
-        return { success: isValid };
+        try {
+            const isValid = await this.recoveryService.verifyRecoveryCode(user_id, code);
+            return { message: "verification status", success: isValid };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
     async expireAllRecoveryCodes(user_id) {
-        await this.recoveryService.expireAllRecoveryCodes(user_id);
-        return { success: true };
+        try {
+            await this.recoveryService.expireAllRecoveryCodes(user_id);
+            return { message: "all recovery code expired", success: true };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
 };
 exports.TwoFactorRecoveryCodesController = TwoFactorRecoveryCodesController;
 __decorate([
     (0, common_1.Post)("generate/:user_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     __param(0, (0, common_1.Param)("user_id")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -43,6 +59,7 @@ __decorate([
 ], TwoFactorRecoveryCodesController.prototype, "generateRecoveryCodes", null);
 __decorate([
     (0, common_1.Post)("verify/:user_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("user_id")),
     __param(1, (0, common_1.Body)("code")),
     __metadata("design:type", Function),
@@ -51,6 +68,7 @@ __decorate([
 ], TwoFactorRecoveryCodesController.prototype, "verifyRecoveryCode", null);
 __decorate([
     (0, common_1.Post)("expire/:user_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("user_id")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),

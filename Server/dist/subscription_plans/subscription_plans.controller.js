@@ -12,86 +12,139 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SubscriptionController = void 0;
+exports.SubscriptionPlanController = void 0;
 const common_1 = require("@nestjs/common");
 const subscription_plans_service_1 = require("./subscription_plans.service");
-let SubscriptionController = class SubscriptionController {
+let SubscriptionPlanController = class SubscriptionPlanController {
     subscriptionService;
     constructor(subscriptionService) {
         this.subscriptionService = subscriptionService;
     }
-    async getAllPlans() {
-        const plans = await this.subscriptionService.getAllPlans();
-        return { success: true, plans };
+    async create_subscription_plan(body) {
+        try {
+            const response = await this.subscriptionService.create_subscription_plan_service(body);
+            return { message: "subscription plan created", response };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
-    async subscribeUser(userId, planId) {
-        const subscription = await this.subscriptionService.subscribeUser(userId, planId);
-        return { success: true, subscription };
+    async all_subscription_plan() {
+        try {
+            const plans = await this.subscriptionService.all_subscription_plan_service();
+            return { success: true, plans };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
-    async getUserSubscription(userId) {
-        const subscription = await this.subscriptionService.getUserSubscription(userId);
-        return { success: true, subscription };
+    async subscribe_subscription_plan(userId, planId) {
+        try {
+            const subscription = await this.subscriptionService.subscribe_subscription_plan_service(userId, planId);
+            return { success: true, subscription };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
-    async cancelSubscription(userId) {
-        const subscription = await this.subscriptionService.cancelSubscription(userId);
-        return { success: true, subscription };
+    async user_subscription_plan(userId) {
+        try {
+            const subscription = await this.subscriptionService.user_subscription_plan_service(userId);
+            return { success: true, subscription };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
-    async upgradeSubscription(userId, newPlanId) {
-        const subscription = await this.subscriptionService.upgradeSubscription(userId, newPlanId);
-        return { success: true, subscription };
+    async cancel_subscription_plan(userId) {
+        try {
+            const subscription = await this.subscriptionService.cancel_subscription_plan_service(userId);
+            return { success: true, subscription };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
-    async downgradeSubscription(userId, newPlanId) {
-        const subscription = await this.subscriptionService.downgradeSubscription(userId, newPlanId);
-        return { success: true, subscription };
+    async upgrade_subscription_plan(userId, newPlanId) {
+        try {
+            const subscription = await this.subscriptionService.upgrade_subscription_plan_service(userId, newPlanId);
+            return { success: true, subscription };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
+    }
+    async downgrade_subscription_plan(userId, newPlanId) {
+        try {
+            const subscription = await this.subscriptionService.downgrade_subscription_plan_service(userId, newPlanId);
+            return { success: true, subscription };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
 };
-exports.SubscriptionController = SubscriptionController;
+exports.SubscriptionPlanController = SubscriptionPlanController;
 __decorate([
-    (0, common_1.Get)("plans"),
+    (0, common_1.Post)("create"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], SubscriptionPlanController.prototype, "create_subscription_plan", null);
+__decorate([
+    (0, common_1.Get)("all"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
-], SubscriptionController.prototype, "getAllPlans", null);
+], SubscriptionPlanController.prototype, "all_subscription_plan", null);
 __decorate([
-    (0, common_1.Post)(":userId/subscribe"),
+    (0, common_1.Post)("subscribe/:userId"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("userId")),
     __param(1, (0, common_1.Body)("planId")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
-], SubscriptionController.prototype, "subscribeUser", null);
+], SubscriptionPlanController.prototype, "subscribe_subscription_plan", null);
 __decorate([
-    (0, common_1.Get)(":userId/current"),
+    (0, common_1.Get)("user_current/:userId"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("userId")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
-], SubscriptionController.prototype, "getUserSubscription", null);
+], SubscriptionPlanController.prototype, "user_subscription_plan", null);
 __decorate([
-    (0, common_1.Post)(":userId/cancel"),
+    (0, common_1.Post)("cancel_user/:userId"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("userId")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
-], SubscriptionController.prototype, "cancelSubscription", null);
+], SubscriptionPlanController.prototype, "cancel_subscription_plan", null);
 __decorate([
-    (0, common_1.Post)(":userId/upgrade"),
+    (0, common_1.Post)("upgrade/:userId"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("userId")),
     __param(1, (0, common_1.Body)("planId")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
-], SubscriptionController.prototype, "upgradeSubscription", null);
+], SubscriptionPlanController.prototype, "upgrade_subscription_plan", null);
 __decorate([
-    (0, common_1.Post)(":userId/downgrade"),
+    (0, common_1.Post)("downgrade/:userId"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("userId")),
     __param(1, (0, common_1.Body)("planId")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
-], SubscriptionController.prototype, "downgradeSubscription", null);
-exports.SubscriptionController = SubscriptionController = __decorate([
-    (0, common_1.Controller)("subscription"),
+], SubscriptionPlanController.prototype, "downgrade_subscription_plan", null);
+exports.SubscriptionPlanController = SubscriptionPlanController = __decorate([
+    (0, common_1.Controller)("subscription_plan"),
     __metadata("design:paramtypes", [subscription_plans_service_1.SubscriptionPlanService])
-], SubscriptionController);
+], SubscriptionPlanController);
 //# sourceMappingURL=subscription_plans.controller.js.map

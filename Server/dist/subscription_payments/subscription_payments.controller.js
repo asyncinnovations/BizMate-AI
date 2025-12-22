@@ -21,35 +21,57 @@ let SubscriptionPaymentsController = class SubscriptionPaymentsController {
     constructor(paymentsService) {
         this.paymentsService = paymentsService;
     }
-    async createPayment(subscriptionId, amount, paymentMethod) {
-        const payment = await this.paymentsService.createPayment(subscriptionId, amount, paymentMethod);
-        return { success: true, payment };
+    async create_wallet_transaction(subscriptionId, amount, paymentMethod) {
+        try {
+            const payment = await this.paymentsService.createPayment(subscriptionId, amount, paymentMethod);
+            return { success: true, payment };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
-    async updatePaymentStatus(paymentId, status, transactionId, paidAt) {
-        const payment = await this.paymentsService.updatePaymentStatus(paymentId, status, transactionId, paidAt);
-        return { success: true, payment };
+    async update_transaction_status(paymentId, status, transactionId, paidAt) {
+        try {
+            const payment = await this.paymentsService.updatePaymentStatus(paymentId, status, transactionId, paidAt);
+            return { success: true, payment };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
-    async getPaymentsBySubscription(subscriptionId) {
-        const payments = await this.paymentsService.getPaymentsBySubscription(subscriptionId);
-        return { success: true, payments };
+    async subscription_transaction(subscriptionId) {
+        try {
+            const payments = await this.paymentsService.getPaymentsBySubscription(subscriptionId);
+            return { success: true, payments };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
-    async getAllPayments() {
-        const payments = await this.paymentsService.getAllPayments();
-        return { success: true, payments };
+    async all_wallet_transaction() {
+        try {
+            const payments = await this.paymentsService.getAllPayments();
+            return { success: true, payments };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
 };
 exports.SubscriptionPaymentsController = SubscriptionPaymentsController;
 __decorate([
-    (0, common_1.Post)(":subscriptionId/create"),
-    __param(0, (0, common_1.Param)("subscriptionId")),
+    (0, common_1.Post)("create/:plan_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
+    __param(0, (0, common_1.Param)("plan_id")),
     __param(1, (0, common_1.Body)("amount")),
     __param(2, (0, common_1.Body)("paymentMethod")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Number, String]),
     __metadata("design:returntype", Promise)
-], SubscriptionPaymentsController.prototype, "createPayment", null);
+], SubscriptionPaymentsController.prototype, "create_wallet_transaction", null);
 __decorate([
-    (0, common_1.Post)(":paymentId/status"),
+    (0, common_1.Post)("status/:paymentId"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("paymentId")),
     __param(1, (0, common_1.Body)("status")),
     __param(2, (0, common_1.Body)("transactionId")),
@@ -57,20 +79,22 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String, String, Date]),
     __metadata("design:returntype", Promise)
-], SubscriptionPaymentsController.prototype, "updatePaymentStatus", null);
+], SubscriptionPaymentsController.prototype, "update_transaction_status", null);
 __decorate([
     (0, common_1.Get)("subscription/:subscriptionId"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("subscriptionId")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
-], SubscriptionPaymentsController.prototype, "getPaymentsBySubscription", null);
+], SubscriptionPaymentsController.prototype, "subscription_transaction", null);
 __decorate([
     (0, common_1.Get)("all"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
-], SubscriptionPaymentsController.prototype, "getAllPayments", null);
+], SubscriptionPaymentsController.prototype, "all_wallet_transaction", null);
 exports.SubscriptionPaymentsController = SubscriptionPaymentsController = __decorate([
     (0, common_1.Controller)("subscription-payments"),
     __metadata("design:paramtypes", [subscription_payments_service_1.SubscriptionPaymentsService])

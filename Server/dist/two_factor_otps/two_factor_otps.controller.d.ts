@@ -10,6 +10,7 @@ export declare class TwoFactorOtpsController {
         success: boolean;
     }>;
     expireOtps(user_id: string): Promise<{
+        message: string;
         success: boolean;
     }>;
 }

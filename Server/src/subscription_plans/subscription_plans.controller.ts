@@ -1,81 +1,138 @@
-import { Controller, Get, Post, Param, Body } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  Body,
+  HttpCode,
+  HttpStatus,
+  HttpException,
+} from "@nestjs/common";
 import { SubscriptionPlanService } from "./subscription_plans.service";
 
-@Controller("subscription")
-export class SubscriptionController {
+@Controller("subscription_plan")
+export class SubscriptionPlanController {
   constructor(private readonly subscriptionService: SubscriptionPlanService) {}
 
   ///////////////////////////////////////////
   // List All Active Subscription Plans
   ///////////////////////////////////////////
-  @Get("plans")
-  async getAllPlans() {
-    const plans = await this.subscriptionService.getAllPlans();
-    return { success: true, plans };
+  @Post("create")
+  @HttpCode(HttpStatus.CREATED)
+  async create_subscription_plan(@Body() body: any) {
+    try {
+      const response =
+        await this.subscriptionService.create_subscription_plan_service(body);
+      return { message: "subscription plan created", response };
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
+  }
+  ///////////////////////////////////////////
+  // List All Active Subscription Plans
+  ///////////////////////////////////////////
+  @Get("all")
+  @HttpCode(HttpStatus.OK)
+  async all_subscription_plan() {
+    try {
+      const plans =
+        await this.subscriptionService.all_subscription_plan_service();
+      return { success: true, plans };
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
   }
 
   ///////////////////////////////////////////
   // Subscribe a User to a Plan
   ///////////////////////////////////////////
-  @Post(":userId/subscribe")
-  async subscribeUser(
+  @Post("subscribe/:userId")
+  @HttpCode(HttpStatus.OK)
+  async subscribe_subscription_plan(
     @Param("userId") userId: string,
     @Body("planId") planId: string
   ) {
-    const subscription = await this.subscriptionService.subscribeUser(
-      userId,
-      planId
-    );
-    return { success: true, subscription };
+    try {
+      const subscription =
+        await this.subscriptionService.subscribe_subscription_plan_service(
+          userId,
+          planId
+        );
+      return { success: true, subscription };
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
   }
 
   ///////////////////////////////////////////
   // Get Current Subscription of a User
   ///////////////////////////////////////////
-  @Get(":userId/current")
-  async getUserSubscription(@Param("userId") userId: string) {
-    const subscription =
-      await this.subscriptionService.getUserSubscription(userId);
-    return { success: true, subscription };
+  @Get("user_current/:userId")
+  @HttpCode(HttpStatus.OK)
+  async user_subscription_plan(@Param("userId") userId: string) {
+    try {
+      const subscription =
+        await this.subscriptionService.user_subscription_plan_service(userId);
+      return { success: true, subscription };
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
   }
 
   ///////////////////////////////////////////
   // Cancel Subscription
   ///////////////////////////////////////////
-  @Post(":userId/cancel")
-  async cancelSubscription(@Param("userId") userId: string) {
-    const subscription =
-      await this.subscriptionService.cancelSubscription(userId);
-    return { success: true, subscription };
+  @Post("cancel_user/:userId")
+  @HttpCode(HttpStatus.OK)
+  async cancel_subscription_plan(@Param("userId") userId: string) {
+    try {
+      const subscription =
+        await this.subscriptionService.cancel_subscription_plan_service(userId);
+      return { success: true, subscription };
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
   }
 
   ///////////////////////////////////////////
   // Upgrade Subscription
   ///////////////////////////////////////////
-  @Post(":userId/upgrade")
-  async upgradeSubscription(
+  @Post("upgrade/:userId")
+  @HttpCode(HttpStatus.OK)
+  async upgrade_subscription_plan(
     @Param("userId") userId: string,
     @Body("planId") newPlanId: string
   ) {
-    const subscription = await this.subscriptionService.upgradeSubscription(
-      userId,
-      newPlanId
-    );
-    return { success: true, subscription };
+    try {
+      const subscription =
+        await this.subscriptionService.upgrade_subscription_plan_service(
+          userId,
+          newPlanId
+        );
+      return { success: true, subscription };
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
   }
 
   ///////////////////////////////////////////
   // Downgrade Subscription
   ///////////////////////////////////////////
-  @Post(":userId/downgrade")
-  async downgradeSubscription(
+  @Post("downgrade/:userId")
+  @HttpCode(HttpStatus.OK)
+  async downgrade_subscription_plan(
     @Param("userId") userId: string,
     @Body("planId") newPlanId: string
   ) {
-    const subscription = await this.subscriptionService.downgradeSubscription(
-      userId,
-      newPlanId
-    );
-    return { success: true, subscription };
+    try {
+      const subscription =
+        await this.subscriptionService.downgrade_subscription_plan_service(
+          userId,
+          newPlanId
+        );
+      return { success: true, subscription };
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
   }
 }

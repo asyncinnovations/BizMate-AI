@@ -21,21 +21,37 @@ let TwoFactorOtpsController = class TwoFactorOtpsController {
         this.otpService = otpService;
     }
     async generateOtp(user_id, length, ttlMinutes) {
-        const otp = await this.otpService.generateOtp(user_id, length || 6, ttlMinutes || 5);
-        return { success: true, otp };
+        try {
+            const otp = await this.otpService.generateOtp(user_id, length || 6, ttlMinutes || 5);
+            return { success: true, otp };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
     async verifyOtp(user_id, otpCode) {
-        const isValid = await this.otpService.verifyOtp(user_id, otpCode);
-        return { success: isValid };
+        try {
+            const isValid = await this.otpService.verifyOtp(user_id, otpCode);
+            return { success: isValid };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
     async expireOtps(user_id) {
-        await this.otpService.expireOtps(user_id);
-        return { success: true };
+        try {
+            await this.otpService.expireOtps(user_id);
+            return { message: "all otps expired", success: true };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
 };
 exports.TwoFactorOtpsController = TwoFactorOtpsController;
 __decorate([
     (0, common_1.Post)("generate/:user_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     __param(0, (0, common_1.Param)("user_id")),
     __param(1, (0, common_1.Body)("length")),
     __param(2, (0, common_1.Body)("ttlMinutes")),
@@ -45,6 +61,7 @@ __decorate([
 ], TwoFactorOtpsController.prototype, "generateOtp", null);
 __decorate([
     (0, common_1.Post)("verify/:user_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("user_id")),
     __param(1, (0, common_1.Body)("otpCode")),
     __metadata("design:type", Function),
@@ -53,6 +70,7 @@ __decorate([
 ], TwoFactorOtpsController.prototype, "verifyOtp", null);
 __decorate([
     (0, common_1.Post)("expire/:user_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("user_id")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),

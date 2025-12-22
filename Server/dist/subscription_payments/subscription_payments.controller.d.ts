@@ -3,19 +3,19 @@ import { PaymentMethod, PaymentStatus } from "./subscription_payments.entity";
 export declare class SubscriptionPaymentsController {
     private readonly paymentsService;
     constructor(paymentsService: SubscriptionPaymentsService);
-    createPayment(subscriptionId: string, amount: number, paymentMethod: PaymentMethod): Promise<{
+    create_wallet_transaction(subscriptionId: string, amount: number, paymentMethod: PaymentMethod): Promise<{
         success: boolean;
         payment: import("./subscription_payments.entity").SubscriptionPayment;
     }>;
-    updatePaymentStatus(paymentId: string, status: PaymentStatus, transactionId?: string, paidAt?: Date): Promise<{
+    update_transaction_status(paymentId: string, status: PaymentStatus, transactionId?: string, paidAt?: Date): Promise<{
         success: boolean;
         payment: import("./subscription_payments.entity").SubscriptionPayment;
     }>;
-    getPaymentsBySubscription(subscriptionId: string): Promise<{
+    subscription_transaction(subscriptionId: string): Promise<{
         success: boolean;
         payments: import("./subscription_payments.entity").SubscriptionPayment[];
     }>;
-    getAllPayments(): Promise<{
+    all_wallet_transaction(): Promise<{
         success: boolean;
         payments: import("./subscription_payments.entity").SubscriptionPayment[];
     }>;

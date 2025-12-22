@@ -2,13 +2,13 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.sequelize.query(`
-      CREATE TYPE "enum_subscription_payments_payment_method" AS ENUM('stripe', 'paypal', 'card');
-    `);
+    // await queryInterface.sequelize.query(`
+    //   CREATE TYPE "enum_subscription_payments_payment_method" AS ENUM('stripe', 'paypal', 'card');
+    // `);
 
-    await queryInterface.sequelize.query(`
-      CREATE TYPE "enum_subscription_payments_payment_status" AS ENUM('pending', 'completed', 'failed');
-    `);
+    // await queryInterface.sequelize.query(`
+    //   CREATE TYPE "enum_subscription_payments_payment_status" AS ENUM('pending', 'completed', 'failed');
+    // `);
 
     await queryInterface.createTable("subscription_payments", {
       id: { type: Sequelize.INTEGER, autoIncrement: true, allowNull: false },

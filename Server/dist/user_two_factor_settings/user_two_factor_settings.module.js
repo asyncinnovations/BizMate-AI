@@ -10,13 +10,17 @@ exports.UserTwoFactorSettingsModule = void 0;
 const common_1 = require("@nestjs/common");
 const user_two_factor_settings_service_1 = require("./user_two_factor_settings.service");
 const user_two_factor_settings_controller_1 = require("./user_two_factor_settings.controller");
+const typeorm_1 = require("@nestjs/typeorm");
+const user_entity_1 = require("../auth/user.entity");
+const user_two_factor_settings_entity_1 = require("./user_two_factor_settings.entity");
 let UserTwoFactorSettingsModule = class UserTwoFactorSettingsModule {
 };
 exports.UserTwoFactorSettingsModule = UserTwoFactorSettingsModule;
 exports.UserTwoFactorSettingsModule = UserTwoFactorSettingsModule = __decorate([
     (0, common_1.Module)({
+        imports: [typeorm_1.TypeOrmModule.forFeature([user_two_factor_settings_entity_1.UserTwoFactorSettings, user_entity_1.AuthUsers])],
         providers: [user_two_factor_settings_service_1.UserTwoFactorSettingsService],
-        controllers: [user_two_factor_settings_controller_1.UserTwoFactorSettingsController]
+        controllers: [user_two_factor_settings_controller_1.UserTwoFactorSettingsController],
     })
 ], UserTwoFactorSettingsModule);
 //# sourceMappingURL=user_two_factor_settings.module.js.map

@@ -49,10 +49,10 @@ exports.UserTwoFactorSettingsService = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("typeorm");
 const typeorm_2 = require("@nestjs/typeorm");
-const user_two_factor_settings_entity_1 = require("./user-two-factor-settings.entity");
-const user_entity_1 = require("./user.entity");
 const otplib_1 = require("otplib");
 const crypto = __importStar(require("crypto"));
+const user_entity_1 = require("../auth/user.entity");
+const user_two_factor_settings_entity_1 = require("./user_two_factor_settings.entity");
 let UserTwoFactorSettingsService = class UserTwoFactorSettingsService {
     twoFactorRepo;
     userRepo;
@@ -61,23 +61,32 @@ let UserTwoFactorSettingsService = class UserTwoFactorSettingsService {
         this.userRepo = userRepo;
     }
     async getSettings(userId) {
-        const settings = await this.twoFactorRepo.findOne({ where: { user: { id: userId } } });
+        const settings = await this.twoFactorRepo.findOne({
+            where: { user_id: userId },
+        });
         if (!settings)
-            throw new common_1.NotFoundException('2FA settings not found');
+            throw new common_1.NotFoundException("2FA settings not found");
         return settings;
     }
     async enableTOTP(userId) {
-        const user = await this.userRepo.findOne({ where: { id: userId } });
+        const user = await this.userRepo.findOne({ where: { uuid: userId } });
         if (!user)
-            throw new common_1.NotFoundException('User not found');
+            throw new common_1.NotFoundException("User not found");
         const secret = otplib_1.authenticator.generateSecret();
-        const otpauthUrl = otplib_1.authenticator.keyuri(user.email, 'YourAppName', secret);
-        let settings = await this.twoFactorRepo.findOne({ where: { user: { id: userId } } });
+        const otpauthUrl = otplib_1.authenticator.keyuri(user.email, "bizmate-ai", secret);
+        let settings = await this.twoFactorRepo.findOne({
+            where: { user_id: userId },
+        });
         if (!settings) {
-            settings = this.twoFactorRepo.create({ user, method: 'totp', secret, is_enabled: false });
+            settings = this.twoFactorRepo.create({
+                user_id: userId,
+                method: "totp",
+                secret,
+                is_enabled: false,
+            });
         }
         else {
-            settings.method = 'totp';
+            settings.method = "totp";
             settings.secret = secret;
             settings.is_enabled = false;
         }
@@ -87,7 +96,7 @@ let UserTwoFactorSettingsService = class UserTwoFactorSettingsService {
     async verifyTOTP(userId, code) {
         const settings = await this.getSettings(userId);
         if (!settings.secret)
-            throw new common_1.BadRequestException('TOTP not set up');
+            throw new common_1.BadRequestException("TOTP not set up");
         const isValid = otplib_1.authenticator.check(code, settings.secret);
         return isValid;
     }
@@ -105,20 +114,26 @@ let UserTwoFactorSettingsService = class UserTwoFactorSettingsService {
         return this.twoFactorRepo.save(settings);
     }
     async setMethod(userId, method, value) {
-        const settings = await this.twoFactorRepo.findOne({ where: { user: { id: userId } } });
+        const settings = await this.twoFactorRepo.findOne({
+            where: { user_id: userId },
+        });
         if (!settings) {
-            const user = await this.userRepo.findOne({ where: { id: userId } });
+            const user = await this.userRepo.findOne({ where: { uuid: userId } });
             if (!user)
-                throw new common_1.NotFoundException('User not found');
-            const newSettings = this.twoFactorRepo.create({ user, method, is_enabled: false });
-            if (method === 'sms')
+                throw new common_1.NotFoundException("User not found");
+            const newSettings = this.twoFactorRepo.create({
+                user_id: userId,
+                method,
+                is_enabled: false,
+            });
+            if (method === "sms")
                 newSettings.phone = value;
             else
                 newSettings.email = value;
             return this.twoFactorRepo.save(newSettings);
         }
         settings.method = method;
-        if (method === 'sms')
+        if (method === "sms")
             settings.phone = value;
         else
             settings.email = value;
@@ -128,7 +143,7 @@ let UserTwoFactorSettingsService = class UserTwoFactorSettingsService {
         const settings = await this.getSettings(userId);
         const codes = [];
         for (let i = 0; i < count; i++) {
-            const code = crypto.randomBytes(4).toString('hex');
+            const code = crypto.randomBytes(4).toString("hex");
             codes.push(code);
         }
         return codes;
@@ -141,7 +156,7 @@ exports.UserTwoFactorSettingsService = UserTwoFactorSettingsService;
 exports.UserTwoFactorSettingsService = UserTwoFactorSettingsService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_2.InjectRepository)(user_two_factor_settings_entity_1.UserTwoFactorSettings)),
-    __param(1, (0, typeorm_2.InjectRepository)(user_entity_1.User)),
+    __param(1, (0, typeorm_2.InjectRepository)(user_entity_1.AuthUsers)),
     __metadata("design:paramtypes", [typeorm_1.Repository,
         typeorm_1.Repository])
 ], UserTwoFactorSettingsService);

@@ -28,10 +28,15 @@ let SubscriptionPlanService = class SubscriptionPlanService {
         this.userSubscriptionRepo = userSubscriptionRepo;
         this.userRepo = userRepo;
     }
-    async getAllPlans() {
+    async all_subscription_plan_service() {
         return this.planRepo.find({ where: { is_active: true } });
     }
-    async subscribeUser(userId, planId) {
+    async create_subscription_plan_service(data) {
+        const response = this.planRepo.create(data);
+        const result = await this.planRepo.save(response);
+        return result;
+    }
+    async subscribe_subscription_plan_service(userId, planId) {
         const user = await this.userRepo.findOne({ where: { uuid: userId } });
         if (!user)
             throw new common_1.NotFoundException("User not found");
@@ -44,29 +49,30 @@ let SubscriptionPlanService = class SubscriptionPlanService {
         const endDate = new Date(startDate);
         endDate.setDate(endDate.getDate() + plan.duration_days);
         const subscription = this.userSubscriptionRepo.create({
+            user_id: userId,
             plan_id: planId,
             end_date: endDate,
             start_date: startDate,
         });
         return this.userSubscriptionRepo.save(subscription);
     }
-    async getUserSubscription(userId) {
+    async user_subscription_plan_service(userId) {
         return this.userSubscriptionRepo.findOne({
             where: {
                 user_id: userId,
+                status: user_subscription_entity_1.SubscriptionStatus.ACTIVE,
             },
-            relations: ["plan"],
         });
     }
-    async cancelSubscription(userId) {
-        const subscription = await this.getUserSubscription(userId);
+    async cancel_subscription_plan_service(userId) {
+        const subscription = await this.user_subscription_plan_service(userId);
         if (!subscription)
             throw new common_1.NotFoundException("Active subscription not found");
         subscription.status = "cancelled";
         subscription.end_date = new Date();
         return this.userSubscriptionRepo.save(subscription);
     }
-    async expireSubscriptions() {
+    async expire_subscription_plan_service() {
         const now = new Date();
         const subscriptions = await this.userSubscriptionRepo.find({
             where: {},
@@ -78,8 +84,8 @@ let SubscriptionPlanService = class SubscriptionPlanService {
             }
         }
     }
-    async upgradeSubscription(userId, newPlanId) {
-        const currentSub = await this.getUserSubscription(userId);
+    async upgrade_subscription_plan_service(userId, newPlanId) {
+        const currentSub = await this.user_subscription_plan_service(userId);
         if (!currentSub)
             throw new common_1.NotFoundException("Active subscription not found");
         const newPlan = await this.planRepo.findOne({
@@ -98,8 +104,8 @@ let SubscriptionPlanService = class SubscriptionPlanService {
         currentSub.end_date = endDate;
         return this.userSubscriptionRepo.save(currentSub);
     }
-    async downgradeSubscription(userId, newPlanId) {
-        const currentSub = await this.getUserSubscription(userId);
+    async downgrade_subscription_plan_service(userId, newPlanId) {
+        const currentSub = await this.user_subscription_plan_service(userId);
         if (!currentSub)
             throw new common_1.NotFoundException("Active subscription not found");
         const newPlan = await this.planRepo.findOne({

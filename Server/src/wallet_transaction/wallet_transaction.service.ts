@@ -83,7 +83,7 @@ export class WalletTransactionService {
   // DELETE TRANSACTION
   /////////////////////////////////////
   async delete_wallet_transaction_service(uuid: string): Promise<boolean> {
-    const result: any = await this.walletTransactionRepo.delete(uuid);
+    const result: any = await this.walletTransactionRepo.delete({ uuid: uuid });
     return result.affected > 0;
   }
 

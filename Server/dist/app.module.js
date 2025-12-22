@@ -49,6 +49,16 @@ const two_factor_recovery_codes_module_1 = require("./two_factor_recovery_codes/
 const subscription_plans_module_1 = require("./subscription_plans/subscription_plans.module");
 const user_subscription_module_1 = require("./user_subscription/user_subscription.module");
 const subscription_payments_module_1 = require("./subscription_payments/subscription_payments.module");
+const wallet_transaction_module_1 = require("./wallet_transaction/wallet_transaction.module");
+const user_two_factor_settings_entity_1 = require("./user_two_factor_settings/user_two_factor_settings.entity");
+const two_factor_otps_entity_1 = require("./two_factor_otps/two_factor_otps.entity");
+const two_factor_recovery_codes_entity_1 = require("./two_factor_recovery_codes/two_factor_recovery_codes.entity");
+const wallet_transaction_entity_1 = require("./wallet_transaction/wallet_transaction.entity");
+const subscription_plans_entity_1 = require("./subscription_plans/subscription_plans.entity");
+const user_subscription_entity_1 = require("./user_subscription/user_subscription.entity");
+const subscription_payments_entity_1 = require("./subscription_payments/subscription_payments.entity");
+const user_sessions_module_1 = require("./user_sessions/user_sessions.module");
+const user_sessions_entity_1 = require("./user_sessions/user_sessions.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -87,6 +97,13 @@ exports.AppModule = AppModule = __decorate([
                     compliance_licensing_entity_1.ComplianceLicense,
                     notifications_entity_1.Notification,
                     notification_preferences_entity_1.NotificationPreference,
+                    user_two_factor_settings_entity_1.UserTwoFactorSettings,
+                    two_factor_otps_entity_1.TwoFactorOTP,
+                    two_factor_recovery_codes_entity_1.TwoFactorRecoveryCode,
+                    wallet_transaction_entity_1.WalletTransaction,
+                    subscription_plans_entity_1.SubscriptionPlan,
+                    user_subscription_entity_1.UserSubscription,
+                    subscription_payments_entity_1.SubscriptionPayment, user_sessions_entity_1.UserSession
                 ],
             }),
             auth_module_1.AuthModule,
@@ -112,6 +129,8 @@ exports.AppModule = AppModule = __decorate([
             subscription_plans_module_1.SubscriptionModule,
             user_subscription_module_1.UserSubscriptionModule,
             subscription_payments_module_1.SubscriptionPaymentsModule,
+            wallet_transaction_module_1.WalletTransactionModule,
+            user_sessions_module_1.UserSessionsModule,
         ],
     })
 ], AppModule);

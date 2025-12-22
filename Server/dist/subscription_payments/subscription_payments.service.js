@@ -29,6 +29,7 @@ let SubscriptionPaymentsService = class SubscriptionPaymentsService {
         const subscription = await this.subscriptionRepo.findOne({
             where: { uuid: userSubscriptionId },
         });
+        const txnid = Math.floor(Math.random() * 9999999999);
         if (!subscription)
             throw new common_1.NotFoundException("User subscription not found");
         const payment = this.paymentRepo.create({
@@ -36,6 +37,8 @@ let SubscriptionPaymentsService = class SubscriptionPaymentsService {
             amount,
             payment_method: paymentMethod,
             payment_status: subscription_payments_entity_1.PaymentStatus.PENDING,
+            transaction_id: txnid,
+            paid_at: new Date().toISOString(),
         });
         return this.paymentRepo.save(payment);
     }
@@ -55,11 +58,10 @@ let SubscriptionPaymentsService = class SubscriptionPaymentsService {
     async getPaymentsBySubscription(userSubscriptionId) {
         return this.paymentRepo.find({
             where: { user_subscription_id: userSubscriptionId },
-            relations: ["user_subscription"],
         });
     }
     async getAllPayments() {
-        return this.paymentRepo.find({ relations: ["user_subscription"] });
+        return this.paymentRepo.find();
     }
 };
 exports.SubscriptionPaymentsService = SubscriptionPaymentsService;

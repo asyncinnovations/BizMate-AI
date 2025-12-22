@@ -126,7 +126,7 @@ export class WalletTransactionController {
   //////////////////////////////////////
   // DELETE TRANSACTION
   /////////////////////////////////////
-  @Delete("delete/:id")
+  @Delete("delete/:uuid")
   @HttpCode(HttpStatus.OK)
   async delete_wallet_transaction(@Param("uuid") uuid: string) {
     try {

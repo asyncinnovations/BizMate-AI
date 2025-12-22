@@ -2,10 +2,6 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.sequelize.query(`
-      CREATE TYPE "enum_user_subscriptions_status" AS ENUM('active', 'expired', 'cancelled');
-    `);
-
     await queryInterface.createTable("user_subscriptions", {
       id: { type: Sequelize.INTEGER, autoIncrement: true, allowNull: false },
       uuid: {

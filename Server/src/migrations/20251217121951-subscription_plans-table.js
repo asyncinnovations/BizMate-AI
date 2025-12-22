@@ -2,10 +2,6 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.sequelize.query(`
-      CREATE TYPE "enum_subscription_plans_name" AS ENUM('Trial', 'Starter', 'Standard', 'Premium');
-    `);
-
     await queryInterface.createTable("subscription_plans", {
       id: { type: Sequelize.INTEGER, autoIncrement: true, allowNull: false },
       uuid: {
@@ -15,7 +11,7 @@ module.exports = {
         defaultValue: Sequelize.literal("gen_random_uuid()"),
       },
       name: {
-        type: "enum_subscription_plans_name",
+        type: Sequelize.ENUM("Trial", "Starter", "Standard", "Premium"),
         allowNull: false,
       },
       description: {

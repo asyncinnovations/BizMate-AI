@@ -35,13 +35,22 @@ import { NotificationPreferencesModule } from "./notification_preferences/notifi
 import { ComplianceLicense } from "./compliance_licensing/compliance_licensing.entity";
 import { Notification } from "./notifications/notifications.entity";
 import { NotificationPreference } from "./notification_preferences/notification_preferences.entity";
-import { UserTwoFactorSettingsModule } from './user_two_factor_settings/user_two_factor_settings.module';
-import { TwoFactorOtpsModule } from './two_factor_otps/two_factor_otps.module';
-import { TwoFactorRecoveryCodesModule } from './two_factor_recovery_codes/two_factor_recovery_codes.module';
-import { SubscriptionModule } from './subscription_plans/subscription_plans.module';
-import { UserSubscriptionModule } from './user_subscription/user_subscription.module';
-import { SubscriptionPaymentsModule } from './subscription_payments/subscription_payments.module';
-import { WalletTransactionModule } from './wallet_transaction/wallet_transaction.module';
+import { UserTwoFactorSettingsModule } from "./user_two_factor_settings/user_two_factor_settings.module";
+import { TwoFactorOtpsModule } from "./two_factor_otps/two_factor_otps.module";
+import { TwoFactorRecoveryCodesModule } from "./two_factor_recovery_codes/two_factor_recovery_codes.module";
+import { SubscriptionModule } from "./subscription_plans/subscription_plans.module";
+import { UserSubscriptionModule } from "./user_subscription/user_subscription.module";
+import { SubscriptionPaymentsModule } from "./subscription_payments/subscription_payments.module";
+import { WalletTransactionModule } from "./wallet_transaction/wallet_transaction.module";
+import { UserTwoFactorSettings } from "./user_two_factor_settings/user_two_factor_settings.entity";
+import { TwoFactorOTP } from "./two_factor_otps/two_factor_otps.entity";
+import { TwoFactorRecoveryCode } from "./two_factor_recovery_codes/two_factor_recovery_codes.entity";
+import { WalletTransaction } from "./wallet_transaction/wallet_transaction.entity";
+import { SubscriptionPlan } from "./subscription_plans/subscription_plans.entity";
+import { UserSubscription } from "./user_subscription/user_subscription.entity";
+import { SubscriptionPayment } from "./subscription_payments/subscription_payments.entity";
+import { UserSessionsModule } from './user_sessions/user_sessions.module';
+import { UserSession } from "./user_sessions/user_sessions.entity";
 
 @Module({
   controllers: [],
@@ -77,6 +86,13 @@ import { WalletTransactionModule } from './wallet_transaction/wallet_transaction
         ComplianceLicense,
         Notification,
         NotificationPreference,
+        UserTwoFactorSettings,
+        TwoFactorOTP,
+        TwoFactorRecoveryCode,
+        WalletTransaction,
+        SubscriptionPlan,
+        UserSubscription,
+        SubscriptionPayment,UserSession
       ],
     }),
     AuthModule,
@@ -103,6 +119,7 @@ import { WalletTransactionModule } from './wallet_transaction/wallet_transaction
     UserSubscriptionModule,
     SubscriptionPaymentsModule,
     WalletTransactionModule,
+    UserSessionsModule,
   ],
 })
 export class AppModule {}
