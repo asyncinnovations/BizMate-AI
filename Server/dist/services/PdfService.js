@@ -42,6 +42,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PdfService = void 0;
 const common_1 = require("@nestjs/common");
 const puppeteer = __importStar(require("puppeteer"));
+const fs = __importStar(require("fs"));
+const pdf_parse_1 = require("pdf-parse");
 let PdfService = class PdfService {
     async TemplatePDFGenerator(data, filePath) {
         const browser = await puppeteer.launch({ headless: true });
@@ -138,6 +140,14 @@ let PdfService = class PdfService {
         await page.pdf({ path: filePath, format: "A4", printBackground: true });
         return { success: true, message: "PDF generated successfully" };
         await browser.close();
+    }
+    async PDFToTextConverter(pdfPath) {
+        if (!fs.existsSync(pdfPath)) {
+            throw new Error("PDF file not found: " + pdfPath);
+        }
+        const parser = new pdf_parse_1.PDFParse({ url: pdfPath });
+        const result = await parser.getText();
+        return result.text;
     }
 };
 exports.PdfService = PdfService;

@@ -10,7 +10,7 @@ import {
   BadRequestException,
   HttpCode,
   HttpStatus,
-  UseGuards,
+  UseGuards, 
 } from "@nestjs/common";
 import { UserBusinessInfoService } from "./user_business_info.service";
 import { JwtGuard } from "src/guards/auth/auth.guard";

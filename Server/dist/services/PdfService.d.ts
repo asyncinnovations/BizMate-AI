@@ -7,4 +7,5 @@ export declare class PdfService {
         success: boolean;
         message: string;
     }>;
+    PDFToTextConverter(pdfPath: any): Promise<string>;
 }

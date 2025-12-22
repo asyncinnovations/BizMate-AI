@@ -32,6 +32,33 @@ const config_1 = require("@nestjs/config");
 const user_business_info_module_1 = require("./user_business_info/user_business_info.module");
 const user_business_info_entity_1 = require("./user_business_info/user_business_info.entity");
 const user_integration_entity_1 = require("./user_integration/user_integration.entity");
+const compliance_assistant_chat_module_1 = require("./compliance_assistant_chat/compliance_assistant_chat.module");
+const compliance_history_module_1 = require("./compliance_history/compliance_history.module");
+const compliance_documents_module_1 = require("./compliance_documents/compliance_documents.module");
+const compliance_licensing_module_1 = require("./compliance_licensing/compliance_licensing.module");
+const compliance_assistant_chat_entity_1 = require("./compliance_assistant_chat/compliance_assistant_chat.entity");
+const compliance_documents_entity_1 = require("./compliance_documents/compliance_documents.entity");
+const notifications_module_1 = require("./notifications/notifications.module");
+const notification_preferences_module_1 = require("./notification_preferences/notification_preferences.module");
+const compliance_licensing_entity_1 = require("./compliance_licensing/compliance_licensing.entity");
+const notifications_entity_1 = require("./notifications/notifications.entity");
+const notification_preferences_entity_1 = require("./notification_preferences/notification_preferences.entity");
+const user_two_factor_settings_module_1 = require("./user_two_factor_settings/user_two_factor_settings.module");
+const two_factor_otps_module_1 = require("./two_factor_otps/two_factor_otps.module");
+const two_factor_recovery_codes_module_1 = require("./two_factor_recovery_codes/two_factor_recovery_codes.module");
+const subscription_plans_module_1 = require("./subscription_plans/subscription_plans.module");
+const user_subscription_module_1 = require("./user_subscription/user_subscription.module");
+const subscription_payments_module_1 = require("./subscription_payments/subscription_payments.module");
+const wallet_transaction_module_1 = require("./wallet_transaction/wallet_transaction.module");
+const user_two_factor_settings_entity_1 = require("./user_two_factor_settings/user_two_factor_settings.entity");
+const two_factor_otps_entity_1 = require("./two_factor_otps/two_factor_otps.entity");
+const two_factor_recovery_codes_entity_1 = require("./two_factor_recovery_codes/two_factor_recovery_codes.entity");
+const wallet_transaction_entity_1 = require("./wallet_transaction/wallet_transaction.entity");
+const subscription_plans_entity_1 = require("./subscription_plans/subscription_plans.entity");
+const user_subscription_entity_1 = require("./user_subscription/user_subscription.entity");
+const subscription_payments_entity_1 = require("./subscription_payments/subscription_payments.entity");
+const user_sessions_module_1 = require("./user_sessions/user_sessions.module");
+const user_sessions_entity_1 = require("./user_sessions/user_sessions.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -65,6 +92,18 @@ exports.AppModule = AppModule = __decorate([
                     ai_reply_hub_chat_entity_1.AiReplyHubChat,
                     user_business_info_entity_1.UserBusinessInfo,
                     user_integration_entity_1.UserIntegration,
+                    compliance_assistant_chat_entity_1.ComplianceAssistantChat,
+                    compliance_documents_entity_1.ComplianceDocument,
+                    compliance_licensing_entity_1.ComplianceLicense,
+                    notifications_entity_1.Notification,
+                    notification_preferences_entity_1.NotificationPreference,
+                    user_two_factor_settings_entity_1.UserTwoFactorSettings,
+                    two_factor_otps_entity_1.TwoFactorOTP,
+                    two_factor_recovery_codes_entity_1.TwoFactorRecoveryCode,
+                    wallet_transaction_entity_1.WalletTransaction,
+                    subscription_plans_entity_1.SubscriptionPlan,
+                    user_subscription_entity_1.UserSubscription,
+                    subscription_payments_entity_1.SubscriptionPayment, user_sessions_entity_1.UserSession
                 ],
             }),
             auth_module_1.AuthModule,
@@ -78,6 +117,20 @@ exports.AppModule = AppModule = __decorate([
             user_integration_module_1.UserIntegrationModule,
             ai_reply_hub_chat_module_1.AiReplyHubChatModule,
             user_business_info_module_1.UserBusinessInfoModule,
+            compliance_assistant_chat_module_1.ComplianceAssistantModule,
+            compliance_history_module_1.ComplianceHistoryModule,
+            compliance_documents_module_1.ComplianceDocumentsModule,
+            compliance_licensing_module_1.ComplianceLicensingModule,
+            notifications_module_1.NotificationsModule,
+            notification_preferences_module_1.NotificationPreferencesModule,
+            user_two_factor_settings_module_1.UserTwoFactorSettingsModule,
+            two_factor_otps_module_1.TwoFactorOtpsModule,
+            two_factor_recovery_codes_module_1.TwoFactorRecoveryCodesModule,
+            subscription_plans_module_1.SubscriptionModule,
+            user_subscription_module_1.UserSubscriptionModule,
+            subscription_payments_module_1.SubscriptionPaymentsModule,
+            wallet_transaction_module_1.WalletTransactionModule,
+            user_sessions_module_1.UserSessionsModule,
         ],
     })
 ], AppModule);

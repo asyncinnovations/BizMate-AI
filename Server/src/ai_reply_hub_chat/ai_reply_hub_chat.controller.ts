@@ -194,7 +194,7 @@ export class AiReplyHubChatController {
   //////////////////////////////////////////////
   // FETCH CHAT HISTORY BY CLIENT
   //////////////////////////////////////////////
-  @Get("history/:user_id/:client_id")
+  @Get("history/:user_id/:client_id") 
   @HttpCode(HttpStatus.OK)
   async chat_history(
     @Param("user_id") user_id: string,

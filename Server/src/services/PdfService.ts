@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import * as puppeteer from "puppeteer";
-
+import * as fs from "fs";
+import { PDFParse } from "pdf-parse";
 @Injectable()
 export class PdfService {
   ////////////////////////////////////////////////////////
@@ -121,5 +122,17 @@ export class PdfService {
     await page.pdf({ path: filePath, format: "A4", printBackground: true });
     return { success: true, message: "PDF generated successfully" };
     await browser.close();
+  }
+
+  ////////////////////////////////////////////////////////
+  // PDF COVNERT TO TEXT
+  ////////////////////////////////////////////////////////
+  async PDFToTextConverter(pdfPath: any) {
+    if (!fs.existsSync(pdfPath)) {
+      throw new Error("PDF file not found: " + pdfPath);
+    }
+    const parser = new PDFParse({ url: pdfPath });
+    const result = await parser.getText();
+    return result.text;
   }
 }
