@@ -51,10 +51,12 @@ import { UserSubscription } from "./user_subscription/user_subscription.entity";
 import { SubscriptionPayment } from "./subscription_payments/subscription_payments.entity";
 import { UserSessionsModule } from './user_sessions/user_sessions.module';
 import { UserSession } from "./user_sessions/user_sessions.entity";
+import { SubscriptionUsageModule } from './subscription_usage/subscription_usage.module';
+import { ImportService } from './import/import.service';
 
 @Module({
   controllers: [],
-  providers: [],
+  providers: [ImportService],
   exports: [],
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -120,6 +122,7 @@ import { UserSession } from "./user_sessions/user_sessions.entity";
     SubscriptionPaymentsModule,
     WalletTransactionModule,
     UserSessionsModule,
+    SubscriptionUsageModule,
   ],
 })
 export class AppModule {}

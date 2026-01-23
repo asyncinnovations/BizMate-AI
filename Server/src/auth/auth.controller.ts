@@ -9,6 +9,7 @@ import {
   Put,
   HttpStatus,
   HttpCode,
+  HttpException,
 } from "@nestjs/common";
 import { UploadFile } from "src/common/decorators/upload.decorator";
 import { AuthService } from "./auth.service";
@@ -109,7 +110,7 @@ export class AuthController {
   async signup(
     @Body()
     data: any,
-    @UploadedFile() file?: Express.Multer.File
+    @UploadedFile() file?: Express.Multer.File,
   ) {
     const hashed = await bcrypt.hash(data.password, 10);
     const post_data = {
@@ -208,13 +209,60 @@ export class AuthController {
   async update_profile_image(
     @Param("id") user_id,
     @Body() body: any,
-    @UploadedFile() file?: Express.Multer.File
+    @UploadedFile() file?: Express.Multer.File,
   ) {
-    const image = file?.originalname || body.profile_image;
-    const response = await this.authService.update_profile_image_service(
-      user_id,
-      image
-    );
-    return { message: "profile image updated", response };
+    try {
+      const image = file?.originalname || body.profile_image;
+      const response = await this.authService.update_profile_image_service(
+        user_id,
+        image,
+      );
+      return { message: "profile image updated", response };
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
+  }
+  //////////////////////////////////////////
+  // EMAIL VERIFICATION
+  //////////////////////////////////////////
+  @Put("email_verify/:id")
+  async verify_email(@Param("id") user_id, @Body() body) {
+    try {
+      const response = await this.authService.verify_email_service(
+        user_id,
+        body.email,
+      );
+      if (!response) {
+        throw new HttpException(
+          { message: "user account not found" },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      return { message: "email verified", response };
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
+  }
+  //////////////////////////////////////////
+  // EMAIL VERIFICATION
+  //////////////////////////////////////////
+  @Put("reset_password/:id")
+  async reset_user_password(@Param("id") user_id, @Body() body) {
+    try {
+      const hashed = await bcrypt.hash(body.new_password, 10);
+      const response = await this.authService.reset_user_password_service(
+        user_id,
+        hashed,
+      );
+      if (!response) {
+        throw new HttpException(
+          { message: "user account not found" },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      return { message: "Password Reset Success", response };
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
   }
 }

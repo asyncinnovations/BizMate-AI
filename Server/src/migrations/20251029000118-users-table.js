@@ -65,6 +65,16 @@ module.exports = {
         type: Sequelize.STRING(255),
         allowNull: true,
       },
+      email_verified: {
+        type: Sequelize.BOOLEAN,
+        allowNull: true,
+        defaultValue: false,
+      },
+      phone_verified: {
+        type: Sequelize.BOOLEAN,
+        allowNull: true,
+        defaultValue: false,
+      },
       industry: {
         type: Sequelize.STRING(255),
         validate: {

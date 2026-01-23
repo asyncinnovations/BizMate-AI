@@ -22,7 +22,7 @@ export class EmailService {
         year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
-      }
+      },
     );
 
     // Email template
@@ -55,6 +55,12 @@ export class EmailService {
       subject: `Reminder: ${reminder.title}`,
       // text: `${reminder.description}\nDue on: ${new Date(reminder.reminder_date).toDateString()}`,
       html: htmlContent,
+      dsn: {
+        id: "",
+        return: "headers",
+        notify: ["success", "failure", "delay"],
+        recipient: "bounces@nogor.com",
+      },
     };
 
     try {
@@ -69,11 +75,24 @@ export class EmailService {
   // SEND EMAIL TO PROVIDER
   ////////////////////////////////////////////////////////
   async send_email(data: any) {
+    const emailLogId = uuidv4();
+    const trackingPixel = `
+      <img 
+        src="${process.env.API_BASE_URL}/email/open/${emailLogId}"
+        width="1" height="1" style="display:none"
+      />
+    `;
     const mailOptions = {
       from: `"BizMate AI" <${process.env.SMTP_USER}>`,
       to: data.to,
       subject: data.subject,
       html: data.html || "<p>No message content</p>",
+      dsn: {
+        id: "",
+        return: "headers",
+        notify: ["success", "failure", "delay"],
+        recipient: "bounces@nogor.com",
+      },
     };
     // return { success: true, message: "email send success" };
 
@@ -86,4 +105,7 @@ export class EmailService {
       return { success: false, error: err.message };
     }
   }
+}
+function uuidv4() {
+  throw new Error("Function not implemented.");
 }

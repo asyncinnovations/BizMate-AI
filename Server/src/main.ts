@@ -1,6 +1,6 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
-import "./jobs/reminderNotifier.js"; // starts cron when server starts
+// import "./jobs/reminderNotifier.js"; // starts cron when server starts
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 

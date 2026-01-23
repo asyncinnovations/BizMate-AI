@@ -59,13 +59,15 @@ const user_subscription_entity_1 = require("./user_subscription/user_subscriptio
 const subscription_payments_entity_1 = require("./subscription_payments/subscription_payments.entity");
 const user_sessions_module_1 = require("./user_sessions/user_sessions.module");
 const user_sessions_entity_1 = require("./user_sessions/user_sessions.entity");
+const subscription_usage_module_1 = require("./subscription_usage/subscription_usage.module");
+const import_service_1 = require("./import/import.service");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         controllers: [],
-        providers: [],
+        providers: [import_service_1.ImportService],
         exports: [],
         imports: [
             config_1.ConfigModule.forRoot({ isGlobal: true }),
@@ -131,6 +133,7 @@ exports.AppModule = AppModule = __decorate([
             subscription_payments_module_1.SubscriptionPaymentsModule,
             wallet_transaction_module_1.WalletTransactionModule,
             user_sessions_module_1.UserSessionsModule,
+            subscription_usage_module_1.SubscriptionUsageModule,
         ],
     })
 ], AppModule);
