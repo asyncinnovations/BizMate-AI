@@ -154,9 +154,39 @@ let AuthController = class AuthController {
         return { message: "account updated", response };
     }
     async update_profile_image(user_id, body, file) {
-        const image = file?.originalname || body.profile_image;
-        const response = await this.authService.update_profile_image_service(user_id, image);
-        return { message: "profile image updated", response };
+        try {
+            const image = file?.originalname || body.profile_image;
+            const response = await this.authService.update_profile_image_service(user_id, image);
+            return { message: "profile image updated", response };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
+    }
+    async verify_email(user_id, body) {
+        try {
+            const response = await this.authService.verify_email_service(user_id, body.email);
+            if (!response) {
+                throw new common_1.HttpException({ message: "user account not found" }, common_1.HttpStatus.NOT_FOUND);
+            }
+            return { message: "email verified", response };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
+    }
+    async reset_user_password(user_id, body) {
+        try {
+            const hashed = await bcrypt.hash(body.new_password, 10);
+            const response = await this.authService.reset_user_password_service(user_id, hashed);
+            if (!response) {
+                throw new common_1.HttpException({ message: "user account not found" }, common_1.HttpStatus.NOT_FOUND);
+            }
+            return { message: "Password Reset Success", response };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
 };
 exports.AuthController = AuthController;
@@ -223,6 +253,22 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "update_profile_image", null);
+__decorate([
+    (0, common_1.Put)("email_verify/:id"),
+    __param(0, (0, common_1.Param)("id")),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "verify_email", null);
+__decorate([
+    (0, common_1.Put)("reset_password/:id"),
+    __param(0, (0, common_1.Param)("id")),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "reset_user_password", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)("/auth"),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

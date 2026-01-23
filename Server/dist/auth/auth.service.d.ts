@@ -77,6 +77,8 @@ export declare class AuthService {
         updated_at: Date | undefined;
     }>;
     update_user_service(user_id: any, data: any): Promise<import("typeorm").UpdateResult>;
+    verify_email_service(user_id: any, email: any): Promise<any>;
+    reset_user_password_service(user_id: any, new_password: any): Promise<import("typeorm").UpdateResult>;
     update_profile_image_service(user_id: string, newImage: string): Promise<{
         message: string;
         profile_image: string;

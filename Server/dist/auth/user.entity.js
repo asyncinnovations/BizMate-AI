@@ -29,6 +29,8 @@ let AuthUsers = class AuthUsers {
     company_name;
     license_number;
     vat_id;
+    email_verified;
+    phone_verified;
     industry;
     role;
     language_preference;
@@ -85,6 +87,14 @@ __decorate([
     (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: true }),
     __metadata("design:type", String)
 ], AuthUsers.prototype, "vat_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "boolean", nullable: true }),
+    __metadata("design:type", Boolean)
+], AuthUsers.prototype, "email_verified", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "boolean", nullable: true }),
+    __metadata("design:type", Boolean)
+], AuthUsers.prototype, "phone_verified", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: true }),
     __metadata("design:type", String)

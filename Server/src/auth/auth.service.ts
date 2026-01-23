@@ -16,7 +16,7 @@ export class AuthService {
   constructor(
     @InjectRepository(AuthUsers)
     private usersRepo: Repository<AuthUsers>,
-    private jwtService: JwtService
+    private jwtService: JwtService,
   ) {}
 
   //////////////////////////////////////////////////////
@@ -134,11 +134,31 @@ export class AuthService {
     };
   }
 
-  //////////////////////////////////////////////////////
+  //////////////////////////////////////
   // UPDATE USER BY USER_ID
-  //////////////////////////////////////////////////////
+  //////////////////////////////////////
   async update_user_service(user_id: any, data: any) {
     const response = await this.usersRepo.update({ uuid: user_id }, data);
+    return response;
+  }
+  //////////////////////////////////////
+  // UPDATE USER BY USER_ID
+  //////////////////////////////////////
+  async verify_email_service(user_id: any, email: any) {
+    const response = await this.usersRepo.update(
+      { uuid: user_id },
+      { email_verified: email ? true : false, email: email },
+    );
+    return response.raw;
+  }
+  ////////////////////////////////////
+  // RESET USER PASSWORD
+  ////////////////////////////////////
+  async reset_user_password_service(user_id: any, new_password: any) {
+    const response = await this.usersRepo.update(
+      { uuid: user_id },
+      { password_hash: new_password },
+    );
     return response;
   }
 
@@ -155,7 +175,7 @@ export class AuthService {
       const filePath = path.join(
         __dirname,
         "../../public/uploads",
-        user.profile_image
+        user.profile_image,
       );
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);

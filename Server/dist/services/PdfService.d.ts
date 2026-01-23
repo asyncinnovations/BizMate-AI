@@ -1,11 +1,11 @@
 export declare class PdfService {
     TemplatePDFGenerator(data: any, filePath: string): Promise<{
         success: boolean;
-        message: string;
+        message: any;
     }>;
     InvoicePDFGenerator(data: any, filePath: string): Promise<{
         success: boolean;
-        message: string;
+        message: any;
     }>;
     PDFToTextConverter(pdfPath: any): Promise<string>;
 }

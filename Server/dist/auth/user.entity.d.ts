@@ -15,6 +15,8 @@ export declare class AuthUsers {
     company_name: string;
     license_number: string;
     vat_id: string;
+    email_verified: boolean;
+    phone_verified: boolean;
     industry: string;
     role: UserRole;
     language_preference: string;

@@ -42,7 +42,7 @@ export declare class TemplatesController {
         status?: undefined;
     }>;
     preview_document(body: any): Promise<{
-        response: string;
+        response: any;
         success: boolean;
         url: string;
     }>;

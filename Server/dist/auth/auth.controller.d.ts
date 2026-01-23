@@ -96,4 +96,12 @@ export declare class AuthController {
             profile_image: string;
         };
     }>;
+    verify_email(user_id: any, body: any): Promise<{
+        message: string;
+        response: any;
+    }>;
+    reset_user_password(user_id: any, body: any): Promise<{
+        message: string;
+        response: import("typeorm").UpdateResult;
+    }>;
 }

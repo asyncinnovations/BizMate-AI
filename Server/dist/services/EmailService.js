@@ -56,6 +56,12 @@ let EmailService = class EmailService {
             to: reminder?.email,
             subject: `Reminder: ${reminder.title}`,
             html: htmlContent,
+            dsn: {
+                id: "",
+                return: "headers",
+                notify: ["success", "failure", "delay"],
+                recipient: "bounces@nogor.com",
+            },
         };
         try {
             const response = await this.transporter.sendMail(mailOptions);
@@ -67,11 +73,24 @@ let EmailService = class EmailService {
         }
     }
     async send_email(data) {
+        const emailLogId = uuidv4();
+        const trackingPixel = `
+      <img 
+        src="${process.env.API_BASE_URL}/email/open/${emailLogId}"
+        width="1" height="1" style="display:none"
+      />
+    `;
         const mailOptions = {
             from: `"BizMate AI" <${process.env.SMTP_USER}>`,
             to: data.to,
             subject: data.subject,
             html: data.html || "<p>No message content</p>",
+            dsn: {
+                id: "",
+                return: "headers",
+                notify: ["success", "failure", "delay"],
+                recipient: "bounces@nogor.com",
+            },
         };
         try {
             const response = await this.transporter.sendMail(mailOptions);
@@ -88,4 +107,7 @@ exports.EmailService = EmailService;
 exports.EmailService = EmailService = __decorate([
     (0, common_1.Injectable)()
 ], EmailService);
+function uuidv4() {
+    throw new Error("Function not implemented.");
+}
 //# sourceMappingURL=EmailService.js.map

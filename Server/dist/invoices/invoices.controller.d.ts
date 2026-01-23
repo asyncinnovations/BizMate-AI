@@ -29,7 +29,7 @@ export declare class InvoicesController {
         total: number;
     }>;
     preview_invoice(body: any): Promise<{
-        response: string;
+        response: any;
         success: boolean;
         url: string;
     }>;

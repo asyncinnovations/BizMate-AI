@@ -162,6 +162,14 @@ let AuthService = class AuthService {
         const response = await this.usersRepo.update({ uuid: user_id }, data);
         return response;
     }
+    async verify_email_service(user_id, email) {
+        const response = await this.usersRepo.update({ uuid: user_id }, { email_verified: email ? true : false, email: email });
+        return response.raw;
+    }
+    async reset_user_password_service(user_id, new_password) {
+        const response = await this.usersRepo.update({ uuid: user_id }, { password_hash: new_password });
+        return response;
+    }
     async update_profile_image_service(user_id, newImage) {
         const user = await this.usersRepo.findOne({ where: { uuid: user_id } });
         if (!user)

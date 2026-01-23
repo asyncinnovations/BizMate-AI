@@ -47,6 +47,12 @@ export class AuthUsers {
   license_number: string;
   @Column({ type: "varchar", length: 255, nullable: true })
   vat_id: string;
+
+  @Column({ type: "boolean", nullable: true })
+  email_verified: boolean;
+  @Column({ type: "boolean", nullable: true })
+  phone_verified: boolean;
+
   @Column({ type: "varchar", length: 255, nullable: true })
   industry: string;
 
