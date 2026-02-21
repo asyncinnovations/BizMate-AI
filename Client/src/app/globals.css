@@ -1,62 +1,224 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Light Theme (default) */
-:root {
-  /* Backgrounds */
-  --color-background: #f4f7fa; /* main page bg */
-  --color-surface: #ffffff; /* cards, panels */
-  --color-surface-alt: #1b2a49; /* sidebar/nav */
+/* Force class-based dark mode — prevents OS dark mode from auto-activating */
+@variant dark (&:where(.dark, .dark *));
 
-  /* Text */
-  --color-text-primary: #344767;
-  --color-text-heading: #1b2a49;
-  --color-text-muted: #6b7280;
-  --color-link: #2e69a4;
-  --color-link-hover: #1f4c78;
+/* ============================================================
+   BIZMATE AI — DESIGN SYSTEM
+   Tailwind v4 — @theme generates utility classes automatically
+   Dark mode: class="dark" on <html>
+   ============================================================ */
 
-  /* Brand / UI Roles */
-  --color-primary: #1b2a49; /* brand, primary btn */
-  --color-on-primary: #ffffff; /* text on primary */
-  --color-secondary: #2e69a4; /* outline buttons, links */
-  --color-on-secondary: #2e69a4;
-  --color-accent: #f6a821; /* CTA, highlight, alerts */
+@theme {
 
-  /* Borders & Shadows */
-  --color-border: #e1e8f5;
-  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.05);
+  /* ── Backgrounds ── */
+  --color-bg-base:                  #f4f7fa;  /* App/page bg          → bg-bg-base */
+  --color-bg-subtle:                #e1e8f5;  /* Hover rows, zebra    → bg-bg-subtle */
+  --color-bg-muted:                 #eef1f8;  /* Input bg, disabled   → bg-bg-muted */
+
+  /* ── Surfaces ── */
+  --color-surface:                  #ffffff;  /* Cards, panels        → bg-surface */
+  --color-surface-raised:           #ffffff;  /* Modals, dropdowns    → bg-surface-raised */
+
+  /* ── Navigation ── */
+  --color-nav:                      #1b2a49;  /* Sidebar/topbar bg    → bg-nav */
+  --color-nav-hover:                #243356;  /* Nav item hover       → hover:bg-nav-hover */
+  --color-nav-active:               #2e69a4;  /* Active nav item      → bg-nav-active */
+  --color-nav-text:                 #f4f7fa;  /* Text on dark nav     → text-nav-text */
+  --color-nav-text-muted:           #a8b8d8;  /* Dimmed nav labels    → text-nav-text-muted */
+
+  /* ── Brand ── */
+  --color-brand:                    #1b2a49;  /* Primary buttons, headings  → bg-brand */
+  --color-brand-hover:              #243356;  /* Brand button hover         → hover:bg-brand-hover */
+  --color-brand-light:              #e8f0fb;  /* Soft tint, badges          → bg-brand-light */
+  --color-on-brand:                 #ffffff;  /* Text on brand bg           → text-on-brand */
+
+  /* ── Secondary ── */
+  --color-secondary:                #2e69a4;  /* Outline btns, links        → text-secondary / border-secondary */
+  --color-secondary-hover:          #1f4c78;  /* Secondary hover            → hover:text-secondary-hover */
+  --color-secondary-light:          #e1e8f5;  /* Light tint, chip bg        → bg-secondary-light */
+  --color-on-secondary:             #ffffff;  /* Text on secondary bg       → text-on-secondary */
+
+  /* ── Accent ── */
+  --color-accent:                   #f6a821;  /* CTA buttons, highlights    → bg-accent */
+  --color-accent-hover:             #d9911a;  /* Accent hover               → hover:bg-accent-hover */
+  --color-accent-light:             #fef3dc;  /* Light amber tint           → bg-accent-light */
+  --color-on-accent:                #1b2a49;  /* Text on accent yellow      → text-on-accent */
+
+  /* ── Text ── */
+  --color-text-heading:             #1b2a49;  /* Page titles, card headers  → text-text-heading */
+  --color-text-primary:             #344767;  /* Body copy, labels          → text-text-primary */
+  --color-text-secondary:           #6b7280;  /* Subtext, meta info         → text-text-secondary */
+  --color-text-muted:               #9ca3af;  /* Placeholder, captions      → text-text-muted */
+  --color-text-inverse:             #ffffff;  /* Text on dark surfaces      → text-text-inverse */
+  --color-text-on-accent:           #1b2a49;  /* Text on accent yellow      → text-text-on-accent */
+
+  /* ── Links ── */
+  --color-link:                     #2e69a4;  /* Anchor/inline links        → text-link */
+  --color-link-hover:               #1f4c78;  /* Link hover                 → hover:text-link-hover */
+
+  /* ── Borders ── */
+  --color-border:                   #e1e8f5;  /* Default card/input border  → border-border */
+  --color-border-strong:            #c4d0e8;  /* Emphasis, active outline   → border-border-strong */
+  --color-border-focus:             #2e69a4;  /* Input focus ring           → focus:border-border-focus */
+
+  /* ── Shadows ── */
+  --shadow-card:                    0 2px 8px rgba(0,0,0,0.05);   /* Flat card          → shadow-card */
+  --shadow-raised:                  0 4px 16px rgba(0,0,0,0.08);  /* Hover/dropdown     → shadow-raised */
+  --shadow-modal:                   0 8px 32px rgba(0,0,0,0.12);  /* Modal/dialog       → shadow-modal */
+
+  /* ── Status: Success ── */
+  --color-status-success:           #22c55e;  /* Icon/dot color             → text-status-success */
+  --color-status-success-bg:        #f0fdf4;  /* Alert/chip background      → bg-status-success-bg */
+  --color-status-success-border:    #bbf7d0;  /* Alert/chip border          → border-status-success-border */
+  --color-status-success-text:      #15803d;  /* Alert/chip text            → text-status-success-text */
+
+  /* ── Status: Error ── */
+  --color-status-error:             #ef4444;  /* Icon/dot color             → text-status-error */
+  --color-status-error-bg:          #fef2f2;  /* Alert/chip background      → bg-status-error-bg */
+  --color-status-error-border:      #fecaca;  /* Alert/chip border          → border-status-error-border */
+  --color-status-error-text:        #b91c1c;  /* Alert/chip text            → text-status-error-text */
+
+  /* ── Status: Warning ── */
+  --color-status-warning:           #f59e0b;  /* Icon/dot color             → text-status-warning */
+  --color-status-warning-bg:        #fffbeb;  /* Alert/chip background      → bg-status-warning-bg */
+  --color-status-warning-border:    #fde68a;  /* Alert/chip border          → border-status-warning-border */
+  --color-status-warning-text:      #92400e;  /* Alert/chip text            → text-status-warning-text */
+
+  /* ── Status: Info ── */
+  --color-status-info:              #3b82f6;  /* Icon/dot color             → text-status-info */
+  --color-status-info-bg:           #eff6ff;  /* Alert/chip background      → bg-status-info-bg */
+  --color-status-info-border:       #bfdbfe;  /* Alert/chip border          → border-status-info-border */
+  --color-status-info-text:         #1d4ed8;  /* Alert/chip text            → text-status-info-text */
+
+  /* ── Typography ── */
+  --font-sans:  ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;  /* → font-sans */
+  --font-mono:  ui-monospace, "SFMono-Regular", Consolas, "Courier New", monospace;       /* OTP, code → font-mono */
+
+  /* ── Border Radius ── */
+  --radius-sm:    0.375rem;  /* 6px  — tags, tight chips        → rounded-sm */
+  --radius-md:    0.5rem;    /* 8px  — inputs, small buttons    → rounded-md */
+  --radius-lg:    0.75rem;   /* 12px — cards, panels            → rounded-lg */
+  --radius-xl:    1rem;      /* 16px — large cards, modals      → rounded-xl */
+  --radius-2xl:   1.5rem;    /* 24px — hero sections            → rounded-2xl */
+  --radius-full:  9999px;    /* Pills, avatars, toggles         → rounded-full */
 }
 
-/* Dark Theme */
-[data-theme="dark"] {
-  /* Backgrounds */
-  --color-background: #15203b;
-  --color-surface: #1b2a49;
-  --color-surface-alt: #0f172a;
 
-  /* Text */
-  --color-text-primary: #f4f7fa;
-  --color-text-heading: #f4f7fa;
-  --color-text-muted: #e1e8f5;
-  --color-link: #4ea6ff;
-  --color-link-hover: #2674cc;
+/* ============================================================
+   BASE STYLES
+   ============================================================ */
+@layer base {
 
-  /* Brand / UI Roles */
-  --color-primary: #2e69a4; /* primary btn */
-  --color-on-primary: #ffffff;
-  --color-secondary: #f4f7fa; /* outline btns */
-  --color-on-secondary: #f4f7fa;
-  --color-accent: #f6a821; /* CTA highlight */
+  body {
+    background-color: var(--color-bg-base);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+  }
 
-  /* Borders & Shadows */
-  --color-border: #2e3c56;
-  --shadow-card: 0 2px 8px rgba(255, 255, 255, 0.05);
-}
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
 
-body {
-  background-color: var(--color-background);
-  color: var(--color-text-primary);
-  overflow-x: hidden;
-  margin: 0;
-  padding: 0;
+  :focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+
+  /* ============================================================
+     DARK MODE OVERRIDES
+     Activated only by class="dark" on <html>
+     ============================================================ */
+  html.dark {
+
+    /* Backgrounds */
+    --color-bg-base:                #0f172a;
+    --color-bg-subtle:              #1e293b;
+    --color-bg-muted:               #1a253d;
+
+    /* Surfaces */
+    --color-surface:                #1b2a49;
+    --color-surface-raised:         #243356;
+
+    /* Navigation */
+    --color-nav:                    #0f172a;
+    --color-nav-hover:              #1b2a49;
+    --color-nav-active:             #2e69a4;
+    --color-nav-text:               #f4f7fa;
+    --color-nav-text-muted:         #64748b;
+
+    /* Brand */
+    --color-brand:                  #2e69a4;
+    --color-brand-hover:            #3a7ab8;
+    --color-brand-light:            #1e2f4d;
+    --color-on-brand:               #ffffff;
+
+    /* Secondary */
+    --color-secondary:              #4ea6ff;
+    --color-secondary-hover:        #2674cc;
+    --color-secondary-light:        #1a2d45;
+    --color-on-secondary:           #ffffff;
+
+    /* Accent */
+    --color-accent:                 #f6a821;
+    --color-accent-hover:           #d9911a;
+    --color-accent-light:           #2a1f0a;
+    --color-on-accent:              #0f172a;
+
+    /* Text */
+    --color-text-heading:           #f4f7fa;
+    --color-text-primary:           #e1e8f5;
+    --color-text-secondary:         #94a3b8;
+    --color-text-muted:             #64748b;
+    --color-text-inverse:           #1b2a49;
+    --color-text-on-accent:         #0f172a;
+
+    /* Links */
+    --color-link:                   #4ea6ff;
+    --color-link-hover:             #2674cc;
+
+    /* Borders */
+    --color-border:                 #2e3c56;
+    --color-border-strong:          #3d5070;
+    --color-border-focus:           #4ea6ff;
+
+    /* Shadows */
+    --shadow-card:                  0 2px 8px rgba(0,0,0,0.35);
+    --shadow-raised:                0 4px 16px rgba(0,0,0,0.45);
+    --shadow-modal:                 0 8px 32px rgba(0,0,0,0.6);
+
+    /* Status: Success */
+    --color-status-success:         #4ade80;
+    --color-status-success-bg:      #052e16;
+    --color-status-success-border:  #166534;
+    --color-status-success-text:    #86efac;
+
+    /* Status: Error */
+    --color-status-error:           #f87171;
+    --color-status-error-bg:        #2d0a0a;
+    --color-status-error-border:    #7f1d1d;
+    --color-status-error-text:      #fca5a5;
+
+    /* Status: Warning */
+    --color-status-warning:         #fbbf24;
+    --color-status-warning-bg:      #2d1a00;
+    --color-status-warning-border:  #92400e;
+    --color-status-warning-text:    #fde68a;
+
+    /* Status: Info */
+    --color-status-info:            #60a5fa;
+    --color-status-info-bg:         #0c1a35;
+    --color-status-info-border:     #1e3a5f;
+    --color-status-info-text:       #93c5fd;
+  }
 }

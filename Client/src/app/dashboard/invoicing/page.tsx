@@ -32,6 +32,7 @@ import { useAuth } from "@/context/AuthContext";
 import DropdownMenu from "@/components/ui/DropdownMenu";
 import toast from "react-hot-toast";
 import LoadingSpinner from "@/components/loading-spinner/LoadingSpinner";
+import SendInvoiceModal from "@/components/invoice/SendInvoiceModal";
 
 interface FormField {
   id: string;
@@ -73,10 +74,17 @@ interface Invoice {
   status: "paid" | "unpaid" | "draft" | "saved";
 }
 
+interface EmailFormData {
+  to: string;
+  cc: string;
+  subject: string;
+  message: string;
+}
+
 const InvoiceListPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "paid" | "unpaid">(
-    "all"
+    "all",
   );
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
@@ -84,7 +92,16 @@ const InvoiceListPage: React.FC = () => {
   const { user, loading } = useAuth();
   const userId = !loading ? user?.user.user_id : "";
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [currentInvoice, setCurrentInvoice] = useState<Invoice | null>(null);
   const [userInvoices, setUserInvoices] = useState<Invoice[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [emailFormData, setEmailFormData] = useState<EmailFormData>({
+    to: "",
+    cc: "",
+    subject: "",
+    message: "",
+  });
 
   const statsData = [
     {
@@ -165,18 +182,53 @@ const InvoiceListPage: React.FC = () => {
     }
   }, [user, loading]);
 
-  /////////////////////////////////
-  // Send Invoice to customer
-  /////////////////////////////////
-  const handleSendInvoice = (invoiceId: string) => {
-    alert(`Invoice ${invoiceId} sent successfully with AI optimization!`);
+  ///////////////////////////////////
+  // Download Invoice PDF
+  ///////////////////////////////////
+  const handleDownloadPDF = async (invoice: Invoice) => {
+    try {
+      // Currently we are no passing any id in api request ,  because backend to accept yet , need to update bacakend api
+      const response = await axiosInstance(`/invoices/preview`);
+
+      if (response.status === 200 && response.data?.url) {
+        const fileUrl = `${process.env.NEXT_PUBLIC_ASSET_URL}${response.data.url}`;
+
+        const link = document.createElement("a");
+        link.href = fileUrl;
+        link.download = `invoice-${invoice.invoice_number}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch (error) {
+      console.log("Error occur while downloading the invoice.", error);
+      toast.error("Error occur while downloading the invoice.");
+    }
   };
 
+  ////////////////////////////////
+  // Send Invoice To Customer/Client
   /////////////////////////////////
-  // DownLoad Pdf
-  /////////////////////////////////
-  const handleDownloadPDF = (invoice: Invoice) => {
-    alert(`Downloading AI-optimized PDF for ${invoice.invoice_number}`);
+  const handleSendEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSending(true);
+
+    try {
+      const response = await axiosInstance.post("/invoices/send_to_email", {
+        invoiceId: currentInvoice?.uuid,
+        ...emailFormData,
+      });
+
+      toast.success(
+        `Invoice ${currentInvoice?.invoice_number} sent successfully to ${emailFormData.to}`,
+      );
+      closeSendEmailModal();
+    } catch (error) {
+      console.log("Error sending email:", error);
+      toast.error("Failed to send invoice email. Please try again.");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   /////////////////////////////////
@@ -185,13 +237,13 @@ const InvoiceListPage: React.FC = () => {
   const handleDeleteInvoice = async (invoiceId: string) => {
     if (
       confirm(
-        "Are you sure you want to delete this invoice? This action cannot be undone."
+        "Are you sure you want to delete this invoice? This action cannot be undone.",
       )
     ) {
       try {
         setIsLoading(true);
         const response = await axiosInstance.delete(
-          `/invoices/delete/${invoiceId}`
+          `/invoices/delete/${invoiceId}`,
         );
         if (response.status === 200) {
           toast.success(response.data.message);
@@ -211,13 +263,13 @@ const InvoiceListPage: React.FC = () => {
   ////////////////////////////
   const handleChangeStatus = async (invoiceId: string) => {
     const selectedInvoice = userInvoices.find(
-      (invoice) => invoice.uuid === invoiceId
+      (invoice) => invoice.uuid === invoiceId,
     );
     const newInvoiceStatus =
       selectedInvoice?.status.toLowerCase() === "unpaid" ? "paid" : "unpaid";
     if (
       confirm(
-        `Are you sure you want to mark this invoice as "${newInvoiceStatus}"?`
+        `Are you sure you want to mark this invoice as "${newInvoiceStatus}"?`,
       )
     ) {
       try {
@@ -225,7 +277,7 @@ const InvoiceListPage: React.FC = () => {
 
         const response = await axiosInstance.patch(
           `/invoices/update/status/${invoiceId}`,
-          { status: newInvoiceStatus }
+          { status: newInvoiceStatus },
         );
         if (response.status === 200) {
           toast.success("Invoice status updated successfully!");
@@ -258,6 +310,45 @@ const InvoiceListPage: React.FC = () => {
       statusFilter === "all" || invoice.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  ///////////////////////////////////
+  // Handle Email Form Changing
+  ////////////////////////////////////
+  const handleEmailFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target;
+    setEmailFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  ///////////////////////////////////
+  // Opening the send email modal with data setting
+  ////////////////////////////////////
+  const openSendEmailModal = (invoice: Invoice) => {
+    setCurrentInvoice(invoice);
+    setEmailFormData({
+      to: invoice.customer_email || "",
+      cc: "",
+      subject: `Invoice ${invoice.invoice_number} from Business Solutions Inc.`,
+      message: `Dear ${invoice.customer_name},
+
+Please find attached invoice ${invoice.invoice_number} for AED ${invoice.total}.
+
+Due date: ${new Date(invoice.due_date).toLocaleDateString()}
+
+Best regards,
+Business Solutions Inc.`,
+    });
+    setIsModalOpen(true);
+  };
+
+  const closeSendEmailModal = () => {
+    setCurrentInvoice(null);
+    setIsModalOpen(false);
+  };
 
   if (isLoading) {
     return <LoadingSpinner fullScreen={true} />;
@@ -385,7 +476,7 @@ const InvoiceListPage: React.FC = () => {
                             <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
                               {
                                 userInvoices.filter(
-                                  (inv) => inv.status === "paid"
+                                  (inv) => inv.status === "paid",
                                 ).length
                               }
                             </span>
@@ -405,7 +496,7 @@ const InvoiceListPage: React.FC = () => {
                             <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
                               {
                                 userInvoices.filter(
-                                  (inv) => inv.status === "unpaid"
+                                  (inv) => inv.status === "unpaid",
                                 ).length
                               }
                             </span>
@@ -495,7 +586,7 @@ const InvoiceListPage: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-full ${getStatusBadge(
-                            invoice.status
+                            invoice.status,
                           )}`}
                         >
                           {invoice.status === "paid" && (
@@ -518,7 +609,7 @@ const InvoiceListPage: React.FC = () => {
                             <Eye className="w-4 h-4" />
                           </Link>
                           <button
-                            onClick={() => handleSendInvoice(invoice.uuid)}
+                            onClick={() => openSendEmailModal(invoice)}
                             className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200"
                             title="Send"
                           >
@@ -609,6 +700,17 @@ const InvoiceListPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Send Invoice Modal Component */}
+        <SendInvoiceModal
+          isOpen={isModalOpen}
+          onClose={closeSendEmailModal}
+          invoiceNumber={currentInvoice?.invoice_number || ""}
+          emailFormData={emailFormData}
+          onEmailFormChange={handleEmailFormChange}
+          onSubmit={handleSendEmail}
+          isSending={isSending}
+        />
       </div>
     </DashboardLayout>
   );
