@@ -33,7 +33,7 @@ export class SubscriptionUsageController {
   // ===============================
   // FEATURE USAGE
   // ===============================
-  @Get(":subscriptionId/:usageKey")
+  @Get("feature_usage/:subscriptionId/:usageKey")
   async getUsage(
     @Param("subscriptionId") subscriptionId: string,
     @Param("usageKey") usageKey: string,
@@ -47,7 +47,7 @@ export class SubscriptionUsageController {
   // ===============================
   // CHECK USAGE LIMIT
   // ===============================
-  @Get(":subscriptionId/:usageKey/check")
+  @Get("check_usage_limit/:subscriptionId/:usageKey")
   async checkLimit(
     @Param("subscriptionId") subscriptionId: string,
     @Param("usageKey") usageKey: string,
@@ -64,7 +64,7 @@ export class SubscriptionUsageController {
   // ===============================
   // Reset Usage
   // ===============================
-  @Post("reset")
+  @Post("reset_usage")
   async resetUsage(
     @Body() body: { subscriptionId: string; usageKey?: string },
   ): Promise<{ success: boolean }> {
@@ -76,7 +76,7 @@ export class SubscriptionUsageController {
   // ===============================
   // Get All Usage for Subscription
   // ===============================
-  @Get(":subscriptionId/all")
+  @Get("all_subscription/:subscriptionId")
   async getAllUsage(
     @Param("subscriptionId") subscriptionId: string,
   ): Promise<SubscriptionUsage[]> {
@@ -86,7 +86,7 @@ export class SubscriptionUsageController {
   // ===============================
   // Enforce Limit
   // ===============================
-  @Post("enforce")
+  @Post("enforce_limit")
   async enforceLimit(
     @Body()
     body: {
