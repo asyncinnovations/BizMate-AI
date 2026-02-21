@@ -15,21 +15,30 @@ import { QrcodeGenerator } from "./../services/QrcodeGenerator";
 @Controller("user-two-factor-settings")
 export class UserTwoFactorSettingsController {
   constructor(
-    private readonly twoFactorService: UserTwoFactorSettingsService
+    private readonly twoFactorService: UserTwoFactorSettingsService,
   ) {}
 
+  ///////////////////////////////////////////
+  // Get 2FA Settings for a User
+  ///////////////////////////////////////////
+  // @Get("user/:userId")
+  // @HttpCode(HttpStatus.OK)
+  // async getSettings(@Param("userId") userId: string) {
+  //   try {
+  //     const response = await this.twoFactorService.getSettings(userId);
+  //     return response;
+  //   } catch (error) {
+  //     throw new HttpException(error, HttpStatus.BAD_REQUEST);
+  //   }
+  // }
   ///////////////////////////////////////////
   // Get 2FA Settings for a User
   ///////////////////////////////////////////
   @Get("user/:userId")
   @HttpCode(HttpStatus.OK)
   async getSettings(@Param("userId") userId: string) {
-    try {
-      const response = await this.twoFactorService.getSettings(userId);
-      return response;
-    } catch (error) {
-      throw new HttpException(error, HttpStatus.BAD_REQUEST);
-    }
+    // Call service, which will return default settings if none exist
+    return this.twoFactorService.getSettings(userId);
   }
 
   ///////////////////////////////////////////
@@ -53,7 +62,7 @@ export class UserTwoFactorSettingsController {
   @HttpCode(HttpStatus.OK)
   async verifyTOTP(
     @Param("userId") userId: string,
-    @Body("code") code: string
+    @Body("code") code: string,
   ) {
     try {
       const isValid = await this.twoFactorService.verifyTOTP(userId, code);
@@ -89,13 +98,13 @@ export class UserTwoFactorSettingsController {
   async setMethod(
     @Param("userId") userId: string,
     @Body("method") method: "sms" | "email",
-    @Body("value") value: string
+    @Body("value") value: string,
   ) {
     try {
       const response = await this.twoFactorService.setMethod(
         userId,
         method,
-        value
+        value,
       );
       return { message: "method saved", response };
     } catch (error) {
@@ -125,12 +134,12 @@ export class UserTwoFactorSettingsController {
   @HttpCode(HttpStatus.OK)
   async verifyRecoveryCode(
     @Param("userId") userId: string,
-    @Body("code") code: string
+    @Body("code") code: string,
   ) {
     try {
       const isValid = await this.twoFactorService.verifyRecoveryCode(
         userId,
-        code
+        code,
       );
       return { success: isValid };
     } catch (error) {

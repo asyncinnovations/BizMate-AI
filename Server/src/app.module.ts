@@ -49,10 +49,11 @@ import { WalletTransaction } from "./wallet_transaction/wallet_transaction.entit
 import { SubscriptionPlan } from "./subscription_plans/subscription_plans.entity";
 import { UserSubscription } from "./user_subscription/user_subscription.entity";
 import { SubscriptionPayment } from "./subscription_payments/subscription_payments.entity";
-import { UserSessionsModule } from './user_sessions/user_sessions.module';
+import { UserSessionsModule } from "./user_sessions/user_sessions.module";
 import { UserSession } from "./user_sessions/user_sessions.entity";
-import { SubscriptionUsageModule } from './subscription_usage/subscription_usage.module';
-import { ImportService } from './import/import.service';
+import { SubscriptionUsageModule } from "./subscription_usage/subscription_usage.module";
+import { ImportService } from "./import/import.service";
+import { SubscriptionUsage } from "./subscription_usage/subscription_usage.entity";
 
 @Module({
   controllers: [],
@@ -94,7 +95,9 @@ import { ImportService } from './import/import.service';
         WalletTransaction,
         SubscriptionPlan,
         UserSubscription,
-        SubscriptionPayment,UserSession
+        SubscriptionPayment,
+        UserSession,
+        SubscriptionUsage
       ],
     }),
     AuthModule,

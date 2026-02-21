@@ -61,11 +61,20 @@ let UserTwoFactorSettingsService = class UserTwoFactorSettingsService {
         this.userRepo = userRepo;
     }
     async getSettings(userId) {
-        const settings = await this.twoFactorRepo.findOne({
+        let settings = await this.twoFactorRepo.findOne({
             where: { user_id: userId },
         });
-        if (!settings)
-            throw new common_1.NotFoundException("2FA settings not found");
+        if (!settings) {
+            settings = this.twoFactorRepo.create({
+                user_id: userId,
+                is_enabled: false,
+                method: "totp",
+                secret: null,
+                phone: null,
+                email: null,
+            });
+            settings = await this.twoFactorRepo.save(settings);
+        }
         return settings;
     }
     async enableTOTP(userId) {

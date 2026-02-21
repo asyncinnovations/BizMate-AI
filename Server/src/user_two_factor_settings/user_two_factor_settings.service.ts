@@ -16,17 +16,38 @@ export class UserTwoFactorSettingsService {
     @InjectRepository(UserTwoFactorSettings)
     private readonly twoFactorRepo: Repository<UserTwoFactorSettings>,
     @InjectRepository(AuthUsers)
-    private readonly userRepo: Repository<AuthUsers>
+    private readonly userRepo: Repository<AuthUsers>,
   ) {}
 
   ///////////////////////////////////////////
   // Get 2FA Settings for a User
   ///////////////////////////////////////////
+  // async getSettings(userId: string): Promise<UserTwoFactorSettings> {
+  //   const settings = await this.twoFactorRepo.findOne({
+  //     where: { user_id: userId },
+  //   });
+  //   if (!settings) throw new NotFoundException("2FA settings not found");
+  //   return settings;
+  // }
   async getSettings(userId: string): Promise<UserTwoFactorSettings> {
-    const settings = await this.twoFactorRepo.findOne({
+    let settings = await this.twoFactorRepo.findOne({
       where: { user_id: userId },
     });
-    if (!settings) throw new NotFoundException("2FA settings not found");
+
+    // If no 2FA row exists, return default disabled settings
+    if (!settings) {
+      settings = this.twoFactorRepo.create({
+        user_id: userId,
+        is_enabled: false,
+        method: "totp", // default method
+        secret: null,
+        phone: null,
+        email: null,
+      });
+
+      settings = await this.twoFactorRepo.save(settings);
+    }
+
     return settings;
   }
 
@@ -34,7 +55,7 @@ export class UserTwoFactorSettingsService {
   // Enable TOTP 2FA (Generate Secret + QR Code)
   ///////////////////////////////////////////
   async enableTOTP(
-    userId: string
+    userId: string,
   ): Promise<{ secret: string; otpauthUrl: string }> {
     const user = await this.userRepo.findOne({ where: { uuid: userId } });
     if (!user) throw new NotFoundException("User not found");
@@ -100,7 +121,7 @@ export class UserTwoFactorSettingsService {
   async setMethod(
     userId: string,
     method: "sms" | "email",
-    value: string
+    value: string,
   ): Promise<UserTwoFactorSettings> {
     const settings = await this.twoFactorRepo.findOne({
       where: { user_id: userId },

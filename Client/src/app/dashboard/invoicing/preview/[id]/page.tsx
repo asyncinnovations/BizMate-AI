@@ -15,6 +15,9 @@ import Button from "@/components/ui/Button";
 import { getStatusBadge } from "@/lib/statusBadge";
 import axiosInstance from "@/utils/axiosInstance";
 import LoadingSpinner from "@/components/loading-spinner/LoadingSpinner";
+import toast from "react-hot-toast";
+import InvoicePreviewCard from "@/components/invoice/InvoicePreviewCard";
+import SendInvoiceModal from "@/components/invoice/SendInvoiceModal";
 
 interface FormField {
   id: string;
@@ -55,22 +58,54 @@ interface Invoice {
   status: "paid" | "unpaid" | "draft" | "saved";
 }
 
+interface EmailFormData {
+  to: string;
+  cc: string;
+  subject: string;
+  message: string;
+}
+
 const InvoicePreviewPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
   const invoiceId = params.id as string;
   const [currentInvoice, setCurrentInvoice] = useState<Invoice | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [emailFormData, setEmailFormData] = useState<EmailFormData>({
+    to: "",
+    cc: "",
+    subject: "",
+    message: "",
+  });
 
+  ///////////////////////////////
+  // Fetch Single Invoice Data
+  /////////////////////////////////////////
   const fetchSingleInvoice = async () => {
     try {
       const response = await axiosInstance.get(`/invoices/single/${invoiceId}`);
       if (response.status === 200) {
         setCurrentInvoice(response.data);
-        // toast.success("Invoice created successfully!")
+        // Pre-fill email form data
+        setEmailFormData({
+          to: response.data.customer_email || "",
+          cc: "",
+          subject: `Invoice ${response.data.invoice_number} from Business Solutions Inc.`,
+          message: `Dear ${response.data.customer_name},
+
+Please find attached invoice ${response.data.invoice_number} for the amount of AED ${response.data.total.toLocaleString()}.
+
+Payment is due by ${new Date(response.data.due_date).toLocaleDateString()}.
+
+If you have any questions regarding this invoice, please don't hesitate to contact us.
+
+Best regards,
+Business Solutions Inc.`,
+        });
       }
     } catch (error) {
       console.log(error);
-      // toast.error("Error occur while creating invoice")
     }
   };
 
@@ -78,19 +113,82 @@ const InvoicePreviewPage: React.FC = () => {
     fetchSingleInvoice();
   }, [invoiceId]);
 
-  const handleDownloadPDF = (invoice: Invoice) => {
-    // In a real app, this would generate a PDF
-    alert(`Downloading PDF for ${invoice.invoice_number}`);
+  ///////////////////////////////////
+  // Download Invoice PDF
+  ///////////////////////////////////
+  const handleDownloadPDF = async (invoice: Invoice) => {
+    try {
+      // Currently we are no passing any id in api request ,  because backend to accept yet , need to update bacakend api
+      const response = await axiosInstance(`/invoices/preview`);
+
+      if (response.status === 200 && response.data?.url) {
+        const fileUrl = `${process.env.NEXT_PUBLIC_ASSET_URL}${response.data.url}`;
+
+        const link = document.createElement("a");
+        link.href = fileUrl;
+        link.download = `invoice-${invoice.invoice_number}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch (error) {
+      console.log("Error occur while downloading the invoice.", error);
+      toast.error("Error occur while downloading the invoice.");
+    }
   };
 
-  const handleSendEmail = (invoice: Invoice) => {
-    // In a real app, this would send an email
-    alert(`Sending email for ${invoice.invoice_number}`);
+  ////////////////////////////////
+  // Send Invoice To Customer/Client
+  /////////////////////////////////
+  const handleSendEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSending(true);
+
+    try {
+      const response = await axiosInstance.post("/invoices/send_to_email", {
+        invoiceId: invoiceId,
+        ...emailFormData,
+      });
+
+      toast.success(
+        `Invoice ${currentInvoice?.invoice_number} sent successfully to ${emailFormData.to}`,
+      );
+      closeSendEmailModal();
+    } catch (error) {
+      console.log("Error sending email:", error);
+      toast.error("Failed to send invoice email. Please try again.");
+    } finally {
+      setIsSending(false);
+    }
   };
 
+  //////////////////////////////////
+  // Handle Print Invoice
+  /////////////////////////////////
   const handlePrint = () => {
     console.log("Document Print Successfully!");
     alert("Document Print Successfully!");
+  };
+
+  ///////////////////////////////////
+  // Handle Email Form Changing
+  ////////////////////////////////////
+  const handleEmailFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target;
+    setEmailFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const openSendEmailModal = (invoice: Invoice) => {
+    setIsModalOpen(true);
+  };
+
+  const closeSendEmailModal = () => {
+    setIsModalOpen(false);
   };
 
   if (!currentInvoice) {
@@ -163,7 +261,7 @@ const InvoicePreviewPage: React.FC = () => {
                   Download PDF
                 </Button>
                 <Button
-                  onClick={() => handleSendEmail(currentInvoice)}
+                  onClick={() => openSendEmailModal(currentInvoice)}
                   startIcon={<Send className="w-4 h-4" />}
                 >
                   Send to Customer
@@ -172,230 +270,8 @@ const InvoicePreviewPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Invoice Preview */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div className="p-8">
-              <div className="max-w-4xl mx-auto bg-white p-8 border border-gray-200 rounded-lg">
-                {/* Invoice Header */}
-                <div className="flex justify-between items-start mb-8 pb-6 border-b border-gray-200">
-                  <div>
-                    <div className="text-2xl font-bold text-gray-900 mb-1">
-                      Business Solutions Inc.
-                    </div>
-                    <div className="text-gray-600 text-sm">
-                      Professional Services & Consulting
-                    </div>
-                    <div className="text-gray-600 text-sm mt-2">
-                      Dubai Internet City, Dubai, UAE
-                    </div>
-                    <div className="text-gray-600 text-sm">
-                      Tel: +971 4 123 4567
-                    </div>
-                    <div className="text-gray-600 text-sm">
-                      VAT No: 123456789012345
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-3">
-                      INVOICE
-                    </h1>
-                    <div className="space-y-1 text-sm text-gray-600">
-                      <div className="flex justify-between gap-4">
-                        <span className="font-semibold">Invoice #:</span>
-                        <span>{currentInvoice.invoice_number}</span>
-                      </div>
-                      <div className="flex justify-between gap-4">
-                        <span className="font-semibold">Date:</span>
-                        <span>
-                          {new Date(
-                            currentInvoice.invoice_date
-                          ).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <div className="flex justify-between gap-4">
-                        <span className="font-semibold">Due Date:</span>
-                        <span className="font-semibold text-gray-900">
-                          {new Date(
-                            currentInvoice.due_date
-                          ).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <div className="flex justify-between gap-4">
-                        <span className="font-semibold">Terms:</span>
-                        <span>{currentInvoice.payment_terms}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* From/To Sections */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-3 text-sm uppercase tracking-wide">
-                      From
-                    </h3>
-                    <div className="text-gray-900 font-semibold">
-                      Business Solutions Inc.
-                    </div>
-                    <div className="text-gray-600">Dubai Internet City</div>
-                    <div className="text-gray-600">
-                      Dubai, United Arab Emirates
-                    </div>
-                    <div className="text-gray-600 mt-2">
-                      Email: accounting@businesssolutions.ae
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-3 text-sm uppercase tracking-wide">
-                      Bill To
-                    </h3>
-                    <div className="text-gray-900 font-semibold">
-                      {currentInvoice.customer_name}
-                    </div>
-                    {currentInvoice.customer_address && (
-                      <div className="text-gray-600">
-                        {currentInvoice.customer_address}
-                      </div>
-                    )}
-                    {currentInvoice.customer_email && (
-                      <div className="text-gray-600">
-                        {currentInvoice.customer_email}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Items Table */}
-                <div className="mb-8 border border-gray-200 rounded-lg overflow-hidden">
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider border-b border-gray-200 w-2/5">
-                          Description
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider border-b border-gray-200 w-1/6">
-                          Quantity
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider border-b border-gray-200 w-1/6">
-                          Unit Price (AED)
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider border-b border-gray-200 w-1/6">
-                          Amount (AED)
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {currentInvoice.invoice_items.map((item) => (
-                        <tr key={item.id}>
-                          <td className="px-6 py-4">
-                            <div className="text-sm font-medium text-gray-900">
-                              {item.name}
-                            </div>
-                            {item.description && (
-                              <div className="text-sm text-gray-500 mt-1 max-w-xs break-words">
-                                {item.description}
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
-                            {item.quantity}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                            {item.price.toLocaleString()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">
-                            {item.amount.toLocaleString()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Totals */}
-                <div className="flex justify-end mb-8">
-                  <div className="w-80">
-                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                      <table className="w-full">
-                        <tbody>
-                          <tr>
-                            <td className="py-2 text-sm text-gray-600">
-                              Subtotal:
-                            </td>
-                            <td className="py-2 text-sm font-semibold text-gray-900 text-right">
-                              AED {currentInvoice.subtotal.toLocaleString()}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="py-2 text-sm text-gray-600">
-                              VAT (5%):
-                            </td>
-                            <td className="py-2 text-sm font-semibold text-gray-900 text-right">
-                              AED {currentInvoice.vat.toLocaleString()}
-                            </td>
-                          </tr>
-                          <tr className="border-t border-gray-200">
-                            <td className="py-3 font-bold text-gray-900">
-                              Total Due:
-                            </td>
-                            <td className="py-3 font-bold text-lg text-gray-900 text-right">
-                              AED {currentInvoice.total.toLocaleString()}
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Payment Instructions */}
-                <div className="mt-8 pt-6 border-t border-gray-200">
-                  <h3 className="font-semibold text-gray-900 mb-3">
-                    Payment Instructions
-                  </h3>
-                  <div className="text-gray-600 text-sm leading-relaxed">
-                    <p className="mb-2">
-                      <strong>Bank Transfer:</strong>
-                      <br />
-                      Bank: Emirates NBD
-                      <br />
-                      Account Name: Business Solutions Inc.
-                      <br />
-                      Account Number: 012345678901
-                      <br />
-                      IBAN: AE070331234567890123456
-                    </p>
-                    <p>
-                      Please include invoice number{" "}
-                      {currentInvoice.invoice_number} with your payment.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Notes */}
-                {currentInvoice.notes && (
-                  <div className="mt-6 pt-6 border-t border-gray-200">
-                    <h3 className="font-semibold text-gray-900 mb-3">Notes</h3>
-                    <p className="text-gray-600 text-sm leading-relaxed">
-                      {currentInvoice.notes}
-                    </p>
-                  </div>
-                )}
-
-                {/* Footer */}
-                <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-                  <p className="text-xs text-gray-500">
-                    Thank you for your business. For questions regarding this
-                    invoice,
-                    <br />
-                    please contact our accounting department at
-                    accounting@businesssolutions.ae
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Invoice Preview Card Component */}
+          <InvoicePreviewCard invoice={currentInvoice} />
 
           {/* Quick Actions */}
           <div className="mt-8 text-center">
@@ -411,7 +287,7 @@ const InvoicePreviewPage: React.FC = () => {
                   Create New
                 </Button>
                 <Button
-                  onClick={() => handleSendEmail(currentInvoice)}
+                  onClick={() => openSendEmailModal(currentInvoice)}
                   className="text-sm"
                   startIcon={<Send className="w-4 h-4" />}
                 >
@@ -422,6 +298,17 @@ const InvoicePreviewPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Send Invoice Modal Component */}
+      <SendInvoiceModal
+        isOpen={isModalOpen}
+        onClose={closeSendEmailModal}
+        invoiceNumber={currentInvoice.invoice_number}
+        emailFormData={emailFormData}
+        onEmailFormChange={handleEmailFormChange}
+        onSubmit={handleSendEmail}
+        isSending={isSending}
+      />
     </DashboardLayout>
   );
 };

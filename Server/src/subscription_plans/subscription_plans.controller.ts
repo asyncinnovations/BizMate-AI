@@ -10,7 +10,7 @@ import {
 } from "@nestjs/common";
 import { SubscriptionPlanService } from "./subscription_plans.service";
 
-@Controller("subscription_plan")
+@Controller("subscription_plan") 
 export class SubscriptionPlanController {
   constructor(private readonly subscriptionService: SubscriptionPlanService) {}
 

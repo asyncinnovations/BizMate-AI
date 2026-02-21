@@ -62,7 +62,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], SubscriptionUsageController.prototype, "incrementUsage", null);
 __decorate([
-    (0, common_1.Get)(":subscriptionId/:usageKey"),
+    (0, common_1.Get)("feature_usage/:subscriptionId/:usageKey"),
     __param(0, (0, common_1.Param)("subscriptionId")),
     __param(1, (0, common_1.Param)("usageKey")),
     __metadata("design:type", Function),
@@ -70,7 +70,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], SubscriptionUsageController.prototype, "getUsage", null);
 __decorate([
-    (0, common_1.Get)(":subscriptionId/:usageKey/check"),
+    (0, common_1.Get)("check_usage_limit/:subscriptionId/:usageKey"),
     __param(0, (0, common_1.Param)("subscriptionId")),
     __param(1, (0, common_1.Param)("usageKey")),
     __param(2, (0, common_1.Query)("limit", common_1.ParseIntPipe)),
@@ -79,21 +79,21 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], SubscriptionUsageController.prototype, "checkLimit", null);
 __decorate([
-    (0, common_1.Post)("reset"),
+    (0, common_1.Post)("reset_usage"),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], SubscriptionUsageController.prototype, "resetUsage", null);
 __decorate([
-    (0, common_1.Get)(":subscriptionId/all"),
+    (0, common_1.Get)("all_subscription/:subscriptionId"),
     __param(0, (0, common_1.Param)("subscriptionId")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], SubscriptionUsageController.prototype, "getAllUsage", null);
 __decorate([
-    (0, common_1.Post)("enforce"),
+    (0, common_1.Post)("enforce_limit"),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
