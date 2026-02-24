@@ -218,7 +218,7 @@ export class AuthController {
         image,
       );
       return { message: "profile image updated", response };
-    } catch (error) {
+    } catch (error: any) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
@@ -239,7 +239,7 @@ export class AuthController {
         );
       }
       return { message: "email verified", response };
-    } catch (error) {
+    } catch (error: any) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
@@ -261,7 +261,7 @@ export class AuthController {
         );
       }
       return { message: "Password Reset Success", response };
-    } catch (error) {
+    } catch (error: any) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }

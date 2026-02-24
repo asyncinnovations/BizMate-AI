@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AiReplyHubChatController = void 0;
 const common_1 = require("@nestjs/common");
 const ai_reply_hub_chat_service_1 = require("./ai_reply_hub_chat.service");
-const auth_guard_1 = require("../guards/auth/auth.guard");
 let AiReplyHubChatController = class AiReplyHubChatController {
     aireplyHub;
     constructor(aireplyHub) {
@@ -88,6 +87,14 @@ let AiReplyHubChatController = class AiReplyHubChatController {
     async chat_history(user_id, client_id) {
         const result = await this.aireplyHub.message_by_client_service(user_id, client_id);
         return { message: "Chat history fetched", result };
+    }
+    async user_message_partner(user_id) {
+        const result = await this.aireplyHub.user_chat_partner_service(user_id);
+        return { message: "Chat history fetched", result };
+    }
+    async chat_mark_as_read_service(message_id) {
+        const result = await this.aireplyHub.user_chat_partner_service(message_id);
+        return { message: "Message marked as read", result };
     }
 };
 exports.AiReplyHubChatController = AiReplyHubChatController;
@@ -204,9 +211,24 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], AiReplyHubChatController.prototype, "chat_history", null);
+__decorate([
+    (0, common_1.Get)("chat_partner/:user_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Param)("user_id")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], AiReplyHubChatController.prototype, "user_message_partner", null);
+__decorate([
+    (0, common_1.Patch)("mark_as_read/:message_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Param)("message_id")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], AiReplyHubChatController.prototype, "chat_mark_as_read_service", null);
 exports.AiReplyHubChatController = AiReplyHubChatController = __decorate([
     (0, common_1.Controller)("reply_hub_chat"),
-    (0, common_1.UseGuards)(auth_guard_1.JwtGuard),
     __metadata("design:paramtypes", [ai_reply_hub_chat_service_1.AiReplyHubChatService])
 ], AiReplyHubChatController);
 //# sourceMappingURL=ai_reply_hub_chat.controller.js.map

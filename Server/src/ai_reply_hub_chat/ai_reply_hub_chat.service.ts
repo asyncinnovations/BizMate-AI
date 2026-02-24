@@ -12,7 +12,7 @@ export class AiReplyHubChatService {
     @InjectRepository(AiReplyHubChat)
     private readonly aireplyhubRepo: Repository<AiReplyHubChat>,
     private readonly BusinessInfo: UserBusinessInfoService,
-    private readonly openAIService: ChatgptService
+    private readonly openAIService: ChatgptService,
     // private readonly UserRepo: AuthService
   ) {}
 
@@ -49,7 +49,7 @@ export class AiReplyHubChatService {
   /////////////////////////////////////////////////////////
   async all_messages_service(
     user_id: string,
-    options?: { client_id?: string; platform?: string; direction?: string }
+    options?: { client_id?: string; platform?: string; direction?: string },
   ) {
     const query = this.aireplyhubRepo
       .createQueryBuilder("msg")
@@ -77,7 +77,7 @@ export class AiReplyHubChatService {
   /////////////////////////////////////////////////////////
   async update_message_service(
     idOrUuid: string | number,
-    data: Partial<AiReplyHubChat>
+    data: Partial<AiReplyHubChat>,
   ) {
     const message = await this.single_message_service(idOrUuid);
     Object.assign(message, data);
@@ -149,7 +149,7 @@ export class AiReplyHubChatService {
   async update_status_service(
     idOrUuid: string | number,
     status: "sent" | "delivered" | "read" | "failed",
-    error_message?: string
+    error_message?: string,
   ) {
     const result = await this.update_message_service(idOrUuid, {
       status,
@@ -164,7 +164,7 @@ export class AiReplyHubChatService {
   async update_ai_reply_service(
     uuid: string,
     ai_reply: string,
-    model?: string
+    model?: string,
   ) {
     const msg = await this.aireplyhubRepo.findOneBy({ uuid });
     if (!msg) throw new Error("Message not found");
@@ -181,20 +181,18 @@ export class AiReplyHubChatService {
     try {
       // FETH USER BUSINESS INFO
       const businessInfo = await this.BusinessInfo.user_business_info_service(
-        message.user_id
+        message.user_id,
       );
-
       const prompt = `You are replying to a client. Use this business info as context: ${JSON.stringify(
-        businessInfo
+        businessInfo,
       )}\nClient message: ${message.message}`;
-
       const response = await this.openAIService.generate_ai_reply_service(
         prompt,
         {
           model: "",
           businessSnapshot: "",
           purpose: "reply",
-        }
+        },
       );
 
       // Update the message with AI reply
@@ -204,7 +202,7 @@ export class AiReplyHubChatService {
       return result;
 
       // we can send outbound via platform (email/WhatsApp)
-    } catch (err) {
+    } catch (err: any) {
       console.error("AI reply failed:", err);
       message.error_message = err.message;
       await this.aireplyhubRepo.save(message);
@@ -220,5 +218,50 @@ export class AiReplyHubChatService {
       order: { sent_at: "ASC" },
     });
     return response;
+  }
+
+  //////////////////////////////////////////////
+  // FETCH CHAT HISTORY BY CLIENT
+  //////////////////////////////////////////////
+  async chat_mark_as_read_service(message_id: string) {
+    await this.aireplyhubRepo.update({ uuid: message_id }, { status: "read" });
+    return this.aireplyhubRepo.findOne({ where: { uuid: message_id } });
+  }
+
+  ////////////////////////////////////////////////
+  // FETCH ALL CHAT PARTNERS OF A USER
+  ////////////////////////////////////////////////
+  async user_chat_partner_service(userId: string) {
+    const partners = await this.aireplyhubRepo.query(
+      `
+      SELECT 
+        c.uuid AS client_uuid,
+        c.name AS client_name,
+        c.whatsapp_number,
+        c.email,
+        last_chat.message,
+        last_chat.direction,
+        last_chat.status,
+        last_chat.platform,
+        last_chat.sent_at
+      FROM client_lists c
+      LEFT JOIN (
+        SELECT DISTINCT ON (client_id)
+          client_id,
+          message,
+          direction,
+          status,
+          platform,
+          sent_at
+        FROM ai_reply_hub_chats
+        WHERE user_id = $1
+        ORDER BY client_id, sent_at DESC
+      ) last_chat 
+      ON last_chat.client_id = c.uuid OR last_chat.client_id = c.uuid
+      ORDER BY last_chat.sent_at DESC
+    `,
+      [userId],
+    );
+    return partners;
   }
 }

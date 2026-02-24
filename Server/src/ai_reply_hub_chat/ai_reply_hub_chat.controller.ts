@@ -11,12 +11,13 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Put,
 } from "@nestjs/common";
 import { AiReplyHubChatService } from "./ai_reply_hub_chat.service";
 import { JwtGuard } from "src/guards/auth/auth.guard";
 
 @Controller("reply_hub_chat")
-@UseGuards(JwtGuard)
+// @UseGuards(JwtGuard)
 export class AiReplyHubChatController {
   constructor(private readonly aireplyHub: AiReplyHubChatService) {}
 
@@ -28,7 +29,7 @@ export class AiReplyHubChatController {
   async create_message(@Body() body: any) {
     if (!body.user_id || !body.client_id || !body.message) {
       throw new BadRequestException(
-        "user_id, client_id and message are required"
+        "user_id, client_id and message are required",
       );
     }
     const result = await this.aireplyHub.create_message_service(body);
@@ -54,7 +55,7 @@ export class AiReplyHubChatController {
     @Param("user_id") user_id: string,
     @Query("client_id") client_id?: string,
     @Query("platform") platform?: string,
-    @Query("direction") direction?: string
+    @Query("direction") direction?: string,
   ) {
     const result = await this.aireplyHub.all_messages_service(user_id, {
       client_id,
@@ -91,7 +92,7 @@ export class AiReplyHubChatController {
   @HttpCode(HttpStatus.OK)
   async toggle_ai_reply(
     @Param("id") id: string,
-    @Query("enable") enable: boolean
+    @Query("enable") enable: boolean,
   ) {
     const result = await this.aireplyHub.toggle_ai_reply(id, enable);
     return { message: "AI auto-reply toggled", result };
@@ -104,14 +105,14 @@ export class AiReplyHubChatController {
   @HttpCode(HttpStatus.OK)
   async search_messages(
     @Param("user_id") user_id: string,
-    @Query("q") query: string
+    @Query("q") query: string,
   ) {
     if (!query || query.trim().length < 1) {
       throw new BadRequestException("Search query must not be empty");
     }
     const result = await this.aireplyHub.search_messages_service(
       user_id,
-      query
+      query,
     );
     return { message: "Search results", result };
   }
@@ -151,13 +152,13 @@ export class AiReplyHubChatController {
     body: {
       status: "sent" | "delivered" | "read" | "failed";
       error_message?: string;
-    }
+    },
   ) {
     const { status, error_message } = body;
     const result = await this.aireplyHub.update_status_service(
       id,
       status,
-      error_message
+      error_message,
     );
     return { message: "Status updated successfully", result };
   }
@@ -169,13 +170,13 @@ export class AiReplyHubChatController {
   @HttpCode(HttpStatus.OK)
   async update_ai_reply(
     @Param("id") id: string,
-    @Body() body: { ai_reply: string; model?: string }
+    @Body() body: { ai_reply: string; model?: string },
   ) {
     const { ai_reply, model } = body;
     const result = await this.aireplyHub.update_ai_reply_service(
       id,
       ai_reply,
-      model
+      model,
     );
     return { message: "AI reply updated successfully", result };
   }
@@ -194,16 +195,36 @@ export class AiReplyHubChatController {
   //////////////////////////////////////////////
   // FETCH CHAT HISTORY BY CLIENT
   //////////////////////////////////////////////
-  @Get("history/:user_id/:client_id") 
+  @Get("history/:user_id/:client_id")
   @HttpCode(HttpStatus.OK)
   async chat_history(
     @Param("user_id") user_id: string,
-    @Param("client_id") client_id: string
+    @Param("client_id") client_id: string,
   ) {
     const result = await this.aireplyHub.message_by_client_service(
       user_id,
-      client_id
+      client_id,
     );
     return { message: "Chat history fetched", result };
+  }
+
+  //////////////////////////////////////////////
+  // FETCH CHAT HISTORY BY CLIENT
+  //////////////////////////////////////////////
+  @Get("chat_partner/:user_id")
+  @HttpCode(HttpStatus.OK)
+  async user_message_partner(@Param("user_id") user_id: string) {
+    const result = await this.aireplyHub.user_chat_partner_service(user_id);
+    return { message: "Chat history fetched", result };
+  }
+
+  //////////////////////////////////////////////
+  // FETCH CHAT HISTORY BY CLIENT
+  //////////////////////////////////////////////
+  @Patch("mark_as_read/:message_id")
+  @HttpCode(HttpStatus.OK)
+  async chat_mark_as_read_service(@Param("message_id") message_id: string) {
+    const result = await this.aireplyHub.user_chat_partner_service(message_id);
+    return { message: "Message marked as read", result };
   }
 }
