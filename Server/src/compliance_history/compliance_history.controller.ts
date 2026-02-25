@@ -20,12 +20,12 @@ export class ComplianceHistoryController {
   @Post("log")
   async log_event(@Body() body, @Req() req) {
     return this.historyService.log_event_service(
-      req.user.id,
+      body.user_id,
       body.event_type,
       body.details,
       body.document_id,
       body.reminder_id,
-      body.company_id
+      body.company_id,
     );
   }
 
@@ -35,9 +35,9 @@ export class ComplianceHistoryController {
   @Post("document-uploaded")
   async log_document_uploaded(@Body() body, @Req() req) {
     return this.historyService.log_document_uploaded_service(
-      req.user.id,
+      body.user_id,
       body.document_id,
-      body.filename
+      body.filename,
     );
   }
 
@@ -47,8 +47,8 @@ export class ComplianceHistoryController {
   @Post("ai-summary")
   async logAiSummary(@Body() body, @Req() req) {
     return this.historyService.log_ai_summary_generated_service(
-      req.user.id,
-      body.document_id
+      body.user_id,
+      body.document_id,
     );
   }
 
@@ -58,9 +58,9 @@ export class ComplianceHistoryController {
   @Post("reminder-triggered")
   async logReminder(@Body() body, @Req() req) {
     return this.historyService.log_reminder_triggered_service(
-      req.user.id,
+      body.user_id,
       body.reminder_id,
-      body.reminder_title
+      body.reminder_title,
     );
   }
 
@@ -70,8 +70,8 @@ export class ComplianceHistoryController {
   @Post("document-verified")
   async logDocumentVerified(@Body() body, @Req() req) {
     return this.historyService.log_document_verified_service(
-      req.user.id,
-      body.document_id
+      body.user_id,
+      body.document_id,
     );
   }
 
@@ -81,9 +81,9 @@ export class ComplianceHistoryController {
   @Post("document-rejected")
   async logDocumentRejected(@Body() body, @Req() req) {
     return this.historyService.log_document_rejected_service(
-      req.user.id,
+      body.user_id,
       body.document_id,
-      body.reason
+      body.reason,
     );
   }
 
@@ -91,8 +91,8 @@ export class ComplianceHistoryController {
   // LOG AI CHAT
   //////////////////////////////////////////////////////
   @Post("ai-chat")
-  async logAiChat(@Body() body, @Req() req) {
-    return this.historyService.log_ai_chat_service(req.user.id, body.question);
+  async logAiChat(@Body() body) {
+    return this.historyService.log_ai_chat_service(body.user_id, body.question);
   }
 
   //////////////////////////////////////////////////////
@@ -101,9 +101,9 @@ export class ComplianceHistoryController {
   @Post("license-renewed")
   async logLicenseRenewed(@Body() body, @Req() req) {
     return this.historyService.log_license_renewed_service(
-      req.user.id,
+      body.user_id,
       body.license_id,
-      body.license_type
+      body.license_type,
     );
   }
 
