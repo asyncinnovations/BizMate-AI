@@ -45,6 +45,8 @@ let ComplianceHistoryController = class ComplianceHistoryController {
         return this.historyService.log_license_renewed_service(req.user.id, body.license_id, body.license_type);
     }
     async getUserHistory(req) {
+        console.log("REQ OBJECT:", req);
+        console.log("REQ.USER:", req.user);
         return this.historyService.get_user_history_service(req.user.id);
     }
     async getDocumentHistory(documentId) {
