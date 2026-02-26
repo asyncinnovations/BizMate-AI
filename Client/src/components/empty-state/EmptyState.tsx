@@ -5,12 +5,12 @@ import { LucideIcon } from "lucide-react";
 import Button from "../ui/Button";
 
 interface EmptyStateProps {
-  icon: LucideIcon;          // Main icon to show
-  title: string;             // Title text
-  description?: string;      // Optional description
-  ctaLabel?: string;         // Optional CTA button label
-  onCTAClick?: () => void;   // Optional CTA button action
-  className?: string;        // Optional extra wrapper classes
+  icon: LucideIcon;
+  title: string;
+  description?: string;
+  ctaLabel?: string;
+  onCTAClick?: () => void;
+  className?: string;
 }
 
 const EmptyState: React.FC<EmptyStateProps> = ({
@@ -23,27 +23,24 @@ const EmptyState: React.FC<EmptyStateProps> = ({
 }) => {
   return (
     <div
-      className={`flex flex-col items-center justify-center py-12 text-center space-y-2 ${className}`}
+      className={`flex flex-col items-center justify-center py-12 text-center space-y-2 bg-bg-base rounded-xl border border-border ${className}`}
     >
-      {/* ICON */}
-      <div className="p-4 rounded-full bg-gray-100 mb-4">
-        <Icon className="w-12 h-12 text-gray-400" />
+      {/* Icon container */}
+      <div className="p-4 rounded-2xl bg-brand-light border border-border shadow-card mb-4">
+        <Icon className="w-10 h-10 text-secondary" />
       </div>
 
-      {/* TITLE */}
-      <h3 className="text-xl font-semibold text-gray-700">{title}</h3>
+      {/* Title */}
+      <h3 className="text-lg font-semibold text-text-heading">{title}</h3>
 
-      {/* DESCRIPTION */}
+      {/* Description */}
       {description && (
-        <p className="text-gray-500 text-sm max-w-sm">{description}</p>
+        <p className="text-text-secondary text-sm max-w-sm">{description}</p>
       )}
 
-      {/* CTA BUTTON */}
+      {/* CTA button */}
       {ctaLabel && onCTAClick && (
-        <Button
-          onClick={onCTAClick}
-          className="mt-4 py-2 px-5"
-        >
+        <Button onClick={onCTAClick} className="mt-4 py-2 px-5">
           {ctaLabel}
         </Button>
       )}

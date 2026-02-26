@@ -70,7 +70,7 @@ const AiInsights = () => {
 
   return (
     <div className="lg:col-span-2">
-      <Card className="h-full" hoverEffect>
+      <Card className="h-full">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-gray-800 flex items-center">
             <Brain className="w-5 h-5 mr-2 text-purple-600" />

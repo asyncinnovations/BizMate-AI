@@ -58,7 +58,7 @@ const ClientManagement = () => {
     },
   ];
   return (
-    <Card className="xl:col-span-2" hoverEffect>
+    <Card className="xl:col-span-2">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-[#1B2A49] flex items-center">
           <Users className="w-5 h-5 mr-2 text-purple-600" />
@@ -89,13 +89,12 @@ const ClientManagement = () => {
                 <div className="flex items-center space-x-2">
                   <p className="font-medium text-[#344767]">{client.name}</p>
                   <span
-                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                      client.status === "active"
+                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${client.status === "active"
                         ? "bg-green-100 text-green-800"
                         : client.status === "overdue"
-                        ? "bg-red-100 text-red-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}
+                          ? "bg-red-100 text-red-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
                   >
                     {client.status}
                   </span>

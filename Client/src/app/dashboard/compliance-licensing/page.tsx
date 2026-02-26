@@ -1,873 +1,1540 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Calendar,
-  Clock,
   AlertTriangle,
   CheckCircle,
   FileText,
-  Bell,
-  // Visa,
   Building,
-  Search,
-  Filter,
   Plus,
-  Download,
-  Eye,
-  Send,
-  ChevronDown,
+  Upload,
+  RefreshCw,
+  Shield,
   Sparkles,
   TrendingUp,
-  RefreshCw,
-  UserCheck,
-  Shield,
-  CalendarClock,
-  MessageSquare,
-  Mail,
-  Zap,
-  Crown,
+  FolderOpen,
+  Link2,
+  Download,
+  Trash2,
+  Paperclip,
+  X,
+  FileBadge,
+  BadgeCheck,
+  Ban,
+  Bell,
+  Search,
+  BarChart3,
   FileCheck,
-  Users,
-  Receipt,
-  ArrowRight,
-  Star,
-  Settings,
-  RotateCcw,
-  FileSearch,
-  Calculator,
-  CreditCard,
-  MapPin,
-  Phone,
-  Globe,
-  BookOpen,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import StatCard from "@/components/stat-card/StatCard";
 import PageHeader from "@/components/page-header/PageHeader";
 import Modal from "@/components/ui/Modal";
+import LoadingSpinner from "@/components/loading-spinner/LoadingSpinner";
+import axiosInstance from "@/utils/axiosInstance";
+import { useAuth } from "@/context/AuthContext";
+import toast from "react-hot-toast";
+import InputField from "@/components/ui/InputField";
+import EmptyState from "@/components/empty-state/EmptyState";
+import LicenseCard from "@/components/license-card/LicenseCard";
+import ActionMenu from "@/components/ui/ActionMenu";
+import ComplianceHealthBar from "@/components/compliance-health/ComplianceHealthBar";
+import QuickActions from "@/components/compliance-actions/QuickActions";
+import UpcomingDeadlines from "@/components/compliance-deadlines-card/UpcomingDeadlines";
+import ActivityTimeline from "@/components/compliance-activity/ActivityTimeline";
+import ModeToggle from "@/components/mode-toggle/ModeToggle";
 
-interface ComplianceItem {
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface License {
   id: string;
-  title: string;
-  type: "license" | "visa" | "vat" | "custom";
-  dueDate: string;
-  status: "pending" | "completed" | "overdue" | "warning";
-  priority: "high" | "medium" | "low";
-  description: string;
-  daysRemaining: number;
-  lastUpdated: string;
-  associatedDocument?: string;
-  governmentAuthority: string;
-  renewalFee?: number;
-  processingTime?: string;
-  requirements: string[];
-  autoRenew: boolean;
-  reminderSent: boolean;
-  category: "free_zone" | "mainland" | "offshore";
-  submissionStatus: "not_started" | "in_progress" | "submitted" | "approved";
-  paymentStatus: "pending" | "paid" | "failed";
-  trackingNumber?: string;
-  serviceCenter?: string;
-  officerAssigned?: string;
-  estimatedCompletion?: string;
+  uuid?: string;
+  license_type: string;
+  license_number: string;
+  issue_date: string;
+  expiry_date: string;
+  status: "active" | "expired" | "renewal_pending" | "suspended";
+  company_id: string;
+  document_id?: string;
 }
 
-interface VisaApplication {
+interface ComplianceDocument {
+  uuid?: string;
   id: string;
-  employeeName: string;
-  nationality: string;
-  passportNumber: string;
-  visaType: "employment" | "investor" | "family" | "visit";
-  status:
-    | "draft"
-    | "submitted"
-    | "under_review"
-    | "medical_pending"
-    | "approved"
-    | "rejected";
-  submissionDate: string;
-  expiryDate: string;
-  currentStage: string;
-  nextStep: string;
-  documents: string[];
-  fees: number;
-  processingTime: string;
+  document_type: string;
+  filename: string;
+  file_url: string;
+  reminder_id?: string;
+  is_verified?: boolean;
+  is_rejected?: boolean;
+  created_at: string;
+  ai_summary?: string;
 }
 
-interface LicenseInfo {
+interface ActivityEntry {
   id: string;
-  licenseNumber: string;
-  licenseType: string;
-  businessActivity: string;
-  establishmentName: string;
-  issueDate: string;
-  expiryDate: string;
-  status: "active" | "expired" | "renewal_pending";
-  authority: string;
-  freeZone?: string;
-  renewalCost: number;
-  lateFees: number;
+  event_type: string;
+  details: string;
+  created_at: string;
 }
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const LICENSE_TYPES = [
+  "Trade License",
+  "VAT Registration",
+  "ESR License",
+  "Import/Export License",
+  "Professional License",
+  "Industrial License",
+  "Commercial License",
+  "Other",
+];
+
+const DOC_TYPES = [
+  "Trade License",
+  "Passport Copy",
+  "Tenancy Contract",
+  "Emirates ID",
+  "Memorandum of Association",
+  "Share Certificate",
+  "VAT Certificate",
+  "ESR Report",
+  "AML Policy",
+  "Corporate Tax Return",
+  "MOA/AOA",
+  "Commercial Registration",
+  "Bank Statement",
+  "Other",
+];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const getDaysRemaining = (expiry: string) =>
+  Math.floor((new Date(expiry).getTime() - Date.now()) / 86400000);
+
+const getLicenseStatusConfig = (status: License["status"]) => {
+  switch (status) {
+    case "active":
+      return {
+        badge:
+          "bg-status-success-bg text-status-success-text border border-status-success-border",
+        icon: <BadgeCheck className="w-3.5 h-3.5" />,
+        label: "Active",
+      };
+    case "expired":
+      return {
+        badge:
+          "bg-status-error-bg text-status-error-text border border-status-error-border",
+        icon: <AlertTriangle className="w-3.5 h-3.5" />,
+        label: "Expired",
+      };
+    case "renewal_pending":
+      return {
+        badge:
+          "bg-status-warning-bg text-status-warning-text border border-status-warning-border",
+        icon: <RefreshCw className="w-3.5 h-3.5" />,
+        label: "Renewal Pending",
+      };
+    case "suspended":
+      return {
+        badge: "bg-bg-muted text-text-secondary border border-border",
+        icon: <Ban className="w-3.5 h-3.5" />,
+        label: "Suspended",
+      };
+    default:
+      return {
+        badge:
+          "bg-status-info-bg text-status-info-text border border-status-info-border",
+        icon: <FileBadge className="w-3.5 h-3.5" />,
+        label: status,
+      };
+  }
+};
+
+const fmtDate = (d?: string) =>
+  d
+    ? new Date(d).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : "—";
+
+// ─── Shared select class ──────────────────────────────────────────────────────
+
+const selectCls =
+  "w-full border border-border text-text-primary rounded-xl px-4 py-3 text-sm bg-bg-base focus:outline-none focus:ring-2 focus:ring-border-focus focus:border-transparent transition-colors";
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ComplianceLicensingPage() {
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [typeFilter, setTypeFilter] = useState<
-    "all" | "license" | "visa" | "vat"
-  >("all");
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | "pending" | "completed" | "overdue"
-  >("all");
-  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
-  const [activeTab, setActiveTab] = useState<
-    "dashboard" | "licenses" | "visas" | "vat" | "reports"
-  >("dashboard");
-  const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
-  const [isRenewalModalOpen, setIsRenewalModalOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<ComplianceItem | null>(null);
+  const { user } = useAuth();
+  const userId = user?.user?.user_id;
+  const companyId = user?.user?.company_id;
 
-  // Enhanced compliance items with real UAE business data
-  const complianceItems: ComplianceItem[] = [
-    {
-      id: "1",
-      title: "Trade License Renewal - DED Mainland",
-      type: "license",
-      dueDate: "2024-06-15",
-      status: "pending",
-      priority: "high",
-      description: "Annual commercial license renewal for mainland company",
-      daysRemaining: 45,
-      lastUpdated: "2024-04-30",
-      associatedDocument: "trade_license_2023.pdf",
-      governmentAuthority: "Dubai DED",
-      renewalFee: 15200,
-      processingTime: "5-7 working days",
-      requirements: [
-        "Renewal application form",
-        "Passport copies of partners",
-        "Tenancy contract",
-        "Previous license",
-      ],
-      autoRenew: true,
-      reminderSent: true,
-      category: "mainland",
-      submissionStatus: "not_started",
-      paymentStatus: "pending",
-      trackingNumber: "DED-2024-06789",
-      serviceCenter: "Business Village",
-      estimatedCompletion: "2024-06-22",
-    },
-    {
-      id: "2",
-      title: "Employment Visa - Senior Developer",
-      type: "visa",
-      dueDate: "2024-05-20",
-      status: "warning",
-      priority: "high",
-      description: "Employment visa renewal under Tasheel processing",
-      daysRemaining: 20,
-      lastUpdated: "2024-04-28",
-      governmentAuthority: "GDRFA Dubai",
-      renewalFee: 3500,
-      processingTime: "10-12 working days",
-      requirements: [
-        "Employment contract",
-        "Emirates ID application",
-        "Medical fitness",
-        "Insurance card",
-      ],
-      autoRenew: false,
-      reminderSent: true,
-      category: "mainland",
-      submissionStatus: "in_progress",
-      paymentStatus: "paid",
-      trackingNumber: "GDRFA-V-234567",
-      serviceCenter: "Al Twar Center",
-      officerAssigned: "Ahmed Mohammed",
-      estimatedCompletion: "2024-05-30",
-    },
-    {
-      id: "3",
-      title: "VAT Return - Q2 2024",
-      type: "vat",
-      dueDate: "2024-07-28",
-      status: "pending",
-      priority: "medium",
-      description: "Quarterly VAT return submission for AED 1.2M turnover",
-      daysRemaining: 88,
-      lastUpdated: "2024-04-25",
-      governmentAuthority: "Federal Tax Authority",
-      requirements: [
-        "Sales records",
-        "Purchase records",
-        "VAT calculation sheet",
-        "Bank statements",
-      ],
-      autoRenew: true,
-      reminderSent: false,
-      category: "mainland",
-      submissionStatus: "not_started",
-      paymentStatus: "pending",
-    },
-    {
-      id: "4",
-      title: "Free Zone License - DMCC",
-      type: "license",
-      dueDate: "2024-08-10",
-      status: "pending",
-      priority: "medium",
-      description: "DMCC free zone company license renewal",
-      daysRemaining: 101,
-      lastUpdated: "2024-04-20",
-      governmentAuthority: "DMCC Authority",
-      renewalFee: 18500,
-      processingTime: "3-5 working days",
-      requirements: [
-        "Renewal form",
-        "Office tenancy",
-        "Share certificate",
-        "Board resolution",
-      ],
-      autoRenew: false,
-      reminderSent: false,
-      category: "free_zone",
-      submissionStatus: "not_started",
-      paymentStatus: "pending",
-      trackingNumber: "DMCC-FZ-456789",
-      serviceCenter: "DMCC Business Center",
-    },
-  ];
+  // ── Tab ──
+  const [activeTab, setActiveTab] = useState<"licensing" | "documents">(
+    "licensing",
+  );
 
-  const visaApplications: VisaApplication[] = [
-    {
-      id: "visa-1",
-      employeeName: "Ahmed Hassan",
-      nationality: "Egyptian",
-      passportNumber: "A12345678",
-      visaType: "employment",
-      status: "medical_pending",
-      submissionDate: "2024-04-15",
-      expiryDate: "2026-04-15",
-      currentStage: "Medical Testing",
-      nextStep: "Emirates ID Application",
-      documents: [
-        "Passport copy",
-        "Photo",
-        "Medical certificate",
-        "Employment contract",
-      ],
-      fees: 5200,
-      processingTime: "15-20 working days",
-    },
-    {
-      id: "visa-2",
-      employeeName: "Sarah Johnson",
-      nationality: "British",
-      passportNumber: "B87654321",
-      visaType: "investor",
-      status: "under_review",
-      submissionDate: "2024-04-10",
-      expiryDate: "2025-04-10",
-      currentStage: "Security Clearance",
-      nextStep: "Visa Stamping",
-      documents: [
-        "Passport copy",
-        "Investment proof",
-        "Business license",
-        "Bank statements",
-      ],
-      fees: 7500,
-      processingTime: "25-30 working days",
-    },
-  ];
+  // ── Data ──
+  const [licenses, setLicenses] = useState<License[]>([]);
+  const [documents, setDocuments] = useState<ComplianceDocument[]>([]);
+  const [activity, setActivity] = useState<ActivityEntry[]>([]);
 
-  const licenseInfo: LicenseInfo[] = [
-    {
-      id: "lic-1",
-      licenseNumber: "CN-123456789",
-      licenseType: "Commercial",
-      businessActivity: "Information Technology Services",
-      establishmentName: "Tech Solutions Middle East LLC",
-      issueDate: "2023-06-15",
-      expiryDate: "2024-06-15",
-      status: "active",
-      authority: "Dubai DED",
-      renewalCost: 15200,
-      lateFees: 1000,
-    },
-    {
-      id: "lic-2",
-      licenseNumber: "FZ-987654321",
-      licenseType: "Free Zone Commercial",
-      businessActivity: "E-commerce & Digital Marketing",
-      establishmentName: "Digital Ventures FZCO",
-      issueDate: "2023-08-20",
-      expiryDate: "2024-08-20",
-      status: "active",
-      authority: "DMCC",
-      freeZone: "DMCC",
-      renewalCost: 18500,
-      lateFees: 1500,
-    },
-  ];
+  // ── Loading ──
+  const [licensesLoading, setLicensesLoading] = useState(false);
+  const [docsLoading, setDocsLoading] = useState(false);
+  const [activityLoading, setActivityLoading] = useState(false);
+
+  // ── Search / filter ──
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  // ── Modals ──
+  const [isAddLicenseOpen, setIsAddLicenseOpen] = useState(false);
+  const [isEditLicenseOpen, setIsEditLicenseOpen] = useState(false);
+  const [isUploadDocOpen, setIsUploadDocOpen] = useState(false);
+  const [isAttachDocOpen, setIsAttachDocOpen] = useState(false);
+  const [isAttachToLicenseOpen, setIsAttachToLicenseOpen] = useState(false);
+  const [isReminderOpen, setIsReminderOpen] = useState(false);
+  const [selectedLicense, setSelectedLicense] = useState<License | null>(null);
+  const [selectedDoc, setSelectedDoc] = useState<ComplianceDocument | null>(
+    null,
+  );
+  const [attachMode, setAttachMode] = useState<"upload" | "select">("upload");
+  const [selectedExistingDocId, setSelectedExistingDocId] = useState("");
+  const [selectedExistingLicId, setSelectedExistingLicId] = useState("");
+
+  // ── Forms ──
+  const [addForm, setAddForm] = useState({
+    license_type: "",
+    license_number: "",
+    issue_date: "",
+    expiry_date: "",
+  });
+  const [editForm, setEditForm] = useState({
+    license_type: "",
+    license_number: "",
+    issue_date: "",
+    expiry_date: "",
+  });
+  const [addFormErrors, setAddFormErrors] = useState<Record<string, string>>(
+    {},
+  );
+  const [editFormErrors, setEditFormErrors] = useState<Record<string, string>>(
+    {},
+  );
+  const [addFormLoading, setAddFormLoading] = useState(false);
+  const [editFormLoading, setEditFormLoading] = useState(false);
+  const [uploadDocForm, setUploadDocForm] = useState({
+    document_type: "",
+    file_url: "",
+  });
+  const [uploadDocFile, setUploadDocFile] = useState<File | null>(null);
+  const [uploadDocLoading, setUploadDocLoading] = useState(false);
+  const [attachDocLoading, setAttachDocLoading] = useState(false);
+  const [attachToLicLoading, setAttachToLicLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState<string | null>(null);
+  const [reminderLoading, setReminderLoading] = useState(false);
+  const [reminderForm, setReminderForm] = useState({
+    license_id: "",
+    days_before: "30",
+    notify_email: true,
+  });
+
+  const fileRef = useRef<HTMLInputElement>(null);
+  const fileRef2 = useRef<HTMLInputElement>(null);
+
+  // ── Fetch ─────────────────────────────────────────────────────────────────
+
+  const fetchLicenses = useCallback(async () => {
+    if (!userId) return;
+    setLicensesLoading(true);
+    try {
+      const res = await axiosInstance.get(
+        `/compliance-licensing/user/${userId}${companyId ? `?company_id=${companyId}` : ""}`,
+      );
+      const data = res.data || [];
+      setLicenses(data.map((item: License) => ({ ...item, id: item.uuid })));
+    } catch {
+      toast.error("Failed to load licenses");
+    } finally {
+      setLicensesLoading(false);
+    }
+  }, [userId, companyId]);
+
+  const fetchDocuments = useCallback(async () => {
+    if (!userId) return;
+    setDocsLoading(true);
+    try {
+      const res = await axiosInstance.get(
+        `/compliance-documents/user/${userId}`,
+      );
+      const data = res.data?.response || [];
+      setDocuments(
+        data.map((item: ComplianceDocument) => ({ ...item, id: item.uuid })),
+      );
+    } catch {
+      toast.error("Failed to load documents");
+    } finally {
+      setDocsLoading(false);
+    }
+  }, [userId]);
+
+  const fetchActivity = useCallback(async () => {
+    if (!userId) return;
+    setActivityLoading(true);
+    try {
+      const res = await axiosInstance.get(`/compliance-history/user`);
+      const data = res.data?.response || res.data || [];
+      setActivity(data.slice(0, 10));
+    } catch {
+      /* silent */
+    } finally {
+      setActivityLoading(false);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    fetchLicenses();
+    fetchDocuments();
+    fetchActivity();
+  }, [fetchLicenses, fetchDocuments, fetchActivity]);
+
+  // ── Derived ───────────────────────────────────────────────────────────────
+
+  const getAttachedDocument = (license: License) =>
+    license.document_id
+      ? documents.find((d) => d.id === license.document_id)
+      : undefined;
+
+  const filteredLicenses = licenses.filter((l) => {
+    const q = searchQuery.toLowerCase();
+    return (
+      (!q ||
+        l.license_type.toLowerCase().includes(q) ||
+        l.license_number.toLowerCase().includes(q)) &&
+      (statusFilter === "all" || l.status === statusFilter)
+    );
+  });
+
+  // ── CRUD: License ─────────────────────────────────────────────────────────
+
+  const validateAddForm = () => {
+    const errs: Record<string, string> = {};
+    if (!addForm.license_type.trim())
+      errs.license_type = "License type is required";
+    if (!addForm.license_number.trim())
+      errs.license_number = "License number is required";
+    if (!addForm.issue_date) errs.issue_date = "Issue date is required";
+    if (!addForm.expiry_date) errs.expiry_date = "Expiry date is required";
+    setAddFormErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleAddLicense = async () => {
+    if (!validateAddForm()) return;
+    setAddFormLoading(true);
+    try {
+      await axiosInstance.post("/compliance-licensing/create", {
+        user_id: userId,
+        company_id: companyId,
+        ...addForm,
+      });
+      toast.success("License added successfully");
+      setIsAddLicenseOpen(false);
+      setAddForm({
+        license_type: "",
+        license_number: "",
+        issue_date: "",
+        expiry_date: "",
+      });
+      fetchLicenses();
+    } catch (error) {
+      toast.error("Failed to add license");
+      console.log(error);
+    } finally {
+      setAddFormLoading(false);
+    }
+  };
+
+  const openEditLicense = (lic: License) => {
+    setSelectedLicense(lic);
+    setEditForm({
+      license_type: lic.license_type,
+      license_number: lic.license_number,
+      issue_date: lic.issue_date.split("T")[0] || "",
+      expiry_date: lic.expiry_date.split("T")[0] || "",
+    });
+    setIsEditLicenseOpen(true);
+  };
+
+  const validateEditForm = () => {
+    const errs: Record<string, string> = {};
+    if (!editForm.license_type.trim())
+      errs.license_type = "License type is required";
+    if (!editForm.license_number.trim())
+      errs.license_number = "License number is required";
+    if (!editForm.issue_date) errs.issue_date = "Issue date is required";
+    if (!editForm.expiry_date) errs.expiry_date = "Expiry date is required";
+    setEditFormErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleEditLicense = async () => {
+    if (!validateEditForm() || !selectedLicense) return;
+    setEditFormLoading(true);
+    try {
+      await axiosInstance.put(
+        `/compliance-licensing/update/${selectedLicense.id}`,
+        editForm,
+      );
+      toast.success("License updated");
+      setIsEditLicenseOpen(false);
+      fetchLicenses();
+    } catch (error) {
+      toast.error("Failed to update license");
+      console.log(error);
+    } finally {
+      setEditFormLoading(false);
+    }
+  };
+
+  const handleDeleteLicense = async (id: string) => {
+    if (!confirm("Delete this license? This action cannot be undone.")) return;
+    try {
+      await axiosInstance.delete(`/compliance-licensing/delete/${id}`);
+      toast.success("License deleted");
+      setLicenses((p) => p.filter((l) => l.id !== id));
+    } catch (error) {
+      toast.error("Failed to delete license");
+      console.log(error);
+    }
+  };
+
+  // ── CRUD: Documents ───────────────────────────────────────────────────────
+
+  const handleUploadDocument = async () => {
+    if (!uploadDocForm.document_type) {
+      toast.error("Please select a document type");
+      return;
+    }
+    if (!uploadDocFile && !uploadDocForm.file_url) {
+      toast.error("Please upload a file");
+      return;
+    }
+    setUploadDocLoading(true);
+    try {
+      const fd = new FormData();
+      fd.append("user_id", userId as string);
+      fd.append("document_type", uploadDocForm.document_type);
+      if (uploadDocFile) {
+        fd.append("filename", uploadDocFile);
+      } else {
+        fd.append("file_url", uploadDocForm.file_url);
+        fd.append(
+          "filename",
+          uploadDocForm.file_url.split("/").pop() || "document",
+        );
+      }
+      await axiosInstance.post("/compliance-documents/create", fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      toast.success("Document uploaded successfully");
+      setIsUploadDocOpen(false);
+      setUploadDocForm({ document_type: "", file_url: "" });
+      setUploadDocFile(null);
+      fetchDocuments();
+    } catch (error) {
+      toast.error("Failed to upload document");
+      console.log(error);
+    } finally {
+      setUploadDocLoading(false);
+    }
+  };
+
+  const genAI = async (doc: ComplianceDocument) => {
+    setAiLoading(doc.id);
+    try {
+      const r = await axiosInstance.patch(
+        `/compliance-documents/ai_summary/${doc.id}`,
+      );
+      toast.success("AI summary generated");
+      setDocuments((p) =>
+        p.map((d) =>
+          d.id === doc.id
+            ? { ...d, ai_summary: r.data?.response?.ai_summary }
+            : d,
+        ),
+      );
+    } catch (error) {
+      toast.error("Failed to generate AI summary");
+      console.log(error);
+    } finally {
+      setAiLoading(null);
+    }
+  };
+
+  const handleAttachDocToLicense = async () => {
+    if (!selectedLicense) return;
+    setAttachDocLoading(true);
+    try {
+      let docId = selectedExistingDocId;
+      if (attachMode === "upload") {
+        if (!uploadDocFile) {
+          toast.error("Please select a file");
+          setAttachDocLoading(false);
+          return;
+        }
+        const fd = new FormData();
+        fd.append("user_id", userId as string);
+        fd.append("document_type", uploadDocForm.document_type || "Other");
+        fd.append("filename", uploadDocFile);
+        const res = await axiosInstance.post(
+          "/compliance-documents/create",
+          fd,
+          { headers: { "Content-Type": "multipart/form-data" } },
+        );
+        docId = res.data?.response?.id || res.data?.id;
+      }
+      if (!docId) {
+        toast.error("No document selected");
+        setAttachDocLoading(false);
+        return;
+      }
+      await axiosInstance.put(
+        `/compliance-licensing/${selectedLicense.id}/attach-document/${docId}`,
+      );
+      toast.success("Document attached to license");
+      setIsAttachDocOpen(false);
+      setSelectedExistingDocId("");
+      setUploadDocFile(null);
+      fetchLicenses();
+      fetchDocuments();
+    } catch (error) {
+      toast.error("Failed to attach document");
+      console.log(error);
+    } finally {
+      setAttachDocLoading(false);
+    }
+  };
+
+  const handleAttachDocToSelectedLicense = async () => {
+    if (!selectedDoc || !selectedExistingLicId) {
+      toast.error("Please select a license");
+      return;
+    }
+    setAttachToLicLoading(true);
+    try {
+      await axiosInstance.put(
+        `/compliance-licensing/${selectedExistingLicId}/attach-document/${selectedDoc.id}`,
+      );
+      toast.success("Document attached to license");
+      setIsAttachToLicenseOpen(false);
+      setSelectedExistingLicId("");
+      fetchLicenses();
+    } catch (error) {
+      toast.error("Failed to attach document");
+      console.log(error);
+    } finally {
+      setAttachToLicLoading(false);
+    }
+  };
+
+  const handleDeleteDocument = async (id: string) => {
+    if (!confirm("Delete this document? This action cannot be undone.")) return;
+    try {
+      await axiosInstance.delete(`/compliance-documents/delete/${id}`);
+      toast.success("Document deleted");
+      setDocuments((p) => p.filter((d) => d.id !== id));
+    } catch (error) {
+      toast.error("Failed to delete document");
+      console.log(error);
+    }
+  };
+
+  // ── Reminder ──────────────────────────────────────────────────────────────
+
+  const handleSetReminder = async () => {
+    if (!reminderForm.license_id) {
+      toast.error("Please select a license");
+      return;
+    }
+    setReminderLoading(true);
+    try {
+      await axiosInstance.post("/compliance-reminders/create", {
+        user_id: userId,
+        license_id: reminderForm.license_id,
+        days_before: parseInt(reminderForm.days_before),
+        notify_email: reminderForm.notify_email,
+      });
+      toast.success("Reminder set successfully");
+      setIsReminderOpen(false);
+    } catch (error) {
+      toast.error("Failed to set reminder");
+      console.log(error);
+    } finally {
+      setReminderLoading(false);
+    }
+  };
+
+  // ── Stats ─────────────────────────────────────────────────────────────────
+
+  const expiringSoon = licenses.filter((l) => {
+    const d = getDaysRemaining(l.expiry_date);
+    return d > 0 && d <= 60;
+  }).length;
+  const verifiedDocs = documents.filter((d) => d.is_verified).length;
+  const activeLicenses = licenses.filter((l) => l.status === "active").length;
 
   const statsData = [
     {
-      icon: <Calendar />,
-      iconBg: "bg-blue-50",
-      iconColor: "text-blue-600",
-      badgeText: "+2 Urgent",
-      badgeBg: "bg-blue-50",
-      badgeColor: "text-blue-500",
-      title: "Pending Renewals",
-      value: "4",
-      subtitle: "Need immediate attention",
+      icon: <FileBadge />,
+      iconBg: "bg-status-info-bg",
+      iconColor: "text-status-info",
+      badgeText: `${activeLicenses} Active`,
+      badgeBg: "bg-status-info-bg",
+      badgeColor: "text-status-info-text",
+      title: "Total Licenses",
+      value: String(licenses.length),
+      subtitle: "Across all entities",
     },
     {
-      icon: <Clock />,
-      iconBg: "bg-amber-50",
-      iconColor: "text-amber-600",
-      badgeText: "20 days",
-      badgeBg: "bg-amber-50",
-      badgeColor: "text-amber-500",
-      title: "Nearest Deadline",
-      value: "May 20",
-      subtitle: "Employment Visa",
+      icon: <AlertTriangle />,
+      iconBg: "bg-status-warning-bg",
+      iconColor: "text-status-warning",
+      badgeText: "Action needed",
+      badgeBg: "bg-status-warning-bg",
+      badgeColor: "text-status-warning-text",
+      title: "Expiring Soon",
+      value: String(expiringSoon),
+      subtitle: "Within 60 days",
     },
     {
-      icon: <Calculator />,
-      iconBg: "bg-purple-50",
-      iconColor: "text-purple-600",
-      badgeText: "AED 42K",
-      badgeBg: "bg-purple-50",
-      badgeColor: "text-purple-500",
-      title: "Upcoming Fees",
-      value: "4 Items",
-      subtitle: "Total due amount",
+      icon: <FileText />,
+      iconBg: "bg-brand-light",
+      iconColor: "text-secondary",
+      badgeText: `${verifiedDocs} Verified`,
+      badgeBg: "bg-brand-light",
+      badgeColor: "text-secondary",
+      title: "Documents",
+      value: String(documents.length),
+      subtitle: "Total uploaded",
     },
     {
       icon: <TrendingUp />,
-      iconBg: "bg-green-50",
-      iconColor: "text-green-600",
+      iconBg: "bg-status-success-bg",
+      iconColor: "text-status-success",
       badgeText: "AI Active",
-      badgeBg: "bg-green-50",
-      badgeColor: "text-green-500",
+      badgeBg: "bg-status-success-bg",
+      badgeColor: "text-status-success-text",
       title: "Compliance Score",
-      value: "92%",
-      subtitle: "Excellent standing",
+      value:
+        licenses.length === 0
+          ? "—"
+          : `${Math.round((activeLicenses / licenses.length) * 100)}%`,
+      subtitle: "License health",
       gradient: true,
     },
   ];
 
-  const governmentPortals = [
-    {
-      name: "Dubai DED",
-      url: "https://ded.gov.ae",
-      icon: <Building className="w-4 h-4" />,
-    },
-    {
-      name: "GDRFA Dubai",
-      url: "https://gdrfad.gov.ae",
-      icon: <Building className="w-4 h-4" />,
-    },
-    {
-      name: "FTA Portal",
-      url: "https://tax.gov.ae",
-      icon: <Receipt className="w-4 h-4" />,
-    },
-    {
-      name: "DMCC",
-      url: "https://dmcc.ae",
-      icon: <MapPin className="w-4 h-4" />,
-    },
-  ];
-
-  const quickActions = [
-    {
-      name: "Renew License",
-      icon: <RefreshCw className="w-5 h-5" />,
-      action: () => setIsRenewalModalOpen(true),
-    },
-    {
-      name: "Apply Visa",
-      icon: <UserCheck className="w-5 h-5" />,
-      action: () => router.push("/dashboard/visas/new"),
-    },
-    {
-      name: "File VAT",
-      icon: <Calculator className="w-5 h-5" />,
-      action: () => router.push("/dashboard/vat/filing"),
-    },
-    {
-      name: "Track Application",
-      icon: <FileSearch className="w-5 h-5" />,
-      action: () => router.push("/dashboard/tracking"),
-    },
-  ];
-
-  const getStatusIcon = (status: ComplianceItem["status"]) => {
-    switch (status) {
-      case "completed":
-        return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case "overdue":
-        return <AlertTriangle className="w-4 h-4 text-red-600" />;
-      case "warning":
-        return <AlertTriangle className="w-4 h-4 text-amber-600" />;
-      default:
-        return <Clock className="w-4 h-4 text-blue-600" />;
-    }
-  };
-
-  const getStatusBadge = (status: ComplianceItem["status"]) => {
-    switch (status) {
-      case "completed":
-        return "bg-green-50 text-green-700 border border-green-200";
-      case "overdue":
-        return "bg-red-50 text-red-700 border border-red-200";
-      case "warning":
-        return "bg-amber-50 text-amber-700 border border-amber-200";
-      default:
-        return "bg-blue-50 text-blue-700 border border-blue-200";
-    }
-  };
-
-  const getPriorityBadge = (priority: ComplianceItem["priority"]) => {
-    switch (priority) {
-      case "high":
-        return "bg-red-50 text-red-700 border border-red-200";
-      case "medium":
-        return "bg-amber-50 text-amber-700 border border-amber-200";
-      default:
-        return "bg-green-50 text-green-700 border border-green-200";
-    }
-  };
-
-  const getTypeIcon = (type: ComplianceItem["type"]) => {
-    switch (type) {
-      case "license":
-        return <Building className="w-4 h-4" />;
-      case "visa":
-        return <Building className="w-4 h-4" />;
-      case "vat":
-        return <Receipt className="w-4 h-4" />;
-      default:
-        return <FileText className="w-4 h-4" />;
-    }
-  };
-
-  const handleSendReminder = (item: ComplianceItem) => {
-    setSelectedItem(item);
-    setIsReminderModalOpen(true);
-  };
-
-  const handleRenewNow = (item: ComplianceItem) => {
-    setSelectedItem(item);
-    setIsRenewalModalOpen(true);
-  };
-
-  const handleTrackApplication = (item: ComplianceItem) => {
-    router.push(`/dashboard/compliance/tracking/${item.trackingNumber}`);
-  };
-
-  const handlePayFees = (item: ComplianceItem) => {
-    router.push(`/dashboard/payments/${item.id}`);
-  };
-
-  const filteredItems = complianceItems.filter((item) => {
-    const matchesSearch =
-      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesType = typeFilter === "all" || item.type === typeFilter;
-    const matchesStatus =
-      statusFilter === "all" || item.status === statusFilter;
-
-    return matchesSearch && matchesType && matchesStatus;
-  });
-
-  const upcomingItems = complianceItems
-    .filter((item) => item.status === "pending" || item.status === "warning")
-    .sort(
-      (a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
-    )
-    .slice(0, 3);
-
-  const urgentItems = complianceItems.filter(
-    (item) =>
-      item.priority === "high" &&
-      (item.status === "pending" || item.status === "warning")
-  );
-
-  const totalUpcomingFees = complianceItems
-    .filter((item) => item.status === "pending" || item.status === "warning")
-    .reduce((sum, item) => sum + (item.renewalFee || 0), 0);
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen p-4 mb-8">
+      <div className="min-h-screen p-4 mb-8 bg-bg-base">
         {/* Header */}
         <PageHeader
-          title="Compliance & Licensing Hub"
-          description="AI-powered license renewal, visa tracking, VAT filing, and smart expiry reminders with UAE government integration"
+          title="Compliance & Licensing"
+          description="Manage UAE business licenses, compliance documents, and track expiry deadlines"
           showAIBadge={true}
           icon={<Shield size={24} />}
           buttons={[
             {
-              text: "Quick Renewal",
-              onClick: () => setIsRenewalModalOpen(true),
-              icon: <RefreshCw size={20} />,
-              className: "bg-[#F6A821] hover:bg-[#e29819]",
+              text: "Upload Document",
+              onClick: () => setIsUploadDocOpen(true),
+              icon: <Upload size={18} />,
+              className:
+                "bg-surface border border-border text-text-primary hover:bg-bg-subtle",
             },
             {
-              text: "Add New Item",
-              onClick: () => router.push("/dashboard/compliance/new"),
-              icon: <Plus size={20} />,
+              text: "Add License",
+              onClick: () => setIsAddLicenseOpen(true),
+              icon: <Plus size={18} />,
             },
           ]}
         />
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {statsData.map((stat, index) => (
-            <StatCard key={index} {...stat} />
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {statsData.map((stat, i) => (
+            <StatCard key={i} {...stat} />
           ))}
         </div>
 
+        {/* Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Urgent Alerts */}
-            {urgentItems.length > 0 && (
-              <div className="bg-gradient-to-r from-red-50 to-amber-50 border border-red-200 rounded-xl p-4">
-                <div className="flex items-center gap-3">
-                  <AlertTriangle className="w-5 h-5 text-red-600" />
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-red-800">
-                      Urgent Action Required
-                    </h3>
-                    <p className="text-red-700 text-sm">
-                      {urgentItems.length} high-priority item
-                      {urgentItems.length > 1 ? "s" : ""} need
-                      {urgentItems.length > 1 ? "" : "s"} immediate attention
-                    </p>
-                  </div>
-                  <button className="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition-colors">
-                    Take Action
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Compliance Items Grid */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-[#E1E8F5]">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-[#1B2A49]">
-                  Active Compliance Items
+          {/* ── LEFT ── */}
+          <div className="lg:col-span-2">
+            <div className="bg-surface rounded-xl border border-border shadow-card overflow-hidden">
+              {/* Panel title */}
+              <div className="px-5 pt-5 pb-2">
+                <h2 className="text-lg font-bold text-text-heading">
+                  Licensing & Documents
                 </h2>
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search compliance items..."
-                      className="pl-10 pr-4 py-2.5 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] focus:border-transparent w-64 text-sm"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-                      className="flex items-center gap-2 px-4 py-2.5 border border-[#E1E8F5] rounded-lg hover:bg-[#F4F7FA] transition-colors text-sm font-semibold text-[#344767]"
-                    >
-                      <Filter className="h-4 w-4" />
-                      Filter
-                      <ChevronDown
-                        className={`h-4 w-4 transition-transform ${
-                          showFilterDropdown ? "rotate-180" : ""
-                        }`}
-                      />
-                    </button>
-                  </div>
-                </div>
+                <p className="text-xs text-text-muted mt-0.5">
+                  Manage your business compliance records
+                </p>
               </div>
 
-              <div className="space-y-4">
-                {filteredItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="border border-[#E1E8F5] rounded-lg p-4 hover:border-[#2E69A4] transition-colors group"
+              {/* Tabs */}
+              <div className="flex px-2 pt-1">
+                {(["licensing", "documents"] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`flex items-center gap-2 px-5 py-3.5 text-sm font-semibold transition-all border-b-2 capitalize ${
+                      activeTab === tab
+                        ? "text-text-heading border-brand"
+                        : "text-text-muted border-transparent hover:text-text-primary"
+                    }`}
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-start gap-3 flex-1">
-                        <div className="w-12 h-12 bg-gradient-to-br from-[#1B2A49] to-[#2E69A4] rounded-lg flex items-center justify-center text-white">
-                          {getTypeIcon(item.type)}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-bold text-[#1B2A49] text-lg">
-                              {item.title}
-                            </h3>
-                            {item.autoRenew && (
-                              <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 text-xs rounded-full border border-green-200">
-                                <RefreshCw className="w-3 h-3" />
-                                Auto-renew
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[#344767] text-sm mb-2">
-                            {item.description}
-                          </p>
-                          <div className="flex items-center gap-4 text-xs text-gray-500">
-                            <span className="flex items-center gap-1">
-                              <MapPin className="w-3 h-3" />
-                              {item.governmentAuthority}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {item.processingTime}
-                            </span>
-                            {item.trackingNumber && (
-                              <span className="flex items-center gap-1">
-                                <FileSearch className="w-3 h-3" />
-                                {item.trackingNumber}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityBadge(
-                            item.priority
-                          )}`}
-                        >
-                          {item.priority.toUpperCase()}
-                        </span>
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(
-                            item.status
-                          )}`}
-                        >
-                          {getStatusIcon(item.status)}
-                          {item.status.charAt(0).toUpperCase() +
-                            item.status.slice(1)}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-6">
-                        <div>
-                          <div className="text-xs text-gray-500">Due Date</div>
-                          <div className="text-sm font-semibold text-[#1B2A49]">
-                            {new Date(item.dueDate).toLocaleDateString()}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-gray-500">
-                            Days Remaining
-                          </div>
-                          <div
-                            className={`text-sm font-semibold ${
-                              item.daysRemaining < 30
-                                ? "text-red-600"
-                                : item.daysRemaining < 60
-                                ? "text-amber-600"
-                                : "text-green-600"
-                            }`}
-                          >
-                            {item.daysRemaining > 0
-                              ? `${item.daysRemaining} days`
-                              : "Overdue"}
-                          </div>
-                        </div>
-                        {item.renewalFee && (
-                          <div>
-                            <div className="text-xs text-gray-500">Fee</div>
-                            <div className="text-sm font-semibold text-[#1B2A49]">
-                              AED {item.renewalFee.toLocaleString()}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {item.trackingNumber && (
-                          <button
-                            onClick={() => handleTrackApplication(item)}
-                            className="flex items-center gap-2 px-3 py-1.5 border border-[#E1E8F5] text-[#344767] text-sm rounded-lg hover:bg-[#F4F7FA] transition-colors"
-                          >
-                            <FileSearch className="w-4 h-4" />
-                            Track
-                          </button>
-                        )}
-                        {item.renewalFee && (
-                          <button
-                            onClick={() => handlePayFees(item)}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-[#F6A821] text-white text-sm rounded-lg hover:bg-[#e29819] transition-colors"
-                          >
-                            <CreditCard className="w-4 h-4" />
-                            Pay Fees
-                          </button>
-                        )}
-                        <button
-                          onClick={() => handleRenewNow(item)}
-                          className="flex items-center gap-2 px-3 py-1.5 bg-[#2E69A4] text-white text-sm rounded-lg hover:bg-[#1B2A49] transition-colors"
-                        >
-                          <RefreshCw className="w-4 h-4" />
-                          Renew
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                    {tab === "licensing" ? (
+                      <FileBadge className="w-4 h-4" />
+                    ) : (
+                      <FolderOpen className="w-4 h-4" />
+                    )}
+                    {tab === "licensing" ? "Licenses" : "Documents"}
+                    <span
+                      className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${activeTab === tab ? "bg-brand text-on-brand" : "bg-bg-subtle text-text-muted"}`}
+                    >
+                      {tab === "licensing" ? licenses.length : documents.length}
+                    </span>
+                  </button>
                 ))}
               </div>
+              <div className="border-t border-border" />
+
+              {/* ── Licensing Tab ── */}
+              {activeTab === "licensing" && (
+                <div className="p-5">
+                  {licenses.length > 0 && (
+                    <div className="flex items-center gap-3 mb-5">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                        <input
+                          type="text"
+                          placeholder="Search licenses..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="w-full pl-9 pr-4 py-2.5 text-sm bg-bg-muted border border-border rounded-xl text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-border-focus focus:border-transparent transition-colors"
+                        />
+                      </div>
+                      <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="px-3 py-2.5 text-sm bg-bg-muted border border-border rounded-xl text-text-primary focus:outline-none focus:ring-2 focus:ring-border-focus cursor-pointer"
+                      >
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="expired">Expired</option>
+                        <option value="renewal_pending">Renewal Pending</option>
+                        <option value="suspended">Suspended</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {licensesLoading ? (
+                    <div className="flex items-center justify-center py-16">
+                      <LoadingSpinner size="w-7 h-7" />
+                    </div>
+                  ) : licenses.length === 0 ? (
+                    <EmptyState
+                      icon={FileBadge}
+                      title="No licenses yet"
+                      description="Add your first UAE business license to get started"
+                      ctaLabel="Add License"
+                      onCTAClick={() => setIsAddLicenseOpen(true)}
+                    />
+                  ) : filteredLicenses.length === 0 ? (
+                    <EmptyState
+                      icon={Search}
+                      title="No matches found"
+                      description="Try adjusting your search or filter"
+                    />
+                  ) : (
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                      {filteredLicenses.map((lic) => (
+                        <LicenseCard
+                          key={lic.id}
+                          license={lic}
+                          attachedDocument={getAttachedDocument(lic)}
+                          onViewDetails={() =>
+                            router.push(
+                              `/dashboard/compliance-licensing/licenses/${lic.id}`,
+                            )
+                          }
+                          onEdit={() => openEditLicense(lic)}
+                          onDelete={() => handleDeleteLicense(lic.id)}
+                          onAttachDocument={() => {
+                            setSelectedLicense(lic);
+                            setAttachMode("upload");
+                            setUploadDocFile(null);
+                            setUploadDocForm({
+                              document_type: "",
+                              file_url: "",
+                            });
+                            setSelectedExistingDocId("");
+                            setIsAttachDocOpen(true);
+                          }}
+                          onChangeDocument={() => {
+                            setSelectedLicense(lic);
+                            setAttachMode("select");
+                            setUploadDocFile(null);
+                            setUploadDocForm({
+                              document_type: "",
+                              file_url: "",
+                            });
+                            setSelectedExistingDocId("");
+                            setIsAttachDocOpen(true);
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── Documents Tab ── */}
+              {activeTab === "documents" && (
+                <div className="p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-sm text-text-muted">
+                      {documents.length} document
+                      {documents.length !== 1 ? "s" : ""}
+                    </p>
+                    <button
+                      onClick={() => setIsUploadDocOpen(true)}
+                      className="flex items-center gap-1.5 text-xs font-semibold text-text-primary hover:text-text-heading bg-bg-subtle hover:bg-bg-muted px-3 py-1.5 rounded-lg border border-border transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Upload New
+                    </button>
+                  </div>
+
+                  {docsLoading ? (
+                    <div className="flex items-center justify-center py-16">
+                      <LoadingSpinner size="w-7 h-7" />
+                    </div>
+                  ) : documents.length === 0 ? (
+                    <EmptyState
+                      icon={FileText}
+                      title="No documents yet"
+                      description="Upload compliance documents to manage them here"
+                      ctaLabel="Upload Document"
+                      onCTAClick={() => setIsUploadDocOpen(true)}
+                    />
+                  ) : (
+                    <div className="space-y-2">
+                      {documents.map((doc) => (
+                        <div
+                          key={doc.id}
+                          className="flex items-center gap-4 p-4 border border-border rounded-xl hover:border-border-strong hover:bg-bg-subtle/40 transition-all"
+                        >
+                          <div className="w-10 h-10 bg-brand-light rounded-xl flex items-center justify-center shrink-0">
+                            <FileText className="w-5 h-5 text-secondary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                              <span className="font-semibold text-text-heading text-sm truncate">
+                                {doc.filename}
+                              </span>
+                              {doc.is_verified && (
+                                <span className="flex-shrink-0 inline-flex items-center gap-1 px-2 py-0.5 bg-status-success-bg text-status-success-text text-xs rounded-full border border-status-success-border">
+                                  <CheckCircle className="w-3 h-3" /> Verified
+                                </span>
+                              )}
+                              {doc.is_rejected && (
+                                <span className="flex-shrink-0 inline-flex items-center gap-1 px-2 py-0.5 bg-status-error-bg text-status-error-text text-xs rounded-full border border-status-error-border">
+                                  <X className="w-3 h-3" /> Rejected
+                                </span>
+                              )}
+                              {doc.ai_summary && (
+                                <span className="flex-shrink-0 inline-flex items-center gap-1 px-2 py-0.5 bg-brand-light text-secondary text-xs rounded-full border border-secondary-light">
+                                  <Sparkles className="w-3 h-3" /> AI Summary
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3 text-xs text-text-muted">
+                              <span>{doc.document_type}</span>
+                              <span>·</span>
+                              <span>{fmtDate(doc.created_at)}</span>
+                            </div>
+                          </div>
+                          {aiLoading === doc.id ? (
+                            <LoadingSpinner size="w-4 h-4" />
+                          ) : (
+                            <ActionMenu
+                              items={[
+                                {
+                                  icon: <Sparkles className="w-4 h-4" />,
+                                  label: "Generate AI Summary",
+                                  onClick: () => genAI(doc),
+                                },
+                                {
+                                  icon: <Link2 className="w-4 h-4" />,
+                                  label: "Attach to License",
+                                  onClick: () => {
+                                    setSelectedDoc(doc);
+                                    setSelectedExistingLicId("");
+                                    setIsAttachToLicenseOpen(true);
+                                  },
+                                },
+                                {
+                                  icon: <Download className="w-4 h-4" />,
+                                  label: "Download",
+                                  onClick: () => window.open(doc.file_url),
+                                },
+                                {
+                                  icon: <span />,
+                                  label: "---",
+                                  onClick: () => {},
+                                },
+                                {
+                                  icon: <Trash2 className="w-4 h-4" />,
+                                  label: "Delete Document",
+                                  onClick: () => handleDeleteDocument(doc.id),
+                                  danger: true,
+                                },
+                              ]}
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Upcoming Deadlines */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-[#E1E8F5]">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-[#1B2A49]">
-                  Upcoming Deadlines
-                </h3>
-                <CalendarClock className="w-5 h-5 text-[#2E69A4]" />
-              </div>
-              <div className="space-y-3">
-                {upcomingItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="p-3 border border-[#E1E8F5] rounded-lg hover:border-[#2E69A4] transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-sm text-[#1B2A49]">
-                        {item.title}
-                      </span>
-                      <span
-                        className={`text-xs font-medium ${
-                          item.daysRemaining < 30
-                            ? "text-red-600"
-                            : item.daysRemaining < 60
-                            ? "text-amber-600"
-                            : "text-green-600"
-                        }`}
-                      >
-                        {item.daysRemaining}d
-                      </span>
-                    </div>
-                    <div className="text-xs text-[#344767] mb-2">
-                      Due: {new Date(item.dueDate).toLocaleDateString()}
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-1.5">
-                      <div
-                        className={`h-1.5 rounded-full ${
-                          item.daysRemaining < 30
-                            ? "bg-red-500"
-                            : item.daysRemaining < 60
-                            ? "bg-amber-500"
-                            : "bg-green-500"
-                        }`}
-                        style={{
-                          width: `${Math.max(
-                            10,
-                            100 - (item.daysRemaining / 120) * 100
-                          )}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Government Portals */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-[#E1E8F5]">
-              <h3 className="text-lg font-bold text-[#1B2A49] mb-4">
-                Government Portals
-              </h3>
-              <div className="space-y-2">
-                {governmentPortals.map((portal, index) => (
-                  <a
-                    key={index}
-                    href={portal.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 border border-[#E1E8F5] rounded-lg hover:border-[#2E69A4] hover:bg-blue-50 transition-colors group"
-                  >
-                    {portal.icon}
-                    <span className="flex-1 text-sm font-medium text-[#344767] group-hover:text-[#2E69A4]">
-                      {portal.name}
-                    </span>
-                    <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-[#2E69A4]" />
-                  </a>
-                ))}
-              </div>
-            </div>
-
-            {/* AI Compliance Assistant */}
-            <div className="bg-gradient-to-br from-[#1B2A49] to-[#2E69A4] rounded-xl p-6 text-white">
-              <div className="flex items-center gap-3 mb-4">
-                <Sparkles className="w-6 h-6" />
-                <h3 className="text-lg font-bold">AI Compliance Assistant</h3>
-              </div>
-              <p className="text-sm opacity-90 mb-4">
-                Proactive monitoring of 12+ UAE government regulations with
-                real-time updates
-              </p>
-              <div className="space-y-3 text-sm mb-4">
-                <div className="flex justify-between items-center">
-                  <span>License Compliance</span>
-                  <span className="font-semibold bg-green-500/20 px-2 py-1 rounded">
-                    92%
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Visa Processing</span>
-                  <span className="font-semibold bg-amber-500/20 px-2 py-1 rounded">
-                    2 Active
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Tax Compliance</span>
-                  <span className="font-semibold bg-green-500/20 px-2 py-1 rounded">
-                    100%
-                  </span>
-                </div>
-              </div>
-              <button className="w-full py-2.5 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2">
-                <Zap className="w-4 h-4" />
-                Get Smart Recommendations
-              </button>
-            </div>
+          {/* ── RIGHT: Sidebar ── */}
+          <div className="space-y-5">
+            <ComplianceHealthBar licenses={licenses} />
+            <QuickActions
+              onAddLicense={() => setIsAddLicenseOpen(true)}
+              onUploadDoc={() => setIsUploadDocOpen(true)}
+              onSetReminder={() => setIsReminderOpen(true)}
+            />
+            <UpcomingDeadlines
+              licenses={licenses}
+              onLicenseClick={(id) =>
+                router.push(`/dashboard/compliance-licensing/licenses/${id}`)
+              }
+            />
+            <ActivityTimeline activity={activity} loading={activityLoading} />
           </div>
         </div>
       </div>
 
-      {/* Modals */}
+      {/* ═══════════════════════════════════════════
+          ADD LICENSE MODAL
+      ═══════════════════════════════════════════ */}
       <Modal
-        isOpen={isReminderModalOpen}
-        onClose={() => setIsReminderModalOpen(false)}
-        title="Set Reminder Preferences"
-        showCloseButton={true}
-        closeOnOverlayClick={true}
+        isOpen={isAddLicenseOpen}
+        onClose={() => setIsAddLicenseOpen(false)}
+        title="Add New License"
+        showCloseButton
+        closeOnOverlayClick
         size="md"
       >
-        <div className="p-6">{/* Reminder settings form */}</div>
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-2">
+              License Type <span className="text-status-error">*</span>
+            </label>
+            <select
+              className={selectCls}
+              value={addForm.license_type}
+              onChange={(e) =>
+                setAddForm({ ...addForm, license_type: e.target.value })
+              }
+            >
+              <option value="">Select license type</option>
+              {LICENSE_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+            {addFormErrors.license_type && (
+              <p className="text-xs text-status-error-text mt-1">
+                {addFormErrors.license_type}
+              </p>
+            )}
+          </div>
+          <InputField
+            label="License Number"
+            name="license_number"
+            required
+            value={addForm.license_number}
+            placeholder="e.g. CN-123456789"
+            onChange={(e) =>
+              setAddForm({ ...addForm, license_number: e.target.value })
+            }
+            error={addFormErrors.license_number}
+          />
+          <div className="grid grid-cols-2 gap-4">
+            <InputField
+              label="Issue Date"
+              name="issue_date"
+              type="date"
+              required
+              value={addForm.issue_date}
+              onChange={(e) =>
+                setAddForm({ ...addForm, issue_date: e.target.value })
+              }
+              error={addFormErrors.issue_date}
+            />
+            <InputField
+              label="Expiry Date"
+              name="expiry_date"
+              type="date"
+              required
+              value={addForm.expiry_date}
+              onChange={(e) =>
+                setAddForm({ ...addForm, expiry_date: e.target.value })
+              }
+              error={addFormErrors.expiry_date}
+            />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              onClick={() => setIsAddLicenseOpen(false)}
+              className="px-5 py-2.5 border border-border text-text-primary text-sm font-semibold rounded-xl hover:bg-bg-subtle transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleAddLicense}
+              disabled={addFormLoading}
+              className="flex items-center gap-2 px-5 py-2.5 bg-brand text-on-brand text-sm font-semibold rounded-xl hover:bg-brand-hover transition-colors disabled:opacity-60"
+            >
+              {addFormLoading && (
+                <LoadingSpinner size="w-4 h-4" color="border-on-brand" />
+              )}
+              Add License
+            </button>
+          </div>
+        </div>
       </Modal>
 
+      {/* ═══════════════════════════════════════════
+          EDIT LICENSE MODAL
+      ═══════════════════════════════════════════ */}
       <Modal
-        isOpen={isRenewalModalOpen}
-        onClose={() => setIsRenewalModalOpen(false)}
-        title="Start Renewal Process"
-        showCloseButton={true}
-        closeOnOverlayClick={true}
-        size="lg"
+        isOpen={isEditLicenseOpen}
+        onClose={() => setIsEditLicenseOpen(false)}
+        title="Edit License"
+        showCloseButton
+        closeOnOverlayClick
+        size="md"
       >
-        <div className="p-6">{/* Renewal process form */}</div>
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-2">
+              License Type <span className="text-status-error">*</span>
+            </label>
+            <select
+              className={selectCls}
+              value={editForm.license_type}
+              onChange={(e) =>
+                setEditForm({ ...editForm, license_type: e.target.value })
+              }
+            >
+              <option value="">Select license type</option>
+              {LICENSE_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+            {editFormErrors.license_type && (
+              <p className="text-xs text-status-error-text mt-1">
+                {editFormErrors.license_type}
+              </p>
+            )}
+          </div>
+          <InputField
+            label="License Number"
+            name="license_number"
+            required
+            value={editForm.license_number}
+            onChange={(e) =>
+              setEditForm({ ...editForm, license_number: e.target.value })
+            }
+            error={editFormErrors.license_number}
+          />
+          <div className="grid grid-cols-2 gap-4">
+            <InputField
+              label="Issue Date"
+              name="issue_date"
+              type="date"
+              required
+              value={editForm.issue_date}
+              onChange={(e) =>
+                setEditForm({ ...editForm, issue_date: e.target.value })
+              }
+              error={editFormErrors.issue_date}
+            />
+            <InputField
+              label="Expiry Date"
+              name="expiry_date"
+              type="date"
+              required
+              value={editForm.expiry_date}
+              onChange={(e) =>
+                setEditForm({ ...editForm, expiry_date: e.target.value })
+              }
+              error={editFormErrors.expiry_date}
+            />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              onClick={() => setIsEditLicenseOpen(false)}
+              className="px-5 py-2.5 border border-border text-text-primary text-sm font-semibold rounded-xl hover:bg-bg-subtle transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleEditLicense}
+              disabled={editFormLoading}
+              className="flex items-center gap-2 px-5 py-2.5 bg-brand text-on-brand text-sm font-semibold rounded-xl hover:bg-brand-hover transition-colors disabled:opacity-60"
+            >
+              {editFormLoading && (
+                <LoadingSpinner size="w-4 h-4" color="border-on-brand" />
+              )}
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ═══════════════════════════════════════════
+          UPLOAD DOCUMENT MODAL
+      ═══════════════════════════════════════════ */}
+      <Modal
+        isOpen={isUploadDocOpen}
+        onClose={() => setIsUploadDocOpen(false)}
+        title="Upload Document"
+        showCloseButton
+        closeOnOverlayClick
+        size="md"
+      >
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-2">
+              Document Type <span className="text-status-error">*</span>
+            </label>
+            <select
+              className={selectCls}
+              value={uploadDocForm.document_type}
+              onChange={(e) =>
+                setUploadDocForm({
+                  ...uploadDocForm,
+                  document_type: e.target.value,
+                })
+              }
+            >
+              <option value="">Select document type</option>
+              {DOC_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-2">
+              Upload File <span className="text-status-error">*</span>
+            </label>
+            <div
+              onClick={() => fileRef.current?.click()}
+              className={`relative flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${uploadDocFile ? "border-status-success bg-status-success-bg" : "border-border hover:border-border-focus hover:bg-bg-subtle"}`}
+            >
+              <div
+                className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 ${uploadDocFile ? "bg-status-success-bg" : "bg-bg-subtle"}`}
+              >
+                {uploadDocFile ? (
+                  <FileCheck className="w-6 h-6 text-status-success" />
+                ) : (
+                  <Upload className="w-6 h-6 text-text-muted" />
+                )}
+              </div>
+              {uploadDocFile ? (
+                <>
+                  <p className="text-sm font-semibold text-text-heading">
+                    {uploadDocFile.name}
+                  </p>
+                  <p className="text-xs text-text-muted mt-1">
+                    {(uploadDocFile.size / 1024).toFixed(1)} KB
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-semibold text-text-primary">
+                    Drop file here or click to browse
+                  </p>
+                  <p className="text-xs text-text-muted mt-1">
+                    PDF, JPG, PNG up to 10MB
+                  </p>
+                </>
+              )}
+              <input
+                ref={fileRef}
+                type="file"
+                className="hidden"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) => setUploadDocFile(e.target.files?.[0] || null)}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              onClick={() => setIsUploadDocOpen(false)}
+              className="px-5 py-2.5 border border-border text-text-primary text-sm font-semibold rounded-xl hover:bg-bg-subtle transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleUploadDocument}
+              disabled={uploadDocLoading}
+              className="flex items-center gap-2 px-5 py-2.5 bg-brand text-on-brand text-sm font-semibold rounded-xl hover:bg-brand-hover transition-colors disabled:opacity-60"
+            >
+              {uploadDocLoading && (
+                <LoadingSpinner size="w-4 h-4" color="border-on-brand" />
+              )}
+              Upload Document
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ═══════════════════════════════════════════
+          ATTACH DOC TO LICENSE
+      ═══════════════════════════════════════════ */}
+      <Modal
+        isOpen={isAttachDocOpen}
+        onClose={() => setIsAttachDocOpen(false)}
+        title={`Attach Document — ${selectedLicense?.license_type ?? ""}`}
+        showCloseButton
+        closeOnOverlayClick
+        size="md"
+      >
+        <div className="p-6 space-y-4">
+          <ModeToggle mode={attachMode} onChange={setAttachMode} />
+          {attachMode === "upload" ? (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  Document Type
+                </label>
+                <select
+                  className={selectCls}
+                  value={uploadDocForm.document_type}
+                  onChange={(e) =>
+                    setUploadDocForm({
+                      ...uploadDocForm,
+                      document_type: e.target.value,
+                    })
+                  }
+                >
+                  <option value="">Select type</option>
+                  {DOC_TYPES.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div
+                onClick={() => fileRef2.current?.click()}
+                className={`relative flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${uploadDocFile ? "border-status-success bg-status-success-bg" : "border-border hover:border-border-focus hover:bg-bg-subtle"}`}
+              >
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center mb-2 ${uploadDocFile ? "bg-status-success-bg" : "bg-bg-subtle"}`}
+                >
+                  {uploadDocFile ? (
+                    <FileCheck className="w-5 h-5 text-status-success" />
+                  ) : (
+                    <Upload className="w-5 h-5 text-text-muted" />
+                  )}
+                </div>
+                {uploadDocFile ? (
+                  <p className="text-sm font-semibold text-text-heading">
+                    {uploadDocFile.name}
+                  </p>
+                ) : (
+                  <p className="text-sm font-semibold text-text-primary">
+                    Drop file here or click to browse
+                  </p>
+                )}
+                <p className="text-xs text-text-muted mt-1">
+                  PDF, JPG, PNG up to 10MB
+                </p>
+                <input
+                  ref={fileRef2}
+                  type="file"
+                  className="hidden"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={(e) =>
+                    setUploadDocFile(e.target.files?.[0] || null)
+                  }
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-sm text-text-secondary mb-3">
+                Select from your existing documents
+              </p>
+              <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
+                {documents.length === 0 ? (
+                  <p className="text-xs text-text-muted text-center py-4">
+                    No documents available
+                  </p>
+                ) : (
+                  documents.map((doc) => (
+                    <label
+                      key={doc.id}
+                      className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all ${selectedExistingDocId === doc.id ? "border-secondary bg-brand-light" : "border-border hover:border-border-strong"}`}
+                    >
+                      <input
+                        type="radio"
+                        name="existingDoc"
+                        value={doc.id}
+                        className="accent-secondary"
+                        checked={selectedExistingDocId === doc.id}
+                        onChange={() => setSelectedExistingDocId(doc.id)}
+                      />
+                      <FileText className="w-4 h-4 text-secondary shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-text-heading truncate">
+                          {doc.filename}
+                        </p>
+                        <p className="text-xs text-text-muted">
+                          {doc.document_type}
+                        </p>
+                      </div>
+                      {doc.is_verified && (
+                        <CheckCircle className="w-4 h-4 text-status-success shrink-0" />
+                      )}
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              onClick={() => setIsAttachDocOpen(false)}
+              className="px-5 py-2.5 border border-border text-text-primary text-sm font-semibold rounded-xl hover:bg-bg-subtle transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleAttachDocToLicense}
+              disabled={attachDocLoading}
+              className="flex items-center gap-2 px-5 py-2.5 bg-brand text-on-brand text-sm font-semibold rounded-xl hover:bg-brand-hover transition-colors disabled:opacity-60"
+            >
+              {attachDocLoading && (
+                <LoadingSpinner size="w-4 h-4" color="border-on-brand" />
+              )}
+              {attachMode === "upload" ? "Upload & Attach" : "Attach Document"}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ═══════════════════════════════════════════
+          ATTACH TO LICENSE (from document card)
+      ═══════════════════════════════════════════ */}
+      <Modal
+        isOpen={isAttachToLicenseOpen}
+        onClose={() => setIsAttachToLicenseOpen(false)}
+        title={`Attach to License — ${selectedDoc?.filename ?? ""}`}
+        showCloseButton
+        closeOnOverlayClick
+        size="md"
+      >
+        <div className="p-6 space-y-3">
+          <p className="text-sm text-text-secondary mb-4">
+            Select the license to attach this document to
+          </p>
+          <div className="max-h-72 overflow-y-auto space-y-2 pr-1">
+            {licenses.length === 0 ? (
+              <p className="text-xs text-text-muted text-center py-4">
+                No licenses available
+              </p>
+            ) : (
+              licenses.map((lic) => {
+                const statusCfg = getLicenseStatusConfig(lic.status);
+                return (
+                  <label
+                    key={lic.id}
+                    className={`flex items-center gap-3 p-3.5 border rounded-xl cursor-pointer transition-all ${selectedExistingLicId === lic.id ? "border-secondary bg-brand-light" : "border-border hover:border-border-strong"}`}
+                  >
+                    <input
+                      type="radio"
+                      name="attachLicense"
+                      value={lic.id}
+                      className="accent-secondary"
+                      checked={selectedExistingLicId === lic.id}
+                      onChange={() => setSelectedExistingLicId(lic.id)}
+                    />
+                    <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center shrink-0">
+                      <Building className="w-4 h-4 text-on-brand" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-text-heading">
+                        {lic.license_type}
+                      </p>
+                      <p className="text-xs text-text-muted font-mono">
+                        {lic.license_number}
+                      </p>
+                    </div>
+                    <span
+                      className={`text-xs px-2.5 py-0.5 rounded-full font-semibold shrink-0 ${statusCfg.badge}`}
+                    >
+                      {statusCfg.label}
+                    </span>
+                  </label>
+                );
+              })
+            )}
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              onClick={() => setIsAttachToLicenseOpen(false)}
+              className="px-5 py-2.5 border border-border text-text-primary text-sm font-semibold rounded-xl hover:bg-bg-subtle transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleAttachDocToSelectedLicense}
+              disabled={attachToLicLoading}
+              className="flex items-center gap-2 px-5 py-2.5 bg-brand text-on-brand text-sm font-semibold rounded-xl hover:bg-brand-hover transition-colors disabled:opacity-60"
+            >
+              {attachToLicLoading && (
+                <LoadingSpinner size="w-4 h-4" color="border-on-brand" />
+              )}
+              Attach Document
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ═══════════════════════════════════════════
+          SET REMINDER MODAL
+      ═══════════════════════════════════════════ */}
+      <Modal
+        isOpen={isReminderOpen}
+        onClose={() => setIsReminderOpen(false)}
+        title="Set Renewal Reminder"
+        showCloseButton
+        closeOnOverlayClick
+        size="md"
+      >
+        <div className="p-6 space-y-4">
+          <div className="p-4 bg-status-warning-bg border border-status-warning-border rounded-xl flex items-start gap-3">
+            <Bell className="w-4 h-4 text-status-warning mt-0.5 shrink-0" />
+            <p className="text-xs text-status-warning-text">
+              Get notified before your license expires so you never miss a
+              renewal deadline.
+            </p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-2">
+              License <span className="text-status-error">*</span>
+            </label>
+            <select
+              className={selectCls}
+              value={reminderForm.license_id}
+              onChange={(e) =>
+                setReminderForm({ ...reminderForm, license_id: e.target.value })
+              }
+            >
+              <option value="">Select a license</option>
+              {licenses.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.license_type} — {l.license_number}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-2">
+              Notify me before expiry
+            </label>
+            <div className="grid grid-cols-4 gap-2">
+              {["7", "14", "30", "60"].map((d) => (
+                <button
+                  key={d}
+                  onClick={() =>
+                    setReminderForm({ ...reminderForm, days_before: d })
+                  }
+                  className={`py-2.5 text-sm font-semibold rounded-xl border transition-all ${
+                    reminderForm.days_before === d
+                      ? "bg-brand text-on-brand border-brand"
+                      : "bg-surface text-text-secondary border-border hover:border-border-strong hover:text-text-primary"
+                  }`}
+                >
+                  {d}d
+                </button>
+              ))}
+            </div>
+          </div>
+          <label className="flex items-center gap-3 cursor-pointer">
+            <div
+              onClick={() =>
+                setReminderForm({
+                  ...reminderForm,
+                  notify_email: !reminderForm.notify_email,
+                })
+              }
+              className={`w-10 h-5 rounded-full transition-colors relative ${reminderForm.notify_email ? "bg-brand" : "bg-bg-subtle border border-border"}`}
+            >
+              <div
+                className={`w-4 h-4 bg-on-brand rounded-full shadow-card absolute top-0.5 transition-transform ${reminderForm.notify_email ? "translate-x-5" : "translate-x-0.5"}`}
+              />
+            </div>
+            <span className="text-sm text-text-primary">
+              Send email notification
+            </span>
+          </label>
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              onClick={() => setIsReminderOpen(false)}
+              className="px-5 py-2.5 border border-border text-text-primary text-sm font-semibold rounded-xl hover:bg-bg-subtle transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSetReminder}
+              disabled={reminderLoading}
+              className="flex items-center gap-2 px-5 py-2.5 bg-accent text-on-accent text-sm font-semibold rounded-xl hover:bg-accent-hover transition-colors disabled:opacity-60"
+            >
+              {reminderLoading && (
+                <LoadingSpinner size="w-4 h-4" color="border-on-accent" />
+              )}
+              <Bell className="w-4 h-4" /> Set Reminder
+            </button>
+          </div>
+        </div>
       </Modal>
     </DashboardLayout>
   );

@@ -254,7 +254,7 @@ const SubscriptionUsageCard: React.FC = () => {
       {!loading && !error && !currentPlan && (
         <EmptyState
           icon={BarChart2}
-          title="No active subscription"
+          title="No active subscription yet"
           description="Subscribe to a plan to track your usage here."
         />
       )}

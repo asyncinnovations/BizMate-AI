@@ -46,33 +46,33 @@ const Modal: React.FC<ModalProps> = ({
     <div
       onClick={handleOverlayClick}
       className={twMerge(
-        `fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 z-50  backdrop-blur-sm ${overlayClassName}`
+        `fixed inset-0 bg-text-heading/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm ${overlayClassName}`,
       )}
     >
       <div
         className={twMerge(
-          `w-full ${sizeClasses[size]} bg-white overflow-hidden rounded-xl shadow-2xl animate-in fade-in-90 zoom-in-90 ${className}`
+          `w-full ${sizeClasses[size]} bg-surface border border-border overflow-hidden rounded-xl shadow-raised animate-in fade-in-90 zoom-in-90 ${className}`,
         )}
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-center justify-between p-6 border-b border-[#E1E8F5]">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border">
             {title && (
               <div className="flex items-center gap-3">
                 {titleIcon && (
-                  <div className="bg-gradient-to-r from-[#2E69A4] to-[#1B2A49] p-2 rounded-lg">
-                    {titleIcon}
-                  </div>
+                  <div className="bg-brand p-2 rounded-lg">{titleIcon}</div>
                 )}
-                <h2 className="text-xl font-bold text-[#1B2A49]">{title}</h2>
+                <h2 className="text-base font-bold text-text-heading">
+                  {title}
+                </h2>
               </div>
             )}
             {showCloseButton && (
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-[#F4F7FA] rounded-lg transition-colors"
+                className="p-1.5 hover:bg-bg-base rounded-lg transition-colors text-text-muted hover:text-text-heading"
               >
-                <X className="w-5 h-5 text-[#344767]" />
+                <X className="w-4 h-4" />
               </button>
             )}
           </div>

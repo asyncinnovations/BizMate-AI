@@ -42,96 +42,76 @@ export default function PricingPage() {
 
   const [allPlans, setAllPlans] = useState<PlanFromAPI[]>([]);
   const [currentPlan, setCurrentPlan] = useState<CurrentSubscription | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
 
-  //////////////////////////////////////////////////////
-  // Fetch All Plans
-  //////////////////////////////////////////////////////
+  // ─────────────────────────────────────────
+  // API: GET /subscription_plan/all
+  // Returns: { plans: PlanFromAPI[] }
+  // ─────────────────────────────────────────
   const fetchAllPlans = async () => {
     try {
       const res = await axiosInstance.get("/subscription_plan/all");
       setAllPlans(res.data.plans || []);
-      console.log("These are plans", res.data.plans);
     } catch (error) {
-      console.error("Failed to fetch plans", error);
+      console.error("fetchAllPlans failed:", error);
       toast.error("Failed to fetch plans");
     }
   };
 
-  //////////////////////////////////////////////////////
-  // Fetch Current User Subscription
-  //////////////////////////////////////////////////////
+  // ─────────────────────────────────────────
+  // API: GET /subscription_plan/user_current/:userId
+  // Returns: { subscription: { plan_id } }
+  // ─────────────────────────────────────────
   const fetchCurrentPlan = async () => {
     if (!userId) return;
-
     try {
       const res = await axiosInstance.get(`/subscription_plan/user_current/${userId}`);
       const sub = res.data?.subscription;
-
-      if (sub) {
-        setCurrentPlan({
-          planId: sub.plan_id,
-          price: 0,
-        });
-      }
+      if (sub) setCurrentPlan({ planId: sub.plan_id, price: 0 });
     } catch (error) {
-      console.log("No current subscription");
+      console.error("fetchCurrentPlan failed:", error);
     }
   };
 
-  //////////////////////////////////////////////////////
-  // PAGE LOAD
-  //////////////////////////////////////////////////////
   useEffect(() => {
     if (!userId) return;
-
     setLoading(true);
     Promise.all([fetchAllPlans(), fetchCurrentPlan()]).finally(() =>
       setLoading(false)
     );
   }, [userId]);
 
-  //////////////////////////////////////////////////////
-  // Helpers
-  //////////////////////////////////////////////////////
+  // ================= HELPERS =================
 
   // Starter = free plan (price === 0)
   const starterPlan = allPlans.find((p) => Number(p.price) === 0);
 
-  // User is on starter/no-sub when: no subscription OR current plan IS the starter
+  // User is on starter / no sub when: no subscription OR current plan IS the starter
   const isOnStarterOrNoSub =
     !currentPlan ||
     (starterPlan !== undefined && currentPlan.planId === starterPlan.uuid);
 
-  // User has a real paid subscription
   const hasActivePaidSub = !isOnStarterOrNoSub;
 
-  //////////////////////////////////////////////////////
-  // Determine CTA label + action per plan
-  //////////////////////////////////////////////////////
+  // ── Determine CTA label + action per plan ──
   const getPlanState = (plan: PlanFromAPI) => {
     const isPlanStarter = Number(plan.price) === 0;
 
-    // ── No subscription record at all ──
     if (!currentPlan) {
       if (isPlanStarter) {
-        // Starter is the implicit default
         return { label: "Current Plan", action: null, disabled: true, isCurrent: false };
       }
       return { label: "Buy Now", action: "subscribe", disabled: false, isCurrent: false };
     }
 
-    // ── User has a subscription record ──
     const currentPlanObj = allPlans.find((p) => p.uuid === currentPlan.planId);
     const currentPrice = Number(currentPlanObj?.price ?? 0);
     const planPrice = Number(plan.price);
 
-    // Starter locked out when user has a paid plan
     if (isPlanStarter && hasActivePaidSub) {
       return { label: "Not Available", action: null, disabled: true, isCurrent: false };
     }
 
-    // This IS the active paid plan
     if (plan.uuid === currentPlan.planId) {
       return { label: "Current Plan", action: null, disabled: true, isCurrent: true };
     }
@@ -147,68 +127,57 @@ export default function PricingPage() {
     return { label: "Buy Now", action: "subscribe", disabled: false, isCurrent: false };
   };
 
-  //////////////////////////////////////////////////////
-  // Handle Plan Click → Checkout
-  //////////////////////////////////////////////////////
+  // ── Navigate to checkout ──
   const handlePlanClick = (plan: PlanFromAPI) => {
     const state = getPlanState(plan);
     if (!state.action || !userId) return;
     router.push(`/dashboard/pricing/checkout/${plan.uuid}?action=${state.action}`);
   };
 
-
+  // ================= RENDER =================
   return (
     <DashboardLayout>
-      <div className="min-h-[90vh] bg-[#F4F7FA] pb-4">
+      <div className="min-h-[90vh] pb-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-          {/* HEADER */}
+          {/* Header */}
           <div className="text-center my-10">
-            <h1 className="text-3xl font-semibold text-[#1B2A49]">
+            <h1 className="text-3xl font-semibold text-text-heading">
               Select your plan
             </h1>
             {hasActivePaidSub && (
-              <p className="text-[#344767] mt-2 text-sm">
+              <p className="text-text-primary mt-2 text-sm">
                 You have an active subscription. Upgrade or manage your plan below.
               </p>
             )}
           </div>
 
-          {/* LOADING */}
+          {/* Loading */}
           {loading && (
-            <div className="text-center py-10">
+            <div className="flex items-center justify-center py-10">
               <LoadingSpinner />
             </div>
           )}
 
-          {/* EMPTY */}
+          {/* Empty */}
           {!loading && allPlans.length === 0 && (
             <div className="text-center py-10">
-              <p className="text-[#344767] text-lg">
+              <p className="text-text-primary text-lg">
                 No subscription plans available.
               </p>
             </div>
           )}
 
-          {/* PLANS */}
+          {/* Plans grid */}
           {!loading && allPlans.length > 0 && (
             <div className="grid md:grid-cols-3 gap-8 mb-16">
               {allPlans.map((plan) => {
                 const Icon = planIcons[plan.name] || Sparkles;
                 const state = getPlanState(plan);
                 const isPlanStarter = Number(plan.price) === 0;
-
-                // Starter → pass "Free" as price, paid → pass raw number string
-                const priceLabel = isPlanStarter
-                  ? "Free"
-                  : String(plan.price);
-
-                // Period label for paid plans
+                const priceLabel = isPlanStarter ? "Free" : String(plan.price);
                 const periodLabel = `/ ${plan.duration_days} days`;
-
-                // POPULAR only shown on Standard when user has no paid sub
-                const showPopular =
-                  plan.name === "Standard" && isOnStarterOrNoSub;
+                const showPopular = plan.name === "Standard" && isOnStarterOrNoSub;
 
                 return (
                   <PlanCard
@@ -232,9 +201,9 @@ export default function PricingPage() {
             </div>
           )}
 
-          {/* FOOTER */}
+          {/* Footer note */}
           <div className="text-center">
-            <p className="text-[#344767] mb-6">
+            <p className="text-text-primary mb-6">
               All plans include secure data storage and updates
             </p>
           </div>

@@ -34,7 +34,7 @@ const RecentDocuments = () => {
     },
   ];
   return (
-    <Card className="flex flex-col h-[500px]" hoverEffect>
+    <Card className="flex flex-col h-[500px]">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-[#1B2A49]">

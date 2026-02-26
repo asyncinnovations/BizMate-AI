@@ -97,27 +97,27 @@ const SessionRow: React.FC<SessionRowProps> = ({
   const isUpdating = updateLoadingId === session.uuid;
 
   return (
-    <div className="flex items-center justify-between p-4 bg-[#F4F7FA] rounded-lg hover:bg-[#E1E8F5] transition-colors">
+    <div className="flex items-center justify-between p-4 bg-bg-base rounded-lg hover:bg-brand-light transition-colors">
 
       {/* Left — device icon + info */}
       <div className="flex items-center gap-3">
-        <div className="inline-flex p-2.5 rounded-md bg-white border border-[#E1E8F5] shrink-0">
-          <DeviceIcon className="w-4 h-4 text-[#1B2A49]" />
+        <div className="inline-flex p-2.5 rounded-md bg-surface border border-border shrink-0">
+          <DeviceIcon className="w-4 h-4 text-text-heading" />
         </div>
 
         <div>
           {/* Device name + OS + This Device badge */}
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-medium text-[#1B2A49]">
+            <p className="font-medium text-text-heading">
               {session.device_name || "Unknown Device"}
               {session.os && (
-                <span className="ml-1.5 text-xs font-normal text-[#344767]">
+                <span className="ml-1.5 text-xs font-normal text-text-primary">
                   · {session.os}
                 </span>
               )}
             </p>
             {isCurrent && (
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#2E69A4] text-white">
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-secondary text-on-secondary">
                 This Device
               </span>
             )}
@@ -126,23 +126,23 @@ const SessionRow: React.FC<SessionRowProps> = ({
           {/* Browser · Location · IP · Last active */}
           <div className="flex items-center gap-3 mt-0.5 flex-wrap">
             {session.browser && (
-              <span className="flex items-center gap-1 text-xs text-[#344767]">
+              <span className="flex items-center gap-1 text-xs text-text-primary">
                 <Globe className="w-3 h-3" />
                 {session.browser}
               </span>
             )}
             {session.location && (
-              <span className="flex items-center gap-1 text-xs text-[#344767]">
+              <span className="flex items-center gap-1 text-xs text-text-primary">
                 <MapPin className="w-3 h-3" />
                 {session.location}
                 {session.ip_address && (
-                  <span className="text-gray-400 ml-0.5">
+                  <span className="text-text-muted ml-0.5">
                     · {session.ip_address}
                   </span>
                 )}
               </span>
             )}
-            <span className="flex items-center gap-1 text-xs text-gray-400">
+            <span className="flex items-center gap-1 text-xs text-text-muted">
               <Clock className="w-3 h-3" />
               {formatDate(session.last_active)}
             </span>
@@ -152,11 +152,12 @@ const SessionRow: React.FC<SessionRowProps> = ({
 
       {/* Right — actions */}
       <div className="flex items-center gap-4 shrink-0">
+
         {/* Refresh */}
         <button
           onClick={() => onUpdateActive(session.uuid)}
           disabled={isUpdating}
-          className="flex items-center gap-1 text-xs text-[#344767] hover:text-[#1B2A49] transition-colors disabled:opacity-50"
+          className="flex items-center gap-1 text-xs text-text-primary hover:text-text-heading transition-colors disabled:opacity-50"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isUpdating ? "animate-spin" : ""}`} />
           <span>{isUpdating ? "Updating..." : "Refresh"}</span>
@@ -166,7 +167,7 @@ const SessionRow: React.FC<SessionRowProps> = ({
         <button
           onClick={() => onLogout(session.uuid, isCurrent)}
           disabled={isLoggingOut}
-          className="flex items-center gap-1 text-xs text-red-500 hover:text-red-600 transition-colors disabled:opacity-50"
+          className="flex items-center gap-1 text-xs text-status-error hover:text-status-error-dark transition-colors disabled:opacity-50"
         >
           <LogOut className="w-3.5 h-3.5" />
           <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>
@@ -194,7 +195,10 @@ const ActiveSessions: React.FC = () => {
     fetchSessions();
   }, [userId]);
 
-  // GET /user-sessions/user/:userId
+  // ─────────────────────────────────────────
+  // API: GET /user-sessions/user/:userId
+  // Returns: { data: UserSession[] }
+  // ─────────────────────────────────────────
   const fetchSessions = async () => {
     setLoading(true);
     setError(null);
@@ -202,28 +206,36 @@ const ActiveSessions: React.FC = () => {
       const res = await axiosInstance.get(`/user-sessions/user/${userId}`);
       setSessions(res.data?.data || []);
     } catch (err) {
-      console.error("Failed to fetch sessions", err);
+      console.error("fetchSessions failed:", err);
       setError("Failed to load sessions.");
     } finally {
       setLoading(false);
     }
   };
 
-  // PATCH /user-sessions/update_last_active/:uuid
+  // ─────────────────────────────────────────
+  // API: PATCH /user-sessions/update_last_active/:uuid
+  // Refreshes the last_active timestamp for a session
+  // ─────────────────────────────────────────
   const handleUpdateActive = async (uuid: string) => {
     setUpdateLoadingId(uuid);
     try {
       await axiosInstance.patch(`/user-sessions/update_last_active/${uuid}`);
       toast.success("Session refreshed");
       fetchSessions();
-    } catch {
+    } catch (err) {
+      console.error("handleUpdateActive failed:", err);
       toast.error("Failed to refresh session");
     } finally {
       setUpdateLoadingId(null);
     }
   };
 
-  // DELETE /user-sessions/logout/:uuid
+  // ─────────────────────────────────────────
+  // API: DELETE /user-sessions/logout/:uuid
+  // Current device → full logout + redirect to /login
+  // Other device   → remove session from list
+  // ─────────────────────────────────────────
   const handleLogout = async (uuid: string, isCurrent: boolean) => {
     setLogoutLoadingId(uuid);
     try {
@@ -236,7 +248,8 @@ const ActiveSessions: React.FC = () => {
         toast.success("Session logged out");
         setSessions((prev) => prev.filter((s) => s.uuid !== uuid));
       }
-    } catch {
+    } catch (err) {
+      console.error("handleLogout failed:", err);
       toast.error("Failed to logout session");
     } finally {
       setLogoutLoadingId(null);
@@ -276,17 +289,18 @@ const ActiveSessions: React.FC = () => {
       {/* Sessions list */}
       {!loading && !error && sessions.length > 0 && (
         <div className="space-y-3">
+
           {/* Summary header */}
-          <div className="flex items-center justify-between pb-3 border-b border-[#E1E8F5]">
-            <p className="text-sm text-[#344767]">
-              <span className="font-semibold text-[#1B2A49]">
+          <div className="flex items-center justify-between pb-3 border-b border-border">
+            <p className="text-sm text-text-primary">
+              <span className="font-semibold text-text-heading">
                 {sessions.length}
               </span>{" "}
               active {sessions.length === 1 ? "session" : "sessions"}
             </p>
             <button
               onClick={fetchSessions}
-              className="text-xs text-[#2E69A4] hover:underline flex items-center gap-1"
+              className="text-xs text-secondary hover:underline flex items-center gap-1"
             >
               <RefreshCw className="w-3 h-3" />
               Refresh all

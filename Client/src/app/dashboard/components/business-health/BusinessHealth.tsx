@@ -5,7 +5,7 @@ import Card from "@/components/ui/Card";
 
 const BusinessHealth = () => {
   return (
-    <Card className="xl:col-span-1" hoverEffect>
+    <Card className="xl:col-span-1">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-[#1B2A49] flex items-center">
           <div className="bg-gradient-to-r from-green-400 to-blue-500 rounded-full p-1.5 mr-2">
