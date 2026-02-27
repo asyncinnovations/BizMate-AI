@@ -61,6 +61,7 @@ const user_sessions_module_1 = require("./user_sessions/user_sessions.module");
 const user_sessions_entity_1 = require("./user_sessions/user_sessions.entity");
 const subscription_usage_module_1 = require("./subscription_usage/subscription_usage.module");
 const import_service_1 = require("./import/import.service");
+const subscription_usage_entity_1 = require("./subscription_usage/subscription_usage.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -105,7 +106,9 @@ exports.AppModule = AppModule = __decorate([
                     wallet_transaction_entity_1.WalletTransaction,
                     subscription_plans_entity_1.SubscriptionPlan,
                     user_subscription_entity_1.UserSubscription,
-                    subscription_payments_entity_1.SubscriptionPayment, user_sessions_entity_1.UserSession
+                    subscription_payments_entity_1.SubscriptionPayment,
+                    user_sessions_entity_1.UserSession,
+                    subscription_usage_entity_1.SubscriptionUsage
                 ],
             }),
             auth_module_1.AuthModule,

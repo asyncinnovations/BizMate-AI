@@ -154,6 +154,40 @@ let AiReplyHubChatService = class AiReplyHubChatService {
         });
         return response;
     }
+    async chat_mark_as_read_service(message_id) {
+        await this.aireplyhubRepo.update({ uuid: message_id }, { status: "read" });
+        return this.aireplyhubRepo.findOne({ where: { uuid: message_id } });
+    }
+    async user_chat_partner_service(userId) {
+        const partners = await this.aireplyhubRepo.query(`
+      SELECT 
+        c.uuid AS client_uuid,
+        c.name AS client_name,
+        c.whatsapp_number,
+        c.email,
+        last_chat.message,
+        last_chat.direction,
+        last_chat.status,
+        last_chat.platform,
+        last_chat.sent_at
+      FROM client_lists c
+      LEFT JOIN (
+        SELECT DISTINCT ON (client_id)
+          client_id,
+          message,
+          direction,
+          status,
+          platform,
+          sent_at
+        FROM ai_reply_hub_chats
+        WHERE user_id = $1
+        ORDER BY client_id, sent_at DESC
+      ) last_chat 
+      ON last_chat.client_id = c.uuid OR last_chat.client_id = c.uuid
+      ORDER BY last_chat.sent_at DESC
+    `, [userId]);
+        return partners;
+    }
 };
 exports.AiReplyHubChatService = AiReplyHubChatService;
 exports.AiReplyHubChatService = AiReplyHubChatService = __decorate([
