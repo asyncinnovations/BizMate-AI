@@ -51,7 +51,7 @@ const Modal: React.FC<ModalProps> = ({
     >
       <div
         className={twMerge(
-          `w-full ${sizeClasses[size]} bg-white overflow-hidden rounded-xl shadow-2xl animate-in fade-in-90 zoom-in-90 ${className}`
+          `w-full ${sizeClasses[size]} bg-white rounded-xl shadow-2xl animate-in fade-in-90 zoom-in-90 ${className}`
         )}
       >
         {/* Header */}

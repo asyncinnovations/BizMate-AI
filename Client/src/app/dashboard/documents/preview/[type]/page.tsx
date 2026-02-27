@@ -18,23 +18,13 @@ import {
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import PageHeader from "@/components/page-header/PageHeader";
 import Button from "@/components/ui/Button";
-import axiosInstance from "@/utils/axiosInstance";
-import toast from "react-hot-toast";
-import SendInvoiceModal from "@/components/invoice/SendInvoiceModal";
-
-interface EmailFormData {
-  to: string;
-  cc: string;
-  subject: string;
-  message: string;
-}
 
 export default function DocumentPreviewPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
   const documentType = params?.type as string;
-  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [isDownloading, setIsDownloading] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
@@ -44,12 +34,6 @@ export default function DocumentPreviewPage() {
   const [emailAddress, setEmailAddress] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
   const previewRef = useRef<HTMLDivElement>(null);
-  const [emailFormData, setEmailFormData] = useState<EmailFormData>({
-    to: "",
-    cc: "",
-    subject: "",
-    message: "",
-  });
 
   useEffect(() => {
     const dataParam = searchParams?.get("data");
@@ -72,74 +56,24 @@ export default function DocumentPreviewPage() {
     "termination-letter": "Employment Termination Letter",
   };
 
-  ///////////////////////////////////
-  // Download Document PDF
-  ///////////////////////////////////
   const handleDownload = async () => {
-    try {
-      // Currently we are no passing any id in api request ,  because backend to accept yet , need to update bacakend api
-      const response = await axiosInstance(`/templates/preview`);
-
-      if (response.status === 200 && response.data?.url) {
-        const fileUrl = `${process.env.NEXT_PUBLIC_ASSET_URL}${response.data.url}`;
-
-        const link = document.createElement("a");
-        link.href = fileUrl;
-        link.download = `document`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-    } catch (error) {
-      console.log("Error occur while downloading the document.", error);
-      toast.error("Error occur while downloading the document.");
-    }
+    setIsDownloading(true);
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    setIsDownloading(false);
+    alert("PDF downloaded successfully!");
   };
 
-  ////////////////////////////////
-  // Send Document To Customer/Client
-  /////////////////////////////////
-  const handleSendEmail = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSendEmail = async () => {
+    if (!emailAddress) return;
+
+    await new Promise((resolve) => setTimeout(resolve, 1500));
     setEmailSent(true);
-
-    try {
-      const response = await axiosInstance.post("/templates/send_to_email", {
-        // documentId: documentId,  // For this we pass document Id later
-        ...emailFormData,
-      });
-
-      // toast.success(
-      //   `Invoice ${currentInvoice?.invoice_number} sent successfully to ${emailFormData.to}`,
-      // );
-      closeSendEmailModal();
-    } catch (error) {
-      console.log("Error sending email:", error);
-      toast.error("Failed to send document email. Please try again.");
-    } finally {
+    setTimeout(() => {
+      setShowEmailModal(false);
       setEmailSent(false);
-    }
-  };
-
-  ///////////////////////////////////
-  // Handle Email Form Changing
-  ////////////////////////////////////
-  const handleEmailFormChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value } = e.target;
-    setEmailFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const openSendEmailModal = () => {
-    setIsModalOpen(true);
-  };
-
-  const closeSendEmailModal = () => {
-    setIsModalOpen(false);
+      setEmailAddress("");
+      setEmailMessage("");
+    }, 2000);
   };
 
   const handleCopyLink = () => {
@@ -168,9 +102,8 @@ export default function DocumentPreviewPage() {
 
             <div className="space-y-4">
               <p className="text-gray-700 leading-relaxed">
-                This Non-Disclosure Agreement (the &qout;Agreement&qout;) is
-                entered into on{" "}
-                <strong>{formData.effectiveDate || "[Date]"}</strong> by and
+                This Non-Disclosure Agreement (the &qout;Agreement&qout;) is entered into
+                on <strong>{formData.effectiveDate || "[Date]"}</strong> by and
                 between:
               </p>
 
@@ -213,10 +146,10 @@ export default function DocumentPreviewPage() {
                   2. DEFINITION OF CONFIDENTIAL INFORMATION
                 </h2>
                 <p className="text-gray-700 leading-relaxed">
-                  &qout;Confidential Information&qout; means any and all
-                  information disclosed by the Disclosing Party to the Receiving
-                  Party, whether orally, in writing, or in any other form,
-                  including but not limited to:
+                  &qout;Confidential Information&qout; means any and all information
+                  disclosed by the Disclosing Party to the Receiving Party,
+                  whether orally, in writing, or in any other form, including
+                  but not limited to:
                 </p>
                 <ul className="list-disc list-inside text-gray-700 mt-2 space-y-1 ml-4">
                   <li>Technical data, trade secrets, and know-how</li>
@@ -564,8 +497,7 @@ export default function DocumentPreviewPage() {
                 <p className="text-gray-700 leading-relaxed">
                   The Employee shall receive a monthly salary of{" "}
                   <strong>AED {formData.salary || "[Amount]"}</strong>, payable
-                  in accordance with the Employer&apos;s standard payroll
-                  schedule.
+                  in accordance with the Employer&apos;s standard payroll schedule.
                 </p>
                 {formData.benefits && (
                   <div className="mt-3 bg-white p-3 rounded border border-gray-200">
@@ -658,7 +590,7 @@ export default function DocumentPreviewPage() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen p-4 mb-6">
+      <div className="min-h-screen bg-gray-50 p-6 mb-4">
         {/* Header */}
         <PageHeader
           title="Document Preview"
@@ -718,7 +650,7 @@ export default function DocumentPreviewPage() {
                 {isDownloading ? "Generating PDF..." : "Download PDF"}
               </Button>
               <Button
-                onClick={() => openSendEmailModal()}
+                onClick={() => setShowEmailModal(true)}
                 startIcon={<Send className="w-4 h-4" />}
               >
                 Send to Customer
@@ -741,7 +673,7 @@ export default function DocumentPreviewPage() {
         </div>
 
         {/* AI Verification Section */}
-        {/* <div className="mt-6">
+        <div className="mt-6">
           <div className="bg-gradient-to-r from-blue-50 to-gray-50 border border-blue-200 rounded-lg p-6 flex items-start gap-4">
             <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
               <Sparkles className="w-6 h-6 text-white" />
@@ -757,7 +689,7 @@ export default function DocumentPreviewPage() {
               </p>
             </div>
           </div>
-        </div> */}
+        </div>
 
         {/* Quick Actions */}
         <div className="mt-8 text-center">
@@ -773,7 +705,7 @@ export default function DocumentPreviewPage() {
                 Edit Document
               </Button>
               <Button
-                onClick={() => openSendEmailModal()}
+                onClick={() => setShowEmailModal(true)}
                 className="text-sm"
                 startIcon={<Send className="w-4 h-4" />}
               >
@@ -782,17 +714,6 @@ export default function DocumentPreviewPage() {
             </div>
           </div>
         </div>
-
-        {/* Send Invoice Modal Component */}
-        <SendInvoiceModal
-          isOpen={isModalOpen}
-          onClose={closeSendEmailModal}
-          invoiceNumber={"198"}
-          emailFormData={emailFormData}
-          onEmailFormChange={handleEmailFormChange}
-          onSubmit={handleSendEmail}
-          isSending={emailSent}
-        />
 
         {/* Email Modal */}
         {showEmailModal && (

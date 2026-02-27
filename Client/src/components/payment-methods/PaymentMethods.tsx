@@ -23,7 +23,6 @@ import toast from "react-hot-toast";
 import { IntegrationForm } from "../integration-form/IntegrationForm";
 import LoadingSpinner from "../loading-spinner/LoadingSpinner";
 import { renderDateTime } from "@/utils/renderDateTime";
-import EmptyState from "../empty-state/EmptyState";
 
 interface PaymentGateway {
   uuid: string;
@@ -259,20 +258,22 @@ const PaymentMethods: React.FC = () => {
             <LoadingSpinner />
           </div>
         ) : paymentMethods.length === 0 ? (
-          <EmptyState
-            icon={Wallet}
-            title="No payment methods connected yet"
-            description="Add a payment method to securely receive payments and manage transactions."
-          />
+          <div className="text-center py-12 bg-[#F4F7FA] rounded-lg">
+            <Wallet className="w-12 h-12 text-[#cacbcc] mx-auto mb-3" />
+            <p className="text-[#344767] mb-4">
+              No payment methods connected yet
+            </p>
+          </div>
         ) : (
           <div className="space-y-3">
             {paymentMethods.map((method) => (
               <div
                 key={method.uuid}
-                className={`relative flex items-center justify-between p-4 rounded-lg transition-colors ${method.is_active
-                  ? "bg-[#F4F7FA] hover:bg-[#E1E8F5]"
-                  : "bg-[#F4F7FA] cursor-not-allowed"
-                  }`}
+                className={`relative flex items-center justify-between p-4 rounded-lg transition-colors ${
+                  method.is_active
+                    ? "bg-[#F4F7FA] hover:bg-[#E1E8F5]"
+                    : "bg-[#F4F7FA] cursor-not-allowed"
+                }`}
               >
                 {/* Overlay if inactive */}
                 {!method.is_active && (
@@ -302,10 +303,11 @@ const PaymentMethods: React.FC = () => {
                 <div className="flex items-center gap-3 z-20">
                   {/* Badge — pill style */}
                   <span
-                    className={`flex items-center gap-1 text-xs px-3 py-1 rounded-full font-semibold ${method.is_active
-                      ? "bg-green-100 text-green-700"
-                      : "bg-gray-300 text-gray-600"
-                      }`}
+                    className={`flex items-center gap-1 text-xs px-3 py-1 rounded-full font-semibold ${
+                      method.is_active
+                        ? "bg-green-100 text-green-700"
+                        : "bg-gray-300 text-gray-600"
+                    }`}
                   >
                     {method.is_active ? (
                       <CheckCircle size={14} />
@@ -322,10 +324,11 @@ const PaymentMethods: React.FC = () => {
                         ? handleDeactivate(method.user_id, method.gateway_name)
                         : handleSetActive(method.user_id, method.gateway_name)
                     }
-                    className={`text-xs px-3 py-1.5 ${method.is_active
-                      ? "bg-red-500 text-white hover:bg-red-600"
-                      : "bg-green-500 text-white hover:bg-green-600"
-                      }`}
+                    className={`text-xs px-3 py-1.5 ${
+                      method.is_active
+                        ? "bg-red-500 text-white hover:bg-red-600"
+                        : "bg-green-500 text-white hover:bg-green-600"
+                    }`}
                   >
                     {method.is_active ? "Deactivate" : "Activate"}
                   </Button>
@@ -361,10 +364,11 @@ const PaymentMethods: React.FC = () => {
                 <button
                   key={gateway.value}
                   onClick={() => handleGatewayChange(gateway.value)}
-                  className={`p-4 border-2 rounded-lg transition-all hover:shadow-md ${selectedGateway === gateway.value
-                    ? `${gateway.color} bg-gradient-to-br from-[#2E69A4]/5 to-[#1B2A49]/5 shadow-md`
-                    : "border-[#E1E8F5] hover:border-[#2E69A4]/30"
-                    }`}
+                  className={`p-4 border-2 rounded-lg transition-all hover:shadow-md ${
+                    selectedGateway === gateway.value
+                      ? `${gateway.color} bg-gradient-to-br from-[#2E69A4]/5 to-[#1B2A49]/5 shadow-md`
+                      : "border-[#E1E8F5] hover:border-[#2E69A4]/30"
+                  }`}
                 >
                   <div className="flex flex-col items-center gap-2">
                     {gateway.icon}

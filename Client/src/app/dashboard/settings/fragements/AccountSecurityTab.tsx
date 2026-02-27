@@ -15,8 +15,6 @@ import {
 import SectionCard from "@/components/section-card/SectionCard";
 import ToggleSwitch from "@/components/ui/ToggleSwitch";
 import ChangePasswordForm from "./ChangePasswordForm";
-import ActiveSessions from "@/components/active-sessions/ActiveSessions";
-import TwoFactorSettings from "@/components/2fa-settings/TwoFactorSettings";
 
 const AccountSecurityTab: React.FC = () => {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
@@ -25,7 +23,7 @@ const AccountSecurityTab: React.FC = () => {
     <div className="space-y-6">
       <ChangePasswordForm />
 
-      {/* <SectionCard title="Two-Factor Authentication" icon={Shield}>
+      <SectionCard title="Two-Factor Authentication" icon={Shield}>
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="font-medium text-[#1B2A49]">Enable 2FA</p>
@@ -48,11 +46,9 @@ const AccountSecurityTab: React.FC = () => {
             </div>
           </div>
         )}
-      </SectionCard> */}
+      </SectionCard>
 
-      <TwoFactorSettings />
-
-      {/* <SectionCard title="Login Methods" icon={Smartphone}>
+      <SectionCard title="Login Methods" icon={Smartphone}>
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 bg-[#F4F7FA] rounded-lg">
             <div className="flex items-center gap-3">
@@ -81,9 +77,28 @@ const AccountSecurityTab: React.FC = () => {
             </button>
           </div>
         </div>
-      </SectionCard> */}
+      </SectionCard>
 
-      <ActiveSessions />
+      <SectionCard title="Active Sessions" icon={Globe}>
+        <div className="space-y-3">
+          <div className="flex items-start justify-between p-4 bg-[#F4F7FA] rounded-lg">
+            <div className="flex items-start gap-3">
+              <Smartphone className="w-5 h-5 text-[#2E69A4] mt-1" />
+              <div>
+                <p className="font-medium text-[#1B2A49]">
+                  Chrome on MacBook Pro
+                </p>
+                <p className="text-sm text-[#344767]">
+                  Dubai, UAE • Last active now
+                </p>
+              </div>
+            </div>
+            <span className="text-xs bg-[#2E69A4] text-white px-2 py-1 rounded">
+              Current
+            </span>
+          </div>
+        </div>
+      </SectionCard>
     </div>
   );
 };
