@@ -25,6 +25,13 @@ import {
   Edit2,
   FileCheck,
   Bell,
+  Wand2,
+  Bot,
+  ChevronDown,
+  ChevronUp,
+  Zap,
+  BrainCircuit,
+  RotateCcw,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import Modal from "@/components/ui/Modal";
@@ -34,6 +41,13 @@ import axiosInstance from "@/utils/axiosInstance";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
 import EmptyState from "@/components/empty-state/EmptyState";
+import Card from "@/components/ui/Card";
+import {
+  ComplianceDocument,
+  fmtDate,
+  getDaysRemaining,
+  getLicenseStatusConfig,
+} from "../../page";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -57,12 +71,12 @@ interface AttachedDocument {
   is_rejected?: boolean;
   created_at: string;
   ai_summary?: string;
-  // backend may return these to identify which license a doc belongs to
   attached_license?: string;
   license_id?: string;
 }
 
 interface ActivityEntry {
+  uuid?: string;
   id: string;
   event_type: string;
   details: string;
@@ -99,59 +113,10 @@ const DOC_TYPES = [
   "Other",
 ];
 
-// ─── Shared select class (same as main page) ──────────────────────────────────
-
 const selectCls =
   "w-full border border-border text-text-primary rounded-xl px-4 py-3 text-sm bg-bg-base focus:outline-none focus:ring-2 focus:ring-border-focus focus:border-transparent transition-colors";
 
-// ─── Helpers (kept in sync with main page) ────────────────────────────────────
-
-const getDaysRemaining = (expiry: string) =>
-  Math.floor((new Date(expiry).getTime() - Date.now()) / 86400000);
-
-const getLicenseStatusConfig = (status: LicenseDetail["status"]) => {
-  switch (status) {
-    case "active":
-      return {
-        badge:
-          "bg-status-success-bg text-status-success-text border border-status-success-border",
-        icon: <BadgeCheck className="w-4 h-4" />,
-        label: "Active",
-        urgency: "low",
-      };
-    case "expired":
-      return {
-        badge:
-          "bg-status-error-bg text-status-error-text border border-status-error-border",
-        icon: <AlertTriangle className="w-4 h-4" />,
-        label: "Expired",
-        urgency: "critical",
-      };
-    case "renewal_pending":
-      return {
-        badge:
-          "bg-status-warning-bg text-status-warning-text border border-status-warning-border",
-        icon: <RefreshCw className="w-4 h-4" />,
-        label: "Renewal Pending",
-        urgency: "medium",
-      };
-    case "suspended":
-      return {
-        badge: "bg-bg-muted text-text-secondary border border-border",
-        icon: <Ban className="w-4 h-4" />,
-        label: "Suspended",
-        urgency: "low",
-      };
-    default:
-      return {
-        badge:
-          "bg-status-info-bg text-status-info-text border border-status-info-border",
-        icon: <FileBadge className="w-4 h-4" />,
-        label: status,
-        urgency: "low",
-      };
-  }
-};
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const getDaysLabel = (days: number) => {
   if (days < 0)
@@ -228,22 +193,13 @@ const getActivityBg = (type: string) => {
     case "reminder_triggered":
       return "bg-status-warning-bg border-status-warning-border";
     case "ai_summary_generated":
-      return "bg-brand-light border-border";
+      return "bg-brand-light border-secondary-light";
     case "document_rejected":
       return "bg-status-error-bg border-status-error-border";
     default:
       return "bg-bg-subtle border-border";
   }
 };
-
-const fmtDate = (d?: string) =>
-  d
-    ? new Date(d).toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      })
-    : "—";
 
 const fmtDateTime = (d: string) => {
   const dt = new Date(d);
@@ -254,7 +210,7 @@ const fmtDateTime = (d: string) => {
   );
 };
 
-// ─── Mode Toggle (same as main page) ─────────────────────────────────────────
+// ─── Mode Toggle ──────────────────────────────────────────────────────────────
 
 function ModeToggle({
   mode,
@@ -287,7 +243,7 @@ function ModeToggle({
   );
 }
 
-// ─── File Drop Zone (same pattern as main page upload zone) ──────────────────
+// ─── File Drop Zone ───────────────────────────────────────────────────────────
 
 function FileDropZone({
   file,
@@ -357,6 +313,202 @@ function FileDropZone({
   );
 }
 
+// ─── AI Summary Components ────────────────────────────────────────────────────
+
+// State 1: No summary yet — invite user to generate
+function AISummaryCTA({
+  docId,
+  onGenerate,
+}: {
+  docId: string;
+  onGenerate: (id: string) => void;
+}) {
+  return (
+    <div className="border-t border-border">
+      <div className="px-5 py-4 bg-brand-light">
+        <div className="flex items-center gap-3">
+          {/* Orb */}
+          <div className="shrink-0 w-9 h-9 rounded-xl bg-secondary flex items-center justify-center shadow-card">
+            <BrainCircuit className="w-4 h-4 text-on-brand" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-bold text-text-heading leading-none mb-0.5">
+              AI Document Analysis
+            </p>
+            <p className="text-[11px] text-text-muted leading-snug">
+              Let Claude read this document and extract key compliance insights
+            </p>
+          </div>
+          <button
+            onClick={() => onGenerate(docId)}
+            className="shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-secondary text-on-brand hover:bg-secondary-hover shadow-card transition-all active:scale-95"
+          >
+            <Wand2 className="w-3.5 h-3.5" />
+            Generate
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// State 2: Generating — animated skeleton
+function AISummaryGenerating() {
+  return (
+    <div className="border-t border-border">
+      <div className="px-5 py-4 bg-brand-light">
+        <div className="flex items-start gap-3">
+          {/* Pulsing orb */}
+          <div className="relative shrink-0 mt-0.5">
+            <div className="absolute inset-0 w-9 h-9 rounded-xl bg-secondary opacity-20 animate-ping" />
+            <div className="relative w-9 h-9 rounded-xl bg-secondary flex items-center justify-center shadow-card">
+              <Wand2 className="w-4 h-4 text-on-brand animate-pulse" />
+            </div>
+          </div>
+          <div className="flex-1 min-w-0 pt-0.5">
+            <div className="flex items-center gap-2 mb-2">
+              <p className="text-xs font-bold text-secondary">
+                Analysing document…
+              </p>
+              <span className="flex gap-0.5">
+                <span className="w-1 h-1 rounded-full bg-secondary opacity-60 animate-bounce [animation-delay:0ms]" />
+                <span className="w-1 h-1 rounded-full bg-secondary opacity-60 animate-bounce [animation-delay:150ms]" />
+                <span className="w-1 h-1 rounded-full bg-secondary opacity-60 animate-bounce [animation-delay:300ms]" />
+              </span>
+            </div>
+            <p className="text-[11px] text-text-muted mb-3">
+              Claude is reading and extracting compliance insights
+            </p>
+            {/* Skeleton lines */}
+            <div className="space-y-1.5">
+              <div className="h-2 rounded-full bg-secondary-light animate-pulse w-full" />
+              <div className="h-2 rounded-full bg-secondary-light animate-pulse w-4/5 [animation-delay:100ms]" />
+              <div className="h-2 rounded-full bg-secondary-light animate-pulse w-5/6 [animation-delay:200ms]" />
+              <div className="h-2 rounded-full bg-secondary-light animate-pulse w-3/4 [animation-delay:300ms]" />
+              <div className="h-2 rounded-full bg-secondary-light animate-pulse w-2/3 [animation-delay:400ms]" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// State 3: Summary ready — rich AI card with expand/collapse
+function AISummaryCard({
+  summary,
+  docId,
+  onRegenerate,
+  loading,
+}: {
+  summary: string;
+  docId: string;
+  onRegenerate: (id: string) => void;
+  loading: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const PREVIEW_LENGTH = 280;
+  const isLong = summary.length > PREVIEW_LENGTH;
+  const displayed =
+    !expanded && isLong
+      ? summary.slice(0, PREVIEW_LENGTH).trimEnd() + "…"
+      : summary;
+  const wordCount = summary.trim().split(/\s+/).filter(Boolean).length;
+
+  return (
+    <div className="border-t border-border overflow-hidden">
+      {/* ── Header bar ── */}
+      <div className="flex items-center justify-between px-5 py-2.5 bg-brand-light border-b border-secondary-light">
+        <div className="flex items-center gap-2.5">
+          {/* Animated sparkle orb */}
+          <div className="relative shrink-0">
+            <div className="absolute inset-0 w-6 h-6 rounded-full bg-secondary opacity-20 animate-ping" />
+            <div className="relative w-6 h-6 rounded-full bg-secondary flex items-center justify-center shadow-card">
+              <Sparkles className="w-3 h-3 text-on-brand" />
+            </div>
+          </div>
+          <div className="leading-none">
+            <p className="text-[11px] font-bold text-secondary">AI Analysis</p>
+            <p className="text-[10px] text-text-muted mt-0.5">
+              {wordCount} words · Claude
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {/* Regenerate */}
+          <button
+            onClick={() => onRegenerate(docId)}
+            disabled={loading}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold text-secondary bg-surface hover:bg-bg-subtle border border-secondary-light transition-all disabled:opacity-50"
+            title="Regenerate AI summary"
+          >
+            {loading ? (
+              <LoadingSpinner size="w-2.5 h-2.5" color="border-secondary" />
+            ) : (
+              <RotateCcw className="w-2.5 h-2.5" />
+            )}
+            {loading ? "Working…" : "Regenerate"}
+          </button>
+          {/* Expand / collapse */}
+          {isLong && (
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold text-secondary bg-surface hover:bg-bg-subtle border border-secondary-light transition-all"
+            >
+              {expanded ? (
+                <>
+                  <ChevronUp className="w-2.5 h-2.5" /> Less
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-2.5 h-2.5" /> More
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ── Body ── */}
+      <div className="px-5 py-4 bg-brand-light/40">
+        {/* Left accent bar + text */}
+        <div className="flex gap-3 mb-3">
+          <div className="shrink-0 w-0.5 self-stretch rounded-full bg-secondary opacity-40" />
+          <p className="text-xs text-text-primary leading-relaxed">
+            {displayed}
+          </p>
+        </div>
+
+        {/* Read more inline link */}
+        {isLong && !expanded && (
+          <button
+            onClick={() => setExpanded(true)}
+            className="text-[11px] font-semibold text-secondary hover:text-secondary-hover ml-3.5 transition-colors"
+          >
+            Read full analysis →
+          </button>
+        )}
+
+        {/* Footer meta pills */}
+        <div className="flex items-center gap-1.5 mt-3 pt-2.5 border-t border-secondary-light">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-light border border-secondary-light text-[10px] font-semibold text-secondary">
+            <Bot className="w-2.5 h-2.5" />
+            AI Generated
+          </span>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-light border border-secondary-light text-[10px] font-semibold text-secondary">
+            <Zap className="w-2.5 h-2.5" />
+            Document Analysis
+          </span>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-light border border-secondary-light text-[10px] font-semibold text-secondary">
+            <FileText className="w-2.5 h-2.5" />
+            Compliance Insights
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function LicenseDetailsPage() {
@@ -373,8 +525,8 @@ export default function LicenseDetailsPage() {
   const [pageLoading, setPageLoading] = useState(true);
   const [activityLoading, setActivityLoading] = useState(false);
 
-  // Derived: the document attached to this license lives on license.document_id
-  // exactly the same relationship as main page getAttachedDocument()
+  // Derived: document attached to this license via license.document_id
+  // Same relationship as main page getAttachedDocument()
   const attachedDocs = React.useMemo<AttachedDocument[]>(() => {
     if (!license?.document_id) return [];
     const found = allDocs.find((d) => d.id === license.document_id);
@@ -406,6 +558,37 @@ export default function LicenseDetailsPage() {
   // ── AI ──
   const [aiLoadingFor, setAiLoadingFor] = useState<string | null>(null);
 
+  // ── History logger ────────────────────────────────────────────────────────
+  // Fire-and-forget — called AFTER a main action succeeds.
+  // Never throws; history logging must never break the UX.
+  //
+  // Integrated endpoints (compliance_history.controller.ts):
+  //   POST /compliance-history/document-uploaded  → after attach doc in upload mode
+  //   POST /compliance-history/ai-summary         → after AI summary generated
+  //   POST /compliance-history/license-renewed    → after license edit saved
+  //   GET  /compliance-history/document/:id       → enrich activity timeline with doc-scoped events
+  //
+  // NOT integrated here (not user-triggered from this page):
+  //   reminder-triggered  → server-side only
+  //   document-verified   → admin action
+  //   document-rejected   → admin action
+  //   ai-chat             → no chat feature here
+  //   DELETE endpoints    → not applicable here
+
+  const logHistory = useCallback(
+    async (endpoint: string, payload: Record<string, unknown>) => {
+      try {
+        await axiosInstance.post(`/compliance-history/${endpoint}`, {
+          user_id: userId,
+          ...payload,
+        });
+      } catch {
+        // Intentionally silent — history is non-critical
+      }
+    },
+    [userId],
+  );
+
   // ── Fetch license ─────────────────────────────────────────────────────────
 
   const fetchLicense = useCallback(async () => {
@@ -415,11 +598,11 @@ export default function LicenseDetailsPage() {
       const res = await axiosInstance.get(
         `/compliance-licensing/single/${licenseId}`,
       );
+      console.log("Fetch license response:", res.data);
       const data = res.data?.response || res.data;
-      // Map uuid → id, same as main page
       setLicense({ ...data, id: data.uuid ?? data.id });
-    } catch (e) {
-      console.error("fetchLicense:", e);
+    } catch (error) {
+      console.error("fetchLicense error:", error);
       toast.error("Failed to load license details");
     } finally {
       setPageLoading(false);
@@ -434,36 +617,69 @@ export default function LicenseDetailsPage() {
       const res = await axiosInstance.get(
         `/compliance-documents/user/${userId}`,
       );
-      // Map uuid → id, same as main page
+      console.log("Fetch documents response:", res.data);
       const data: AttachedDocument[] = (
         res.data?.response ||
         res.data ||
         []
-      ).map((x: any) => ({ ...x, id: x.uuid ?? x.id }));
-      // Just store all docs — attachedDocs is derived via license.document_id (useMemo above)
+      ).map((x: ComplianceDocument) => ({ ...x, id: x.uuid ?? x.id }));
       setAllDocs(data);
-    } catch (e) {
-      console.error("fetchDocs:", e);
+    } catch (error) {
+      console.error("fetchDocs error:", error);
     }
   }, [userId]);
 
   // ── Fetch activity ────────────────────────────────────────────────────────
+  // Fetches user-wide history from GET /compliance-history/user.
+  // After doc actions we additionally call GET /compliance-history/document/:id
+  // to merge document-scoped events, giving a richer timeline for this page.
 
   const fetchActivity = useCallback(async () => {
     if (!licenseId) return;
     setActivityLoading(true);
     try {
       const res = await axiosInstance.get(`/compliance-history/user`);
+      console.log("Fetch activity response:", res.data);
       const data: ActivityEntry[] = (res.data?.response || res.data || []).map(
-        (x: any) => ({ ...x, id: x.uuid ?? x.id }),
+        (x: ActivityEntry) => ({ ...x, id: x.uuid ?? x.id }),
       );
       setActivity(data.slice(0, 15));
-    } catch (e) {
-      console.error("fetchActivity:", e);
+    } catch (error) {
+      console.error("fetchActivity error:", error);
     } finally {
       setActivityLoading(false);
     }
   }, [licenseId]);
+
+  // Fetches doc-scoped activity via GET /compliance-history/document/:documentId
+  // and merges it (deduplicated) into the timeline for richer context.
+  const enrichActivityWithDoc = useCallback(async (docId: string) => {
+    try {
+      // GET /compliance-history/document/:documentId
+      const res = await axiosInstance.get(
+        `/compliance-history/document/${docId}`,
+      );
+      const docEvents: ActivityEntry[] = (
+        res.data?.response ||
+        res.data ||
+        []
+      ).map((x: ComplianceDocument) => ({ ...x, id: x.uuid ?? x.id }));
+      if (docEvents.length === 0) return;
+      setActivity((prev) => {
+        const existingIds = new Set(prev.map((e) => e.id));
+        const fresh = docEvents.filter((e) => !existingIds.has(e.id));
+        return [...fresh, ...prev]
+          .sort(
+            (a, b) =>
+              new Date(b.created_at).getTime() -
+              new Date(a.created_at).getTime(),
+          )
+          .slice(0, 15);
+      });
+    } catch {
+      // Silent — doc-scoped enrichment is best-effort
+    }
+  }, []);
 
   useEffect(() => {
     fetchLicense();
@@ -479,9 +695,10 @@ export default function LicenseDetailsPage() {
       const res = await axiosInstance.patch(
         `/compliance-documents/ai_summary/${docId}`,
       );
+      console.log("Generate AI summary response:", res.data);
       const updated = res.data?.response || res.data;
       toast.success("AI summary generated");
-      // Only update allDocs — attachedDocs is derived automatically via useMemo
+      // Update allDocs — attachedDocs is derived automatically via useMemo
       setAllDocs((list) =>
         list.map((d) =>
           d.id === docId
@@ -489,11 +706,14 @@ export default function LicenseDetailsPage() {
             : d,
         ),
       );
+      // POST /compliance-history/ai-summary
+      logHistory("ai-summary", { document_id: docId });
+      // Enrich timeline with doc-scoped events, then refresh full activity
+      enrichActivityWithDoc(docId);
       fetchActivity();
-    } catch (e: any) {
-      toast.error(
-        e?.response?.data?.message || "Failed to generate AI summary",
-      );
+    } catch (error) {
+      console.error("Generate AI summary error:", error);
+      toast.error("Failed to generate AI summary");
     } finally {
       setAiLoadingFor(null);
     }
@@ -504,13 +724,18 @@ export default function LicenseDetailsPage() {
   const handleRemoveDoc = async (docId: string) => {
     if (!confirm("Delete this document? This action cannot be undone.")) return;
     try {
-      await axiosInstance.delete(`/compliance-documents/delete/${docId}`);
+      const res = await axiosInstance.delete(
+        `/compliance-documents/delete/${docId}`,
+      );
+      console.log("Delete document response:", res.data);
       toast.success("Document removed");
       setAllDocs((p) => p.filter((d) => d.id !== docId));
-      // Re-fetch license so document_id clears if it was the attached doc
+      // Re-fetch license so document_id clears if this was the attached doc
       fetchLicense();
-    } catch (e: any) {
-      toast.error(e?.response?.data?.message || "Failed to remove document");
+      fetchActivity();
+    } catch (error) {
+      console.error("Delete document error:", error);
+      toast.error("Failed to remove document");
     }
   };
 
@@ -529,6 +754,7 @@ export default function LicenseDetailsPage() {
     setAttachLoading(true);
     try {
       let docId = selectedDocId;
+      let docFilename = allDocs.find((d) => d.id === docId)?.filename ?? "";
 
       if (attachMode === "upload") {
         if (!attachDocFile) {
@@ -537,7 +763,7 @@ export default function LicenseDetailsPage() {
           return;
         }
         const fd = new FormData();
-        fd.append("user_id", userId || "");
+        fd.append("user_id", userId as string);
         fd.append("document_type", attachDocType || "Other");
         fd.append("filename", attachDocFile);
         const res = await axiosInstance.post(
@@ -547,12 +773,18 @@ export default function LicenseDetailsPage() {
             headers: { "Content-Type": "multipart/form-data" },
           },
         );
-        // Map uuid → id, same as main page
+        console.log("Upload document during attach response:", res.data);
         docId =
           res.data?.response?.uuid ??
           res.data?.response?.id ??
           res.data?.uuid ??
           res.data?.id;
+        docFilename = attachDocFile.name;
+        // POST /compliance-history/document-uploaded for the newly created doc
+        logHistory("document-uploaded", {
+          document_id: docId,
+          filename: docFilename,
+        });
       }
 
       if (!docId) {
@@ -561,16 +793,20 @@ export default function LicenseDetailsPage() {
         return;
       }
 
-      // Same endpoint as main page
-      await axiosInstance.put(
+      const attachRes = await axiosInstance.put(
         `/compliance-licensing/${license.id}/attach-document/${docId}`,
       );
+      console.log("Attach document response:", attachRes.data);
       toast.success("Document attached successfully");
       resetAttachModal();
       fetchDocs();
+      fetchLicense();
+      // Enrich timeline with events for this document
+      enrichActivityWithDoc(docId);
       fetchActivity();
-    } catch (e: any) {
-      toast.error(e?.response?.data?.message || "Failed to attach document");
+    } catch (error) {
+      console.error("Attach document error:", error);
+      toast.error("Failed to attach document");
     } finally {
       setAttachLoading(false);
     }
@@ -606,15 +842,24 @@ export default function LicenseDetailsPage() {
     if (!validateEdit() || !license) return;
     setEditFormLoading(true);
     try {
-      await axiosInstance.put(
+      const res = await axiosInstance.put(
         `/compliance-licensing/update/${license.id}`,
         editForm,
       );
+      console.log("Edit license response:", res.data);
       toast.success("License updated");
       setIsEditOpen(false);
       fetchLicense();
-    } catch (e: any) {
-      toast.error(e?.response?.data?.message || "Failed to update license");
+      // POST /compliance-history/license-renewed
+      // Editing license = renewal in compliance context
+      logHistory("license-renewed", {
+        license_id: license.id,
+        license_type: editForm.license_type,
+      });
+      fetchActivity();
+    } catch (error) {
+      console.error("Edit license error:", error);
+      toast.error("Failed to update license");
     } finally {
       setEditFormLoading(false);
     }
@@ -683,15 +928,7 @@ export default function LicenseDetailsPage() {
         </div>
 
         {/* ── License Header Card ── */}
-        <div className="bg-surface rounded-xl border border-border shadow-card p-6 mb-6 relative overflow-hidden">
-          {/* Urgency accent bar — same logic as card on main page */}
-          {(daysLbl.urgency === "critical" || daysLbl.urgency === "high") && (
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-status-error" />
-          )}
-          {daysLbl.urgency === "medium" && (
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-status-warning" />
-          )}
-
+        <Card className="mb-6 relative">
           <div className="flex items-start justify-between flex-wrap gap-4 mb-5">
             {/* Icon + name + status */}
             <div className="flex items-center gap-4">
@@ -706,8 +943,7 @@ export default function LicenseDetailsPage() {
                   <span
                     className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${statusCfg.badge}`}
                   >
-                    {statusCfg.icon}
-                    {statusCfg.label}
+                    {statusCfg.icon} {statusCfg.label}
                   </span>
                 </div>
                 <p className="text-text-muted text-xs font-mono">
@@ -716,7 +952,7 @@ export default function LicenseDetailsPage() {
               </div>
             </div>
 
-            {/* Action buttons — rounded-xl throughout */}
+            {/* Action buttons */}
             <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
               <button
                 onClick={openEdit}
@@ -732,12 +968,9 @@ export default function LicenseDetailsPage() {
                   setSelectedDocId("");
                   setIsAttachDocOpen(true);
                 }}
-                className="flex items-center gap-2 px-4 py-2.5 border border-border text-text-primary text-sm font-semibold rounded-xl hover:bg-bg-subtle transition-colors"
+                className="flex items-center gap-2 px-4 py-2.5 bg-brand text-on-brand text-sm font-semibold rounded-xl hover:bg-brand-hover transition-colors"
               >
                 <Paperclip className="w-4 h-4" /> Attach Doc
-              </button>
-              <button className="flex items-center gap-2 px-4 py-2.5 bg-accent text-on-accent text-sm font-semibold rounded-xl hover:bg-accent-hover transition-colors">
-                <RefreshCw className="w-4 h-4" /> Renew License
               </button>
             </div>
           </div>
@@ -767,7 +1000,7 @@ export default function LicenseDetailsPage() {
             ))}
           </div>
 
-          {/* Validity progress bar — same colors as main page */}
+          {/* Validity progress bar */}
           <div>
             <div className="flex items-center justify-between text-xs mb-2">
               <span className="text-text-muted font-medium">
@@ -782,14 +1015,13 @@ export default function LicenseDetailsPage() {
               />
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* ── Content grid ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* ════ LEFT: Attached Documents ════ */}
           <div className="lg:col-span-2">
-            <div className="bg-surface rounded-xl border border-border shadow-card overflow-hidden">
-              {/* Section header — no border bottom (same as main page) */}
+            <Card className="p-0">
               <div className="flex items-center justify-between px-5 pt-5 pb-2">
                 <div className="flex items-center gap-2">
                   <h2 className="text-sm font-bold text-text-heading">
@@ -832,7 +1064,7 @@ export default function LicenseDetailsPage() {
                         key={doc.id}
                         className="border border-border rounded-xl overflow-hidden hover:border-border-strong transition-colors"
                       >
-                        {/* Doc row */}
+                        {/* ── Doc row ── */}
                         <div className="flex items-center gap-4 p-4">
                           <div className="w-10 h-10 bg-brand-light rounded-xl flex items-center justify-center shrink-0">
                             <FileText className="w-5 h-5 text-secondary" />
@@ -868,32 +1100,6 @@ export default function LicenseDetailsPage() {
                           {/* Action buttons */}
                           <div className="flex items-center gap-1.5 shrink-0">
                             <button
-                              onClick={() => handleGenerateAISummary(doc.id)}
-                              disabled={aiLoadingFor === doc.id}
-                              className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-light text-secondary text-xs font-semibold rounded-lg hover:bg-secondary-light transition-colors disabled:opacity-50"
-                              title={
-                                doc.ai_summary
-                                  ? "Regenerate AI summary"
-                                  : "Generate AI summary"
-                              }
-                            >
-                              {aiLoadingFor === doc.id ? (
-                                <LoadingSpinner
-                                  size="w-3 h-3"
-                                  color="border-secondary"
-                                />
-                              ) : doc.ai_summary ? (
-                                <RefreshCw className="w-3.5 h-3.5" />
-                              ) : (
-                                <Sparkles className="w-3.5 h-3.5" />
-                              )}
-                              {aiLoadingFor === doc.id
-                                ? "Generating…"
-                                : doc.ai_summary
-                                  ? "Regenerate"
-                                  : "AI Summary"}
-                            </button>
-                            <button
                               onClick={() => window.open(doc.file_url)}
                               className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-secondary transition-colors"
                               title="Download"
@@ -910,33 +1116,33 @@ export default function LicenseDetailsPage() {
                           </div>
                         </div>
 
-                        {/* AI Summary panel */}
-                        {doc.ai_summary && (
-                          <div className="border-t border-border bg-brand-light/30 px-5 py-3.5">
-                            <div className="flex items-start gap-2">
-                              <Sparkles className="w-3.5 h-3.5 text-secondary shrink-0 mt-0.5" />
-                              <div>
-                                <p className="text-xs font-semibold text-secondary mb-1">
-                                  AI Summary
-                                </p>
-                                <p className="text-xs text-text-primary leading-relaxed">
-                                  {doc.ai_summary}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
+                        {/* ── AI Summary panel — 3 states ── */}
+                        {aiLoadingFor === doc.id ? (
+                          <AISummaryGenerating />
+                        ) : doc.ai_summary ? (
+                          <AISummaryCard
+                            summary={doc.ai_summary}
+                            docId={doc.id}
+                            onRegenerate={handleGenerateAISummary}
+                            loading={aiLoadingFor === doc.id}
+                          />
+                        ) : (
+                          <AISummaryCTA
+                            docId={doc.id}
+                            onGenerate={handleGenerateAISummary}
+                          />
                         )}
                       </div>
                     ))}
                   </div>
                 )}
               </div>
-            </div>
+            </Card>
           </div>
 
           {/* ════ RIGHT: Activity Timeline ════ */}
           <div>
-            <div className="bg-surface rounded-xl border border-border shadow-card">
+            <Card className="p-0">
               <div className="flex items-center justify-between px-5 pt-5 pb-2">
                 <h3 className="text-sm font-bold text-text-heading">
                   Activity Timeline
@@ -985,7 +1191,7 @@ export default function LicenseDetailsPage() {
                   </div>
                 )}
               </div>
-            </div>
+            </Card>
           </div>
         </div>
       </div>

@@ -45,10 +45,8 @@ import UpcomingDeadlines from "@/components/compliance-deadlines-card/UpcomingDe
 import ActivityTimeline from "@/components/compliance-activity/ActivityTimeline";
 import ModeToggle from "@/components/mode-toggle/ModeToggle";
 
-
 // ─── Types ────────────────────────────────────────────────────────────────────
-
-interface License {
+export interface License {
   id: string;
   uuid?: string;
   license_type: string;
@@ -60,7 +58,7 @@ interface License {
   document_id?: string;
 }
 
-interface ComplianceDocument {
+export interface ComplianceDocument {
   uuid?: string;
   id: string;
   document_type: string;
@@ -73,7 +71,7 @@ interface ComplianceDocument {
   ai_summary?: string;
 }
 
-interface ActivityEntry {
+export interface ActivityEntry {
   id: string;
   event_type: string;
   details: string;
@@ -82,7 +80,7 @@ interface ActivityEntry {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const LICENSE_TYPES = [
+export const LICENSE_TYPES = [
   "Trade License",
   "VAT Registration",
   "ESR License",
@@ -93,7 +91,7 @@ const LICENSE_TYPES = [
   "Other",
 ];
 
-const DOC_TYPES = [
+export const DOC_TYPES = [
   "Trade License",
   "Passport Copy",
   "Tenancy Contract",
@@ -112,10 +110,10 @@ const DOC_TYPES = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const getDaysRemaining = (expiry: string) =>
+export const getDaysRemaining = (expiry: string) =>
   Math.floor((new Date(expiry).getTime() - Date.now()) / 86400000);
 
-const getLicenseStatusConfig = (status: License["status"]) => {
+export const getLicenseStatusConfig = (status: License["status"]) => {
   switch (status) {
     case "active":
       return {
@@ -154,7 +152,7 @@ const getLicenseStatusConfig = (status: License["status"]) => {
   }
 };
 
-const fmtDate = (d?: string) =>
+export const fmtDate = (d?: string) =>
   d
     ? new Date(d).toLocaleDateString("en-GB", {
         day: "2-digit",
@@ -241,17 +239,41 @@ export default function ComplianceLicensingPage() {
   const [attachToLicLoading, setAttachToLicLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState<string | null>(null);
   const [reminderLoading, setReminderLoading] = useState(false);
-  const [reminderForm, setReminderForm] = useState({
+
+  // ── Reminder form — matches AiReminder entity exactly ──
+  const [reminderForm, setReminderForm] = useState<{
+    license_id: string;
+    notify_before: string; // days before expiry — maps to entity notify_before (integer)
+    notify_channels: { email: boolean; whatsapp: boolean; push: boolean };
+  }>({
     license_id: "",
-    days_before: "30",
-    notify_email: true,
+    notify_before: "30",
+    notify_channels: { email: true, whatsapp: false, push: true },
   });
 
   const fileRef = useRef<HTMLInputElement>(null);
   const fileRef2 = useRef<HTMLInputElement>(null);
 
-  // ── Fetch ─────────────────────────────────────────────────────────────────
+  /////////////////////////////////////////////////////////
+  // History logger
+  ///////////////////////////////////////////////////////////
+  const logHistory = useCallback(
+    async (endpoint: string, payload: Record<string, unknown>) => {
+      try {
+        await axiosInstance.post(`/compliance-history/${endpoint}`, {
+          user_id: userId,
+          ...payload,
+        });
+      } catch (error) {
+        console.error("History log error:", error);
+      }
+    },
+    [userId],
+  );
 
+  /////////////////////////////////////////////////////////////
+  // Fetch User Licenses
+  ////////////////////////////////////////////////////////////
   const fetchLicenses = useCallback(async () => {
     if (!userId) return;
     setLicensesLoading(true);
@@ -261,13 +283,17 @@ export default function ComplianceLicensingPage() {
       );
       const data = res.data || [];
       setLicenses(data.map((item: License) => ({ ...item, id: item.uuid })));
-    } catch {
+    } catch (error) {
+      console.error("Failed to load licenses:", error);
       toast.error("Failed to load licenses");
     } finally {
       setLicensesLoading(false);
     }
   }, [userId, companyId]);
 
+  ////////////////////////////////////////////////////
+  // Fetch User Documents
+  ///////////////////////////////////////////////////
   const fetchDocuments = useCallback(async () => {
     if (!userId) return;
     setDocsLoading(true);
@@ -279,13 +305,17 @@ export default function ComplianceLicensingPage() {
       setDocuments(
         data.map((item: ComplianceDocument) => ({ ...item, id: item.uuid })),
       );
-    } catch {
+    } catch (error) {
+      console.error("Failed to load documents:", error);
       toast.error("Failed to load documents");
     } finally {
       setDocsLoading(false);
     }
   }, [userId]);
 
+  ////////////////////////////////////////////////////
+  // Fetch User Activity
+  ///////////////////////////////////////////////////
   const fetchActivity = useCallback(async () => {
     if (!userId) return;
     setActivityLoading(true);
@@ -293,8 +323,8 @@ export default function ComplianceLicensingPage() {
       const res = await axiosInstance.get(`/compliance-history/user`);
       const data = res.data?.response || res.data || [];
       setActivity(data.slice(0, 10));
-    } catch {
-      /* silent */
+    } catch (error) {
+      console.error("Failed to load activity:", error);
     } finally {
       setActivityLoading(false);
     }
@@ -306,8 +336,9 @@ export default function ComplianceLicensingPage() {
     fetchActivity();
   }, [fetchLicenses, fetchDocuments, fetchActivity]);
 
-  // ── Derived ───────────────────────────────────────────────────────────────
-
+  /////////////////////////////////////////////////
+  // Derived
+  ////////////////////////////////////////////////////
   const getAttachedDocument = (license: License) =>
     license.document_id
       ? documents.find((d) => d.id === license.document_id)
@@ -323,8 +354,9 @@ export default function ComplianceLicensingPage() {
     );
   });
 
-  // ── CRUD: License ─────────────────────────────────────────────────────────
-
+  //////////////////////////////////////////////////////
+  // CRUD: License
+  //////////////////////////////////////////////////////
   const validateAddForm = () => {
     const errs: Record<string, string> = {};
     if (!addForm.license_type.trim())
@@ -341,7 +373,7 @@ export default function ComplianceLicensingPage() {
     if (!validateAddForm()) return;
     setAddFormLoading(true);
     try {
-      await axiosInstance.post("/compliance-licensing/create", {
+      const res = await axiosInstance.post("/compliance-licensing/create", {
         user_id: userId,
         company_id: companyId,
         ...addForm,
@@ -355,9 +387,10 @@ export default function ComplianceLicensingPage() {
         expiry_date: "",
       });
       fetchLicenses();
+      fetchActivity();
     } catch (error) {
+      console.error("Failed to add license:", error);
       toast.error("Failed to add license");
-      console.log(error);
     } finally {
       setAddFormLoading(false);
     }
@@ -397,9 +430,14 @@ export default function ComplianceLicensingPage() {
       toast.success("License updated");
       setIsEditLicenseOpen(false);
       fetchLicenses();
+      logHistory("license-renewed", {
+        license_id: selectedLicense.id,
+        license_type: editForm.license_type,
+      });
+      fetchActivity();
     } catch (error) {
+      console.error("Failed to update license:", error);
       toast.error("Failed to update license");
-      console.log(error);
     } finally {
       setEditFormLoading(false);
     }
@@ -411,14 +449,16 @@ export default function ComplianceLicensingPage() {
       await axiosInstance.delete(`/compliance-licensing/delete/${id}`);
       toast.success("License deleted");
       setLicenses((p) => p.filter((l) => l.id !== id));
+      fetchActivity();
     } catch (error) {
+      console.error("Failed to delete license:", error);
       toast.error("Failed to delete license");
-      console.log(error);
     }
   };
 
-  // ── CRUD: Documents ───────────────────────────────────────────────────────
-
+  //////////////////////////////////////////////////////////////
+  // CRUD: Documents
+  ///////////////////////////////////////////////////////
   const handleUploadDocument = async () => {
     if (!uploadDocForm.document_type) {
       toast.error("Please select a document type");
@@ -442,7 +482,7 @@ export default function ComplianceLicensingPage() {
           uploadDocForm.file_url.split("/").pop() || "document",
         );
       }
-      await axiosInstance.post("/compliance-documents/create", fd, {
+      const res = await axiosInstance.post("/compliance-documents/create", fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success("Document uploaded successfully");
@@ -450,9 +490,20 @@ export default function ComplianceLicensingPage() {
       setUploadDocForm({ document_type: "", file_url: "" });
       setUploadDocFile(null);
       fetchDocuments();
+      const docId =
+        res.data?.response?.uuid ??
+        res.data?.response?.id ??
+        res.data?.uuid ??
+        res.data?.id;
+      const filename =
+        uploadDocFile?.name ??
+        uploadDocForm.file_url.split("/").pop() ??
+        "document";
+      logHistory("document-uploaded", { document_id: docId, filename });
+      fetchActivity();
     } catch (error) {
+      console.error("Failed to upload document:", error);
       toast.error("Failed to upload document");
-      console.log(error);
     } finally {
       setUploadDocLoading(false);
     }
@@ -472,9 +523,11 @@ export default function ComplianceLicensingPage() {
             : d,
         ),
       );
+      logHistory("ai-summary", { document_id: doc.id });
+      fetchActivity();
     } catch (error) {
+      console.error("Failed to generate AI summary:", error);
       toast.error("Failed to generate AI summary");
-      console.log(error);
     } finally {
       setAiLoading(null);
     }
@@ -485,6 +538,8 @@ export default function ComplianceLicensingPage() {
     setAttachDocLoading(true);
     try {
       let docId = selectedExistingDocId;
+      let docFilename = documents.find((d) => d.id === docId)?.filename ?? "";
+
       if (attachMode === "upload") {
         if (!uploadDocFile) {
           toast.error("Please select a file");
@@ -500,13 +555,24 @@ export default function ComplianceLicensingPage() {
           fd,
           { headers: { "Content-Type": "multipart/form-data" } },
         );
-        docId = res.data?.response?.id || res.data?.id;
+        docId =
+          res.data?.response?.uuid ??
+          res.data?.response?.id ??
+          res.data?.uuid ??
+          res.data?.id;
+        docFilename = uploadDocFile.name;
+        logHistory("document-uploaded", {
+          document_id: docId,
+          filename: docFilename,
+        });
       }
+
       if (!docId) {
         toast.error("No document selected");
         setAttachDocLoading(false);
         return;
       }
+
       await axiosInstance.put(
         `/compliance-licensing/${selectedLicense.id}/attach-document/${docId}`,
       );
@@ -516,9 +582,10 @@ export default function ComplianceLicensingPage() {
       setUploadDocFile(null);
       fetchLicenses();
       fetchDocuments();
+      fetchActivity();
     } catch (error) {
+      console.error("Failed to attach document:", error);
       toast.error("Failed to attach document");
-      console.log(error);
     } finally {
       setAttachDocLoading(false);
     }
@@ -538,9 +605,10 @@ export default function ComplianceLicensingPage() {
       setIsAttachToLicenseOpen(false);
       setSelectedExistingLicId("");
       fetchLicenses();
+      fetchActivity();
     } catch (error) {
+      console.error("Failed to attach document:", error);
       toast.error("Failed to attach document");
-      console.log(error);
     } finally {
       setAttachToLicLoading(false);
     }
@@ -552,39 +620,64 @@ export default function ComplianceLicensingPage() {
       await axiosInstance.delete(`/compliance-documents/delete/${id}`);
       toast.success("Document deleted");
       setDocuments((p) => p.filter((d) => d.id !== id));
+      fetchActivity();
     } catch (error) {
+      console.error("Failed to delete document:", error);
       toast.error("Failed to delete document");
-      console.log(error);
     }
   };
 
-  // ── Reminder ──────────────────────────────────────────────────────────────
-
+  //////////////////////////////////////////
+  // Handle Set Reminder
+  /////////////////////////////////////////
   const handleSetReminder = async () => {
     if (!reminderForm.license_id) {
       toast.error("Please select a license");
       return;
     }
+
+    const license = licenses.find((l) => l.id === reminderForm.license_id);
+    if (!license) {
+      toast.error("Selected license not found");
+      return;
+    }
+
     setReminderLoading(true);
     try {
-      await axiosInstance.post("/compliance-reminders/create", {
+      const payload = {
         user_id: userId,
-        license_id: reminderForm.license_id,
-        days_before: parseInt(reminderForm.days_before),
-        notify_email: reminderForm.notify_email,
-      });
+        title: `${license.license_type} Renewal Reminder`,
+        description: `Reminder for license ${license.license_number} (${license.license_type}) expiring on ${fmtDate(license.expiry_date)}. Notify ${reminderForm.notify_before} days before expiry.`,
+        type: "License" as const,
+        reminder_date: license.expiry_date,
+        notify_before: parseInt(reminderForm.notify_before, 10),
+        notify_channels: reminderForm.notify_channels,
+        recurrence_rule: "none" as const, // always none — not user-configurable
+        status: "pending" as const,
+      };
+
+      await axiosInstance.post("/ai_reminder/create", payload);
+
       toast.success("Reminder set successfully");
       setIsReminderOpen(false);
+      // Reset reminder form
+      setReminderForm({
+        license_id: "",
+        notify_before: "30",
+        notify_channels: { email: true, whatsapp: false, push: true },
+      });
+      fetchActivity();
     } catch (error) {
+      console.error("Failed to set reminder:", error);
       toast.error("Failed to set reminder");
-      console.log(error);
     } finally {
       setReminderLoading(false);
     }
   };
 
-  // ── Stats ─────────────────────────────────────────────────────────────────
-
+  ////////////////////////////////////////////
+  // Calculate Stats
+  //////////////////////////////////////////////
   const expiringSoon = licenses.filter((l) => {
     const d = getDaysRemaining(l.expiry_date);
     return d > 0 && d <= 60;
@@ -643,8 +736,9 @@ export default function ComplianceLicensingPage() {
     },
   ];
 
+  ///////////////////////////////////////////////////
   // ── Render ────────────────────────────────────────────────────────────────
-
+  //////////////////////////////////////////////////////
   return (
     <DashboardLayout>
       <div className="min-h-screen p-4 mb-8 bg-bg-base">
@@ -1015,14 +1109,14 @@ export default function ComplianceLicensingPage() {
           <div className="flex justify-end gap-3 pt-2">
             <button
               onClick={() => setIsAddLicenseOpen(false)}
-              className="px-5 py-2.5 border border-border text-text-primary text-sm font-semibold rounded-xl hover:bg-bg-subtle transition-colors"
+              className="px-5 py-2.5 border border-border text-text-primary text-sm font-semibold rounded-lg hover:bg-bg-subtle transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleAddLicense}
               disabled={addFormLoading}
-              className="flex items-center gap-2 px-5 py-2.5 bg-brand text-on-brand text-sm font-semibold rounded-xl hover:bg-brand-hover transition-colors disabled:opacity-60"
+              className="flex items-center gap-2 px-5 py-2.5 bg-brand text-on-brand text-sm font-semibold rounded-lg hover:bg-brand-hover transition-colors disabled:opacity-60"
             >
               {addFormLoading && (
                 <LoadingSpinner size="w-4 h-4" color="border-on-brand" />
@@ -1106,14 +1200,14 @@ export default function ComplianceLicensingPage() {
           <div className="flex justify-end gap-3 pt-2">
             <button
               onClick={() => setIsEditLicenseOpen(false)}
-              className="px-5 py-2.5 border border-border text-text-primary text-sm font-semibold rounded-xl hover:bg-bg-subtle transition-colors"
+              className="px-5 py-2.5 border border-border text-text-primary text-sm font-semibold rounded-lg hover:bg-bg-subtle transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleEditLicense}
               disabled={editFormLoading}
-              className="flex items-center gap-2 px-5 py-2.5 bg-brand text-on-brand text-sm font-semibold rounded-xl hover:bg-brand-hover transition-colors disabled:opacity-60"
+              className="flex items-center gap-2 px-5 py-2.5 bg-brand text-on-brand text-sm font-semibold rounded-lg hover:bg-brand-hover transition-colors disabled:opacity-60"
             >
               {editFormLoading && (
                 <LoadingSpinner size="w-4 h-4" color="border-on-brand" />
@@ -1206,14 +1300,14 @@ export default function ComplianceLicensingPage() {
           <div className="flex justify-end gap-3 pt-2">
             <button
               onClick={() => setIsUploadDocOpen(false)}
-              className="px-5 py-2.5 border border-border text-text-primary text-sm font-semibold rounded-xl hover:bg-bg-subtle transition-colors"
+              className="px-5 py-2.5 border border-border text-text-primary text-sm font-semibold rounded-lg hover:bg-bg-subtle transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleUploadDocument}
               disabled={uploadDocLoading}
-              className="flex items-center gap-2 px-5 py-2.5 bg-brand text-on-brand text-sm font-semibold rounded-xl hover:bg-brand-hover transition-colors disabled:opacity-60"
+              className="flex items-center gap-2 px-5 py-2.5 bg-brand text-on-brand text-sm font-semibold rounded-lg hover:bg-brand-hover transition-colors disabled:opacity-60"
             >
               {uploadDocLoading && (
                 <LoadingSpinner size="w-4 h-4" color="border-on-brand" />
@@ -1342,14 +1436,14 @@ export default function ComplianceLicensingPage() {
           <div className="flex justify-end gap-3 pt-2">
             <button
               onClick={() => setIsAttachDocOpen(false)}
-              className="px-5 py-2.5 border border-border text-text-primary text-sm font-semibold rounded-xl hover:bg-bg-subtle transition-colors"
+              className="px-5 py-2.5 border border-border text-text-primary text-sm font-semibold rounded-lg hover:bg-bg-subtle transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleAttachDocToLicense}
               disabled={attachDocLoading}
-              className="flex items-center gap-2 px-5 py-2.5 bg-brand text-on-brand text-sm font-semibold rounded-xl hover:bg-brand-hover transition-colors disabled:opacity-60"
+              className="flex items-center gap-2 px-5 py-2.5 bg-brand text-on-brand text-sm font-semibold rounded-lg hover:bg-brand-hover transition-colors disabled:opacity-60"
             >
               {attachDocLoading && (
                 <LoadingSpinner size="w-4 h-4" color="border-on-brand" />
@@ -1420,14 +1514,14 @@ export default function ComplianceLicensingPage() {
           <div className="flex justify-end gap-3 pt-2">
             <button
               onClick={() => setIsAttachToLicenseOpen(false)}
-              className="px-5 py-2.5 border border-border text-text-primary text-sm font-semibold rounded-xl hover:bg-bg-subtle transition-colors"
+              className="px-5 py-2.5 border border-border text-text-primary text-sm font-semibold rounded-lg hover:bg-bg-subtle transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleAttachDocToSelectedLicense}
               disabled={attachToLicLoading}
-              className="flex items-center gap-2 px-5 py-2.5 bg-brand text-on-brand text-sm font-semibold rounded-xl hover:bg-brand-hover transition-colors disabled:opacity-60"
+              className="flex items-center gap-2 px-5 py-2.5 bg-brand text-on-brand text-sm font-semibold rounded-lg hover:bg-brand-hover transition-colors disabled:opacity-60"
             >
               {attachToLicLoading && (
                 <LoadingSpinner size="w-4 h-4" color="border-on-brand" />
@@ -1440,6 +1534,8 @@ export default function ComplianceLicensingPage() {
 
       {/* ═══════════════════════════════════════════
           SET REMINDER MODAL
+          POST /ai_reminder/create
+          Maps license → AiReminder entity fields
       ═══════════════════════════════════════════ */}
       <Modal
         isOpen={isReminderOpen}
@@ -1450,6 +1546,7 @@ export default function ComplianceLicensingPage() {
         size="md"
       >
         <div className="p-6 space-y-4">
+          {/* Info banner */}
           <div className="p-4 bg-status-warning-bg border border-status-warning-border rounded-xl flex items-start gap-3">
             <Bell className="w-4 h-4 text-status-warning mt-0.5 shrink-0" />
             <p className="text-xs text-status-warning-text">
@@ -1457,6 +1554,8 @@ export default function ComplianceLicensingPage() {
               renewal deadline.
             </p>
           </div>
+
+          {/* License selector */}
           <div>
             <label className="block text-sm font-medium text-text-secondary mb-2">
               License <span className="text-status-error">*</span>
@@ -1475,7 +1574,21 @@ export default function ComplianceLicensingPage() {
                 </option>
               ))}
             </select>
+            {/* Show expiry of the selected license as a helper */}
+            {reminderForm.license_id && (
+              <p className="text-xs text-text-muted mt-1.5">
+                Expiry:{" "}
+                <span className="font-semibold text-text-primary">
+                  {fmtDate(
+                    licenses.find((l) => l.id === reminderForm.license_id)
+                      ?.expiry_date,
+                  )}
+                </span>
+              </p>
+            )}
           </div>
+
+          {/* Notify before (days) */}
           <div>
             <label className="block text-sm font-medium text-text-secondary mb-2">
               Notify me before expiry
@@ -1485,10 +1598,10 @@ export default function ComplianceLicensingPage() {
                 <button
                   key={d}
                   onClick={() =>
-                    setReminderForm({ ...reminderForm, days_before: d })
+                    setReminderForm({ ...reminderForm, notify_before: d })
                   }
                   className={`py-2.5 text-sm font-semibold rounded-xl border transition-all ${
-                    reminderForm.days_before === d
+                    reminderForm.notify_before === d
                       ? "bg-brand text-on-brand border-brand"
                       : "bg-surface text-text-secondary border-border hover:border-border-strong hover:text-text-primary"
                   }`}
@@ -1498,35 +1611,66 @@ export default function ComplianceLicensingPage() {
               ))}
             </div>
           </div>
-          <label className="flex items-center gap-3 cursor-pointer">
-            <div
-              onClick={() =>
-                setReminderForm({
-                  ...reminderForm,
-                  notify_email: !reminderForm.notify_email,
-                })
-              }
-              className={`w-10 h-5 rounded-full transition-colors relative ${reminderForm.notify_email ? "bg-brand" : "bg-bg-subtle border border-border"}`}
-            >
-              <div
-                className={`w-4 h-4 bg-on-brand rounded-full shadow-card absolute top-0.5 transition-transform ${reminderForm.notify_email ? "translate-x-5" : "translate-x-0.5"}`}
-              />
+
+          {/* Notification channels */}
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-2">
+              Notification Channels
+            </label>
+            <div className="space-y-2.5">
+              {(
+                [
+                  { key: "email", label: "Email" },
+                  { key: "whatsapp", label: "WhatsApp" },
+                  { key: "push", label: "Push Notification" },
+                ] as const
+              ).map(({ key, label }) => (
+                <label
+                  key={key}
+                  className="flex items-center gap-3 cursor-pointer"
+                >
+                  <div
+                    onClick={() =>
+                      setReminderForm({
+                        ...reminderForm,
+                        notify_channels: {
+                          ...reminderForm.notify_channels,
+                          [key]: !reminderForm.notify_channels[key],
+                        },
+                      })
+                    }
+                    className={`w-10 h-5 rounded-full transition-colors relative shrink-0 ${
+                      reminderForm.notify_channels[key]
+                        ? "bg-brand"
+                        : "bg-bg-subtle border border-border"
+                    }`}
+                  >
+                    <div
+                      className={`w-4 h-4 bg-on-brand rounded-full shadow-card absolute top-0.5 transition-transform ${
+                        reminderForm.notify_channels[key]
+                          ? "translate-x-5"
+                          : "translate-x-0.5"
+                      }`}
+                    />
+                  </div>
+                  <span className="text-sm text-text-primary">{label}</span>
+                </label>
+              ))}
             </div>
-            <span className="text-sm text-text-primary">
-              Send email notification
-            </span>
-          </label>
+          </div>
+
+          {/* Actions */}
           <div className="flex justify-end gap-3 pt-2">
             <button
               onClick={() => setIsReminderOpen(false)}
-              className="px-5 py-2.5 border border-border text-text-primary text-sm font-semibold rounded-xl hover:bg-bg-subtle transition-colors"
+              className="px-5 py-2.5 border border-border text-text-primary text-sm font-semibold rounded-lg hover:bg-bg-subtle transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSetReminder}
               disabled={reminderLoading}
-              className="flex items-center gap-2 px-5 py-2.5 bg-accent text-on-accent text-sm font-semibold rounded-xl hover:bg-accent-hover transition-colors disabled:opacity-60"
+              className="flex items-center gap-2 px-5 py-2.5 bg-accent text-on-accent text-sm font-semibold rounded-lg hover:bg-accent-hover transition-colors disabled:opacity-60"
             >
               {reminderLoading && (
                 <LoadingSpinner size="w-4 h-4" color="border-on-accent" />

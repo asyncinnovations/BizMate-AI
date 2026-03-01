@@ -8,7 +8,7 @@ export declare class ComplianceHistoryController {
     logReminder(body: any, req: any): Promise<import("./compliance_history.entity").ComplianceHistory>;
     logDocumentVerified(body: any, req: any): Promise<import("./compliance_history.entity").ComplianceHistory>;
     logDocumentRejected(body: any, req: any): Promise<import("./compliance_history.entity").ComplianceHistory>;
-    logAiChat(body: any, req: any): Promise<import("./compliance_history.entity").ComplianceHistory>;
+    logAiChat(body: any): Promise<import("./compliance_history.entity").ComplianceHistory>;
     logLicenseRenewed(body: any, req: any): Promise<import("./compliance_history.entity").ComplianceHistory>;
     getUserHistory(req: any): Promise<import("./compliance_history.entity").ComplianceHistory[]>;
     getDocumentHistory(documentId: string): Promise<import("./compliance_history.entity").ComplianceHistory[]>;

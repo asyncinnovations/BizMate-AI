@@ -21,32 +21,30 @@ let ComplianceHistoryController = class ComplianceHistoryController {
         this.historyService = historyService;
     }
     async log_event(body, req) {
-        return this.historyService.log_event_service(req.user.id, body.event_type, body.details, body.document_id, body.reminder_id, body.company_id);
+        return this.historyService.log_event_service(body.user_id, body.event_type, body.details, body.document_id, body.reminder_id, body.company_id);
     }
     async log_document_uploaded(body, req) {
-        return this.historyService.log_document_uploaded_service(req.user.id, body.document_id, body.filename);
+        return this.historyService.log_document_uploaded_service(body.user_id, body.document_id, body.filename);
     }
     async logAiSummary(body, req) {
-        return this.historyService.log_ai_summary_generated_service(req.user.id, body.document_id);
+        return this.historyService.log_ai_summary_generated_service(body.user_id, body.document_id);
     }
     async logReminder(body, req) {
-        return this.historyService.log_reminder_triggered_service(req.user.id, body.reminder_id, body.reminder_title);
+        return this.historyService.log_reminder_triggered_service(body.user_id, body.reminder_id, body.reminder_title);
     }
     async logDocumentVerified(body, req) {
-        return this.historyService.log_document_verified_service(req.user.id, body.document_id);
+        return this.historyService.log_document_verified_service(body.user_id, body.document_id);
     }
     async logDocumentRejected(body, req) {
-        return this.historyService.log_document_rejected_service(req.user.id, body.document_id, body.reason);
+        return this.historyService.log_document_rejected_service(body.user_id, body.document_id, body.reason);
     }
-    async logAiChat(body, req) {
-        return this.historyService.log_ai_chat_service(req.user.id, body.question);
+    async logAiChat(body) {
+        return this.historyService.log_ai_chat_service(body.user_id, body.question);
     }
     async logLicenseRenewed(body, req) {
-        return this.historyService.log_license_renewed_service(req.user.id, body.license_id, body.license_type);
+        return this.historyService.log_license_renewed_service(body.user_id, body.license_id, body.license_type);
     }
     async getUserHistory(req) {
-        console.log("REQ OBJECT:", req);
-        console.log("REQ.USER:", req.user);
         return this.historyService.get_user_history_service(req.user.id);
     }
     async getDocumentHistory(documentId) {
@@ -117,9 +115,8 @@ __decorate([
 __decorate([
     (0, common_1.Post)("ai-chat"),
     __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], ComplianceHistoryController.prototype, "logAiChat", null);
 __decorate([

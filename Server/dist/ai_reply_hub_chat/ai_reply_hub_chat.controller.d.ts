@@ -60,4 +60,12 @@ export declare class AiReplyHubChatController {
         message: string;
         result: import("./ai_reply_hub_chat.entity").AiReplyHubChat[];
     }>;
+    user_message_partner(user_id: string): Promise<{
+        message: string;
+        result: any;
+    }>;
+    chat_mark_as_read_service(message_id: string): Promise<{
+        message: string;
+        result: any;
+    }>;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { FileText, } from "lucide-react";
+import { FileText } from "lucide-react";
 import SectionCard from "@/components/section-card/SectionCard";
 import EmptyState from "@/components/empty-state/EmptyState";
 import LoadingSpinner from "@/components/loading-spinner/LoadingSpinner";
@@ -37,9 +37,12 @@ const formatAmount = (amount: number): string =>
   `AED ${Number(amount).toFixed(2)}`;
 
 const statusStyles: Record<PaymentStatus, string> = {
-  completed: "bg-green-50 text-green-600 border border-green-200",
-  pending: "bg-yellow-50 text-yellow-600 border border-yellow-200",
-  failed: "bg-red-50 text-red-500 border border-red-200",
+  completed:
+    "bg-status-success-bg text-status-success border border-status-success-border",
+  pending:
+    "bg-status-warning-bg text-status-warning border border-status-warning-border",
+  failed:
+    "bg-status-error-bg text-status-error border border-status-error-border",
 };
 
 const statusLabel: Record<PaymentStatus, string> = {
@@ -74,7 +77,7 @@ const BillingHistory: React.FC = () => {
     try {
       // Step 1: Get user's current subscription UUID
       const subRes = await axiosInstance.get(
-        `/subscription_plan/user_current/${userId}`
+        `/subscription_plan/user_current/${userId}`,
       );
       const subscriptionId = subRes.data?.subscription?.uuid;
 
@@ -85,7 +88,7 @@ const BillingHistory: React.FC = () => {
 
       // Step 2: Fetch all payments for that subscription
       const paymentsRes = await axiosInstance.get(
-        `/subscription-payments/subscription/${subscriptionId}`
+        `/subscription-payments/subscription/${subscriptionId}`,
       );
       setPayments(paymentsRes.data?.payments || []);
     } catch (err) {
@@ -98,7 +101,6 @@ const BillingHistory: React.FC = () => {
 
   return (
     <SectionCard title="Billing History" icon={FileText}>
-
       {/* ── Loading ── */}
       {loading && (
         <div className="p-20 flex items-center justify-center">
@@ -128,21 +130,22 @@ const BillingHistory: React.FC = () => {
 
       {/* ── Transactions list ── */}
       {!loading && !error && payments.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {payments.map((payment) => (
             <div
               key={payment.id}
-              className="flex items-center justify-between p-4 bg-[#F4F7FA] rounded-lg hover:bg-[#E1E8F5] transition-colors"
+              className="flex items-center justify-between p-4 bg-bg-base border border-border rounded-xl hover:border-border-strong hover:shadow-card transition-all"
             >
               {/* Left — date + method + txn id */}
               <div>
-                <p className="font-medium text-[#1B2A49]">
+                <p className="text-sm font-semibold text-text-heading">
                   {formatDate(payment.paid_at || payment.created_at)}
                 </p>
-                <p className="text-sm text-[#344767]">
-                  {methodLabel[payment.payment_method] ?? payment.payment_method}
+                <p className="text-xs text-text-secondary mt-0.5">
+                  {methodLabel[payment.payment_method] ??
+                    payment.payment_method}
                   {payment.transaction_id && (
-                    <span className="ml-1 text-gray-400">
+                    <span className="ml-1 text-text-muted">
                       · #{payment.transaction_id}
                     </span>
                   )}
@@ -150,24 +153,24 @@ const BillingHistory: React.FC = () => {
               </div>
 
               {/* Right — amount + status badge */}
-              <div className="flex items-center gap-4">
-                <p className="font-semibold text-[#1B2A49] text-sm">
+              <div className="flex items-center gap-3">
+                <p className="text-sm font-bold text-text-heading">
                   {formatAmount(payment.amount)}
                 </p>
-
                 <span
-                  className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusStyles[payment.payment_status] ??
-                    "bg-gray-100 text-gray-500"
-                    }`}
+                  className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                    statusStyles[payment.payment_status] ??
+                    "bg-bg-base text-text-muted border border-border"
+                  }`}
                 >
-                  {statusLabel[payment.payment_status] ?? payment.payment_status}
+                  {statusLabel[payment.payment_status] ??
+                    payment.payment_status}
                 </span>
               </div>
             </div>
           ))}
         </div>
       )}
-
     </SectionCard>
   );
 };

@@ -8,6 +8,7 @@ import {
   Bot,
   FileText,
   AlertTriangle,
+  Palette,
 } from "lucide-react";
 
 interface SettingsSidebarProps {
@@ -24,6 +25,7 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
     { id: "subscription", label: "Subscription & Billing", icon: CreditCard },
     { id: "integrations", label: "Integrations", icon: Plug },
     { id: "notifications", label: "Notifications & Reminders", icon: Bell },
+    { id: "appearance", label: "Appearance", icon: Palette },
     { id: "ai", label: "AI Assistant", icon: Bot },
     { id: "compliance", label: "Compliance & Legal", icon: FileText },
     { id: "danger", label: "Danger Zone", icon: AlertTriangle },
@@ -39,10 +41,11 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
               <button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
-                className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${activeTab === tab.id
+                className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                  activeTab === tab.id
                     ? "bg-brand-light text-secondary border border-border"
                     : "text-text-primary hover:bg-bg-base"
-                  }`}
+                }`}
               >
                 <Icon className="w-4 h-4" />
                 <span className="font-medium">{tab.label}</span>

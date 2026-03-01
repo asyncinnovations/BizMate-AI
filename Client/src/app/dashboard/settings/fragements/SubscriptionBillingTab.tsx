@@ -14,18 +14,18 @@ const SubscriptionBillingTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
-
       <CurrentSubscription />
       <SubscriptionUsageCard />
 
       <BillingHistory />
 
-
       <SectionCard title="Renewal Settings" icon={RefreshCw}>
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-medium text-[#1B2A49]">Auto-Renewal</p>
-            <p className="text-sm text-[#344767]">
+            <p className="text-sm font-semibold text-text-heading">
+              Auto-Renewal
+            </p>
+            <p className="text-xs text-text-secondary mt-0.5">
               Automatically renew subscription each month
             </p>
           </div>

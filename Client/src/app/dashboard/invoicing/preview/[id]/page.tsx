@@ -202,10 +202,10 @@ Business Solutions Inc.`,
           {/* Page Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl font-bold text-text-heading mb-2">
                 Invoice Preview
               </h1>
-              <p className="text-gray-600">
+              <p className="text-text-secondary">
                 Review your invoice before sending to customer
               </p>
             </div>
@@ -220,23 +220,23 @@ Business Solutions Inc.`,
           </div>
 
           {/* Action Bar */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="bg-surface rounded-xl shadow-card border border-border p-6 mb-6">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <FileText className="w-5 h-5 text-gray-900" />
+                  <div className="p-2 bg-brand-light rounded-lg">
+                    <FileText className="w-5 h-5 text-secondary" />
                   </div>
                   <div>
-                    <h2 className="font-bold text-gray-900 text-lg">
+                    <h2 className="font-bold text-text-heading text-lg">
                       {currentInvoice.invoice_number}
                     </h2>
-                    <p className="text-gray-600 text-sm">
+                    <p className="text-text-secondary text-sm">
                       For {currentInvoice.customer_name}
                     </p>
                   </div>
                 </div>
-                <span className={getStatusBadge(currentInvoice.status)}>
+                <span className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-full ${getStatusBadge(currentInvoice.status)}`}>
                   {(currentInvoice.status === "paid" || "saved") && (
                     <CheckCircle className="w-3 h-3" />
                   )}
@@ -248,14 +248,14 @@ Business Solutions Inc.`,
               <div className="flex flex-wrap gap-3">
                 <Button
                   onClick={handlePrint}
-                  className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                  className="bg-surface border border-border text-text-secondary hover:bg-bg-base"
                   startIcon={<Printer className="w-4 h-4" />}
                 >
                   Print
                 </Button>
                 <Button
                   onClick={() => handleDownloadPDF(currentInvoice)}
-                  className="bg-[#f6a821] hover:bg-[#d18d18]"
+                  className="bg-status-warning text-on-brand hover:bg-status-warning/90"
                   startIcon={<Download className="w-4 h-4" />}
                 >
                   Download PDF
@@ -275,14 +275,14 @@ Business Solutions Inc.`,
 
           {/* Quick Actions */}
           <div className="mt-8 text-center">
-            <div className="inline-flex items-center gap-6 bg-white border border-gray-300 rounded-lg px-6 py-4">
-              <div className="text-sm text-gray-600">
+            <div className="inline-flex items-center gap-6 bg-surface border border-border rounded-xl shadow-card px-6 py-4">
+              <div className="text-sm text-text-secondary">
                 Ready to send this invoice to your customer?
               </div>
               <div className="flex gap-3">
                 <Button
                   onClick={() => router.push("/dashboard/invoicing/new")}
-                  className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm"
+                  className="bg-surface border border-border text-text-secondary hover:bg-bg-base text-sm"
                 >
                   Create New
                 </Button>

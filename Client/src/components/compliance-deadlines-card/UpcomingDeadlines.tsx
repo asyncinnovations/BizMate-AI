@@ -86,7 +86,7 @@ export default function UpcomingDeadlines({
             <Clock className="w-5 h-5 text-secondary" />
           </div>
           <p className="text-xs font-medium text-text-secondary">
-            No upcoming deadlines
+            No upcoming deadlines yet
           </p>
         </div>
       ) : (

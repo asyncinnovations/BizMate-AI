@@ -91,9 +91,15 @@ const usageConfig: Record<
 
 // ================= PROGRESS BAR =================
 const getBarColor = (percent: number) => {
-  if (percent >= 90) return "bg-red-500";
-  if (percent >= 70) return "bg-yellow-400";
-  return "bg-[#2E69A4]";
+  if (percent >= 90) return "bg-status-error";
+  if (percent >= 70) return "bg-status-warning";
+  return "bg-secondary";
+};
+
+const getTrackColor = (percent: number) => {
+  if (percent >= 90) return "bg-status-error-bg";
+  if (percent >= 70) return "bg-status-warning-bg";
+  return "bg-bg-base";
 };
 
 interface UsageBarProps {
@@ -116,26 +122,32 @@ const UsageBar: React.FC<UsageBarProps> = ({
   const limitNum = isUnlimited ? 0 : Number(limit);
   const percent = isUnlimited ? 0 : Math.min((used / limitNum) * 100, 100);
   const barColor = getBarColor(percent);
+  const trackColor = getTrackColor(percent);
 
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
+        {/* Label + icon */}
         <div className="flex items-center gap-2">
-          <div className="inline-flex p-1.5 rounded-md bg-[#E1E8F5]">
-            <Icon className="w-3.5 h-3.5 text-[#1B2A49]" />
+          <div className="w-7 h-7 flex items-center justify-center rounded-lg bg-brand-light shrink-0">
+            <Icon className="w-3.5 h-3.5 text-secondary" />
           </div>
-          <span className="text-sm font-medium text-[#1B2A49]">{label}</span>
+          <span className="text-sm font-semibold text-text-heading">
+            {label}
+          </span>
         </div>
-        <span className="text-xs text-[#344767]">
+
+        {/* Usage count */}
+        <span className="text-xs">
           {isUnlimited ? (
-            <span className="text-[#2E69A4] font-medium">Unlimited</span>
+            <span className="text-secondary font-semibold">Unlimited</span>
           ) : (
             <>
-              <span className="font-semibold text-[#1B2A49]">
+              <span className="font-bold text-text-heading">
                 {used}
                 {unit ? ` ${unit}` : ""}
               </span>
-              <span className="text-gray-400">
+              <span className="text-text-muted">
                 {" "}
                 / {limitNum}
                 {unit ? ` ${unit}` : ""}
@@ -146,9 +158,11 @@ const UsageBar: React.FC<UsageBarProps> = ({
       </div>
 
       {/* Progress bar */}
-      <div className="w-full h-2 bg-[#F4F7FA] rounded-full overflow-hidden">
+      <div
+        className={`w-full h-1.5 rounded-full overflow-hidden ${trackColor}`}
+      >
         {isUnlimited ? (
-          <div className="h-full w-full bg-[#2E69A4] opacity-20 rounded-full" />
+          <div className="h-full w-full bg-secondary opacity-20 rounded-full" />
         ) : (
           <div
             className={`h-full rounded-full transition-all duration-500 ${barColor}`}
@@ -159,7 +173,7 @@ const UsageBar: React.FC<UsageBarProps> = ({
 
       {/* Warning */}
       {!isUnlimited && percent >= 90 && (
-        <p className="text-xs text-red-500 font-medium">
+        <p className="text-xs text-status-error font-semibold">
           {percent >= 100 ? "Limit reached" : "Almost at limit"}
         </p>
       )}
@@ -207,7 +221,7 @@ const SubscriptionUsageCard: React.FC = () => {
 
       // Step 2: Get all usage for this subscription
       const usageRes = await axiosInstance.get(
-        `/subscription-usage/all_subscription/${subscription.uuid}`
+        `/subscription-usage/all_subscription/${subscription.uuid}`,
       );
       setUsageList(usageRes.data || []);
     } catch (err) {
@@ -225,7 +239,7 @@ const SubscriptionUsageCard: React.FC = () => {
   }, {});
 
   // Only render usage rows that exist in our config
-  const usageRows = Object.entries(usageConfig).filter(([key, config]) => {
+  const usageRows = Object.entries(usageConfig).filter(([, config]) => {
     const limitVal = currentPlan?.features?.[config.limitKey];
     return limitVal !== undefined && limitVal !== false;
   });
@@ -263,14 +277,14 @@ const SubscriptionUsageCard: React.FC = () => {
       {!loading && !error && currentPlan && usageRows.length > 0 && (
         <div className="space-y-5">
           {/* Plan label */}
-          <div className="flex items-center justify-between pb-3 border-b border-[#E1E8F5]">
-            <p className="text-sm text-[#344767]">
+          <div className="flex items-center justify-between pb-3 border-b border-border">
+            <p className="text-sm text-text-secondary">
               Plan:{" "}
-              <span className="font-semibold text-[#1B2A49]">
+              <span className="font-semibold text-text-heading">
                 {currentPlan.name}
               </span>
             </p>
-            <span className="text-xs text-[#2E69A4] font-medium bg-[#E1E8F5] px-2.5 py-1 rounded-full">
+            <span className="text-xs text-secondary font-semibold bg-brand-light border border-secondary/20 px-2.5 py-1 rounded-full">
               Active
             </span>
           </div>

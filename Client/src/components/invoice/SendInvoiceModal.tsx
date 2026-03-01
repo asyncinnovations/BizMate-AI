@@ -45,8 +45,8 @@ const SendInvoiceModal: React.FC<SendInvoiceModalProps> = ({
       <form onSubmit={onSubmit}>
         <div className="p-6 space-y-5">
           {/* Invoice Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-            <p className="text-sm text-blue-900 font-medium">
+          <div className="bg-status-info-bg border border-status-info-border rounded-lg p-4 mb-4">
+            <p className="text-sm text-status-info font-medium">
               Invoice #{invoiceNumber}
             </p>
           </div>
@@ -96,14 +96,14 @@ const SendInvoiceModal: React.FC<SendInvoiceModalProps> = ({
           />
 
           {/* Attachment Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-status-info-bg border border-status-info-border rounded-lg p-4">
             <div className="flex items-start gap-3">
-              <FileText className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <FileText className="w-5 h-5 text-status-info mt-0.5 flex-shrink-0" />
               <div className="text-sm">
-                <p className="font-medium text-blue-900 mb-1">
+                <p className="font-medium text-status-info mb-1">
                   Invoice PDF will be attached
                 </p>
-                <p className="text-blue-700">
+                <p className="text-status-info/80">
                   The invoice PDF ({invoiceNumber}.pdf) will be automatically
                   attached to this email.
                 </p>
@@ -113,11 +113,11 @@ const SendInvoiceModal: React.FC<SendInvoiceModalProps> = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+        <div className="bg-bg-base px-6 py-4 border-t border-border flex justify-end gap-3">
           <Button
             type="button"
             onClick={onClose}
-            className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+            className="bg-surface border border-border text-text-secondary hover:bg-bg-base"
             disabled={isSending}
           >
             Cancel
