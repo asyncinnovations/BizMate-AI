@@ -48,21 +48,23 @@ const PlatformCard = ({
 }) => {
   const getPlatformIcon = (platformName: string) => {
     const option = platformOptions.find((p) => p.value === platformName);
-    return option?.icon || <Plug className="w-5 h-5 text-gray-500" />;
+    return option?.icon || <Plug className="w-5 h-5 text-text-muted" />;
   };
+
+  const connected = platform.status === "connected";
 
   return (
     <div
       key={platform.uuid}
-      className={`relative flex items-center justify-between p-4 rounded-lg transition-colors ${
-        platform.status === "connected"
-          ? "bg-[#F4F7FA] hover:bg-[#E1E8F5]"
-          : "bg-[#F4F7FA] cursor-not-allowed"
+      className={`relative flex items-center justify-between p-4 rounded-xl border transition-all ${
+        connected
+          ? "bg-bg-base border-border hover:border-border-strong hover:shadow-card"
+          : "bg-bg-base border-border opacity-60 cursor-not-allowed"
       }`}
     >
       {/* Overlay if disconnected */}
-      {platform.status === "disconnected" && (
-        <div className="absolute inset-0 bg-white/40 rounded-lg z-10"></div>
+      {!connected && (
+        <div className="absolute inset-0 bg-surface/40 rounded-xl z-10" />
       )}
 
       {/* LEFT SIDE */}
@@ -70,27 +72,27 @@ const PlatformCard = ({
         {getPlatformIcon(platform.platform)}
 
         <div>
-          <p className="font-medium text-[#1B2A49] capitalize">
+          <p className="text-sm font-semibold text-text-heading capitalize">
             {platform.platform}
           </p>
 
           {platform.created_at && (
-            <p className="text-sm text-[#344767]">
-              Added on {renderDateTime(platform.created_at)}
+            <p className="text-xs text-text-secondary mt-0.5">
+              Added {renderDateTime(platform.created_at)}
             </p>
           )}
 
           {platform.last_sync_at ? (
-            <p className="flex items-center gap-1 text-xs text-[#6B7280] mt-1">
+            <p className="flex items-center gap-1 text-xs text-text-muted mt-1">
               <RefreshCcw className="w-3 h-3" />
               Last synced: {renderDateTime(platform.last_sync_at)}
             </p>
           ) : (
-            <span className="text-xs text-[#6B7280]">Not synced yet</span>
+            <p className="text-xs text-text-muted mt-1">Not synced yet</p>
           )}
 
           {platform.expires_at && (
-            <p className="flex items-center gap-1 text-xs text-[#9A3412] mt-1">
+            <p className="flex items-center gap-1 text-xs text-status-warning mt-1">
               <Clock className="w-3 h-3" />
               Token expires: {renderDateTime(platform.expires_at)}
             </p>
@@ -100,57 +102,57 @@ const PlatformCard = ({
 
       {/* RIGHT SIDE */}
       <div className="flex items-center gap-2 z-20">
-        {/* Status */}
+        {/* Status badge */}
         <span
-          className={`flex items-center gap-1 text-xs px-3 py-1 rounded-full font-semibold ${
-            platform.status === "connected"
-              ? "bg-green-100 text-green-700"
-              : "bg-gray-200 text-gray-600"
+          className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-semibold border ${
+            connected
+              ? "bg-status-success-bg text-status-success border-status-success-border"
+              : "bg-bg-base text-text-muted border-border"
           }`}
         >
-          {platform.status === "connected" ? (
-            <CheckCircle size={14} />
+          {connected ? (
+            <CheckCircle className="w-3.5 h-3.5" />
           ) : (
-            <Slash size={14} />
+            <Slash className="w-3.5 h-3.5" />
           )}
-          {platform.status === "connected" ? "Connected" : "Disconnected"}
+          {connected ? "Connected" : "Disconnected"}
         </span>
 
-        {/* SYNC BUTTON */}
-        {platform.status === "connected" && (
+        {/* Sync button */}
+        {connected && (
           <Button
             startIcon={<RefreshCcw className="w-4 h-4" />}
             onClick={() => onSync(platform.uuid)}
-            className="bg-white border border-[#E1E8F5] text-gray-700 hover:bg-[#F1F5F9] text-xs px-3 py-1.5"
+            className="bg-surface border border-border text-text-secondary hover:bg-bg-base text-xs px-3 py-1.5"
           >
             Sync Now
           </Button>
         )}
 
-        {/* CONNECT / DISCONNECT */}
+        {/* Connect / Disconnect */}
         <Button
           onClick={() => toggleStatus(platform)}
           className={`text-xs px-3 py-1.5 ${
-            platform.status === "connected"
-              ? "bg-red-500 text-white hover:bg-red-600"
-              : "bg-green-500 text-white hover:bg-green-600"
+            connected
+              ? "bg-status-error-bg border border-status-error-border text-status-error hover:bg-status-error hover:text-on-brand hover:border-status-error"
+              : "bg-status-success-bg border border-status-success-border text-status-success hover:bg-status-success hover:text-on-brand hover:border-status-success"
           }`}
         >
-          {platform.status === "connected" ? "Disconnect" : "Connect"}
+          {connected ? "Disconnect" : "Connect"}
         </Button>
 
-        {/* EDIT ICON */}
+        {/* Edit */}
         <Button
           onClick={() => onUpdate(platform)}
-          className="p-2 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-600"
+          className="p-2 rounded-lg bg-bg-base border border-border text-text-muted hover:bg-surface hover:text-text-heading transition-colors"
         >
           <Edit2 className="w-4 h-4" />
         </Button>
 
-        {/* DELETE ICON */}
+        {/* Delete */}
         <Button
           onClick={() => onDelete(platform.uuid)}
-          className="p-2 rounded-md bg-red-100 hover:bg-red-200 text-red-600 transition"
+          className="p-2 rounded-lg bg-status-error-bg border border-status-error-border text-status-error hover:bg-status-error hover:text-on-brand transition-all"
         >
           <Trash2 className="w-4 h-4" />
         </Button>

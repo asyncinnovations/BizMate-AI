@@ -32,6 +32,9 @@ import { useAuth } from "@/context/AuthContext";
 import DropdownMenu from "@/components/ui/DropdownMenu";
 import toast from "react-hot-toast";
 import LoadingSpinner from "@/components/loading-spinner/LoadingSpinner";
+import SendInvoiceModal from "@/components/invoice/SendInvoiceModal";
+import EmptyState from "@/components/empty-state/EmptyState";
+import Card from "@/components/ui/Card";
 
 interface FormField {
   id: string;
@@ -73,10 +76,17 @@ interface Invoice {
   status: "paid" | "unpaid" | "draft" | "saved";
 }
 
+interface EmailFormData {
+  to: string;
+  cc: string;
+  subject: string;
+  message: string;
+}
+
 const InvoiceListPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "paid" | "unpaid">(
-    "all"
+    "all",
   );
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
@@ -84,7 +94,16 @@ const InvoiceListPage: React.FC = () => {
   const { user, loading } = useAuth();
   const userId = !loading ? user?.user.user_id : "";
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [currentInvoice, setCurrentInvoice] = useState<Invoice | null>(null);
   const [userInvoices, setUserInvoices] = useState<Invoice[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [emailFormData, setEmailFormData] = useState<EmailFormData>({
+    to: "",
+    cc: "",
+    subject: "",
+    message: "",
+  });
 
   const statsData = [
     {
@@ -92,11 +111,11 @@ const InvoiceListPage: React.FC = () => {
       value: userInvoices.length,
       subtitle: "+2 from last month",
       icon: <FileText className="w-6 h-6" />,
-      iconBg: "bg-blue-100",
-      iconColor: "text-blue-600",
+      iconBg: "bg-status-info-bg",
+      iconColor: "text-status-info",
       badgeText: "Active",
-      badgeBg: "bg-blue-50",
-      badgeColor: "text-blue-600",
+      badgeBg: "bg-status-info-bg",
+      badgeColor: "text-status-info",
     },
     {
       title: "Paid Invoices",
@@ -105,11 +124,11 @@ const InvoiceListPage: React.FC = () => {
         userInvoices.filter((invoice) => invoice.status === "paid").length
       } paid invoices`,
       icon: <CheckCircle className="w-6 h-6" />,
-      iconBg: "bg-green-100",
-      iconColor: "text-green-600",
+      iconBg: "bg-status-success-bg",
+      iconColor: "text-status-success",
       badgeText: "Paid",
-      badgeBg: "bg-green-50",
-      badgeColor: "text-green-600",
+      badgeBg: "bg-status-success-bg",
+      badgeColor: "text-status-success",
     },
     {
       title: "UnPaid Invoices",
@@ -119,11 +138,11 @@ const InvoiceListPage: React.FC = () => {
         userInvoices.filter((invoice) => invoice.status === "unpaid").length
       } unpaid invoices`,
       icon: <AlertTriangle className="w-6 h-6" />,
-      iconBg: "bg-amber-100",
-      iconColor: "text-amber-600",
+      iconBg: "bg-status-warning-bg",
+      iconColor: "text-status-warning",
       badgeText: "Pending",
-      badgeBg: "bg-amber-50",
-      badgeColor: "text-amber-600",
+      badgeBg: "bg-status-warning-bg",
+      badgeColor: "text-status-warning",
     },
     {
       title: "Total Revenue",
@@ -132,11 +151,11 @@ const InvoiceListPage: React.FC = () => {
         .reduce((total, invoice) => total + Number(invoice.total | 0), 0)}`,
       subtitle: "+15.2% from last quarter",
       icon: <DollarSign className="w-6 h-6" />,
-      iconBg: "bg-purple-100",
-      iconColor: "text-purple-600",
+      iconBg: "bg-brand-light",
+      iconColor: "text-secondary",
       badgeText: "Growth",
-      badgeBg: "bg-purple-50",
-      badgeColor: "text-purple-600",
+      badgeBg: "bg-brand-light",
+      badgeColor: "text-secondary",
     },
   ];
 
@@ -165,18 +184,53 @@ const InvoiceListPage: React.FC = () => {
     }
   }, [user, loading]);
 
-  /////////////////////////////////
-  // Send Invoice to customer
-  /////////////////////////////////
-  const handleSendInvoice = (invoiceId: string) => {
-    alert(`Invoice ${invoiceId} sent successfully with AI optimization!`);
+  ///////////////////////////////////
+  // Download Invoice PDF
+  ///////////////////////////////////
+  const handleDownloadPDF = async (invoice: Invoice) => {
+    try {
+      // Currently we are no passing any id in api request ,  because backend to accept yet , need to update bacakend api
+      const response = await axiosInstance(`/invoices/preview`);
+
+      if (response.status === 200 && response.data?.url) {
+        const fileUrl = `${process.env.NEXT_PUBLIC_ASSET_URL}${response.data.url}`;
+
+        const link = document.createElement("a");
+        link.href = fileUrl;
+        link.download = `invoice-${invoice.invoice_number}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch (error) {
+      console.log("Error occur while downloading the invoice.", error);
+      toast.error("Error occur while downloading the invoice.");
+    }
   };
 
+  ////////////////////////////////
+  // Send Invoice To Customer/Client
   /////////////////////////////////
-  // DownLoad Pdf
-  /////////////////////////////////
-  const handleDownloadPDF = (invoice: Invoice) => {
-    alert(`Downloading AI-optimized PDF for ${invoice.invoice_number}`);
+  const handleSendEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSending(true);
+
+    try {
+      const response = await axiosInstance.post("/invoices/send_to_email", {
+        invoiceId: currentInvoice?.uuid,
+        ...emailFormData,
+      });
+
+      toast.success(
+        `Invoice ${currentInvoice?.invoice_number} sent successfully to ${emailFormData.to}`,
+      );
+      closeSendEmailModal();
+    } catch (error) {
+      console.log("Error sending email:", error);
+      toast.error("Failed to send invoice email. Please try again.");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   /////////////////////////////////
@@ -185,13 +239,13 @@ const InvoiceListPage: React.FC = () => {
   const handleDeleteInvoice = async (invoiceId: string) => {
     if (
       confirm(
-        "Are you sure you want to delete this invoice? This action cannot be undone."
+        "Are you sure you want to delete this invoice? This action cannot be undone.",
       )
     ) {
       try {
         setIsLoading(true);
         const response = await axiosInstance.delete(
-          `/invoices/delete/${invoiceId}`
+          `/invoices/delete/${invoiceId}`,
         );
         if (response.status === 200) {
           toast.success(response.data.message);
@@ -211,13 +265,13 @@ const InvoiceListPage: React.FC = () => {
   ////////////////////////////
   const handleChangeStatus = async (invoiceId: string) => {
     const selectedInvoice = userInvoices.find(
-      (invoice) => invoice.uuid === invoiceId
+      (invoice) => invoice.uuid === invoiceId,
     );
     const newInvoiceStatus =
       selectedInvoice?.status.toLowerCase() === "unpaid" ? "paid" : "unpaid";
     if (
       confirm(
-        `Are you sure you want to mark this invoice as "${newInvoiceStatus}"?`
+        `Are you sure you want to mark this invoice as "${newInvoiceStatus}"?`,
       )
     ) {
       try {
@@ -225,7 +279,7 @@ const InvoiceListPage: React.FC = () => {
 
         const response = await axiosInstance.patch(
           `/invoices/update/status/${invoiceId}`,
-          { status: newInvoiceStatus }
+          { status: newInvoiceStatus },
         );
         if (response.status === 200) {
           toast.success("Invoice status updated successfully!");
@@ -259,6 +313,45 @@ const InvoiceListPage: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
 
+  ///////////////////////////////////
+  // Handle Email Form Changing
+  ////////////////////////////////////
+  const handleEmailFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target;
+    setEmailFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  ///////////////////////////////////
+  // Opening the send email modal with data setting
+  ////////////////////////////////////
+  const openSendEmailModal = (invoice: Invoice) => {
+    setCurrentInvoice(invoice);
+    setEmailFormData({
+      to: invoice.customer_email || "",
+      cc: "",
+      subject: `Invoice ${invoice.invoice_number} from Business Solutions Inc.`,
+      message: `Dear ${invoice.customer_name},
+
+Please find attached invoice ${invoice.invoice_number} for AED ${invoice.total}.
+
+Due date: ${new Date(invoice.due_date).toLocaleDateString()}
+
+Best regards,
+Business Solutions Inc.`,
+    });
+    setIsModalOpen(true);
+  };
+
+  const closeSendEmailModal = () => {
+    setCurrentInvoice(null);
+    setIsModalOpen(false);
+  };
+
   if (isLoading) {
     return <LoadingSpinner fullScreen={true} />;
   }
@@ -284,7 +377,8 @@ const InvoiceListPage: React.FC = () => {
                 text: "AI Insights",
                 onClick: () => {},
                 icon: <Brain size={20} />,
-                className: "bg-[#F6A821] hover:bg-[#e29819]",
+                className:
+                  "bg-status-warning text-on-brand hover:bg-status-warning/90",
               },
             ]}
           />
@@ -297,26 +391,26 @@ const InvoiceListPage: React.FC = () => {
           </div>
 
           {/* Invoice List */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="p-6 border-b border-gray-200 bg-white">
+          <Card className="p-0 overflow-hidden">
+            <div className="p-6 border-b border-border bg-surface">
               <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-[#1B2A49] flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-[#1B2A49]" />
+                  <h2 className="text-xl font-bold text-text-heading flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-text-heading" />
                     Smart Invoice Management
                   </h2>
-                  <p className="text-[#344767] mt-1">
+                  <p className="text-text-secondary mt-1">
                     AI-optimized tracking and automated workflows
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
                   {/* Search Bar */}
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-text-muted" />
                     <input
                       type="text"
                       placeholder="AI-powered search..."
-                      className="pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B2A49] focus:border-[#1B2A49] w-full lg:w-64 bg-gray-50/50 transition-all duration-200"
+                      className="pl-10 pr-4 py-2.5 border border-border rounded-xl focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary w-full lg:w-64 bg-bg-base text-text-secondary transition-all duration-200"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -329,23 +423,23 @@ const InvoiceListPage: React.FC = () => {
                         e.stopPropagation();
                         setShowFilterDropdown(!showFilterDropdown);
                       }}
-                      className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors duration-200 w-full lg:w-auto justify-between"
+                      className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-xl hover:bg-bg-base transition-colors duration-200 w-full lg:w-auto justify-between text-text-secondary"
                     >
                       <div className="flex items-center gap-2">
-                        <Filter className="h-4 w-4 text-gray-400" />
+                        <Filter className="h-4 w-4 text-text-muted" />
                         <span>Filter</span>
                       </div>
                       <ChevronDown
-                        className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${
+                        className={`h-4 w-4 text-text-muted transition-transform duration-200 ${
                           showFilterDropdown ? "rotate-180" : ""
                         }`}
                       />
                     </button>
 
                     {showFilterDropdown && (
-                      <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-300 rounded-xl shadow-lg z-20">
+                      <div className="absolute top-full right-0 mt-2 w-48 bg-surface border border-border rounded-xl shadow-raised z-20">
                         <div className="p-2">
-                          <div className="text-xs font-semibold text-gray-500 px-3 py-2 uppercase tracking-wide">
+                          <div className="text-xs font-semibold text-text-muted px-3 py-2 uppercase tracking-wide">
                             Filter by Status
                           </div>
                           <button
@@ -353,10 +447,10 @@ const InvoiceListPage: React.FC = () => {
                               setStatusFilter("all");
                               setShowFilterDropdown(false);
                             }}
-                            className={`flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm ${
+                            className={`flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm transition-colors ${
                               statusFilter === "all"
-                                ? "bg-[#1B2A49] text-white"
-                                : "hover:bg-gray-50"
+                                ? "bg-brand text-on-brand"
+                                : "hover:bg-bg-base text-text-secondary"
                             }`}
                           >
                             <span>All Invoices</span>
@@ -364,7 +458,7 @@ const InvoiceListPage: React.FC = () => {
                               className={`px-2 py-1 rounded-full text-xs ${
                                 statusFilter === "all"
                                   ? "bg-white/20 text-white"
-                                  : "bg-gray-100 text-gray-600"
+                                  : "bg-border text-text-muted"
                               }`}
                             >
                               {userInvoices.length}
@@ -375,17 +469,17 @@ const InvoiceListPage: React.FC = () => {
                               setStatusFilter("paid");
                               setShowFilterDropdown(false);
                             }}
-                            className={`flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm ${
+                            className={`flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm transition-colors ${
                               statusFilter === "paid"
-                                ? "bg-green-50 text-green-800"
-                                : "hover:bg-gray-50"
+                                ? "bg-status-success-bg text-status-success"
+                                : "hover:bg-bg-base text-text-secondary"
                             }`}
                           >
                             <span>Paid</span>
-                            <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
+                            <span className="bg-border text-text-muted px-2 py-1 rounded-full text-xs">
                               {
                                 userInvoices.filter(
-                                  (inv) => inv.status === "paid"
+                                  (inv) => inv.status === "paid",
                                 ).length
                               }
                             </span>
@@ -395,17 +489,17 @@ const InvoiceListPage: React.FC = () => {
                               setStatusFilter("unpaid");
                               setShowFilterDropdown(false);
                             }}
-                            className={`flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm ${
+                            className={`flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm transition-colors ${
                               statusFilter === "unpaid"
-                                ? "bg-amber-50 text-amber-800"
-                                : "hover:bg-gray-50"
+                                ? "bg-status-warning-bg text-status-warning"
+                                : "hover:bg-bg-base text-text-secondary"
                             }`}
                           >
                             <span>Unpaid</span>
-                            <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
+                            <span className="bg-border text-text-muted px-2 py-1 rounded-full text-xs">
                               {
                                 userInvoices.filter(
-                                  (inv) => inv.status === "unpaid"
+                                  (inv) => inv.status === "unpaid",
                                 ).length
                               }
                             </span>
@@ -420,82 +514,82 @@ const InvoiceListPage: React.FC = () => {
 
             <div className="overflow-x-auto min-h-[60vh]">
               <table className="w-full">
-                <thead className="bg-gradient-to-r from-[#1B2A49] to-[#2D4A7C]">
+                <thead className="bg-brand">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-medium text-on-brand uppercase tracking-wider">
                       Invoice No.
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-medium text-on-brand uppercase tracking-wider">
                       Customer
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-medium text-on-brand uppercase tracking-wider">
                       Date
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-medium text-on-brand uppercase tracking-wider">
                       Amount
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-medium text-on-brand uppercase tracking-wider">
                       VAT
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-medium text-on-brand uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-medium text-on-brand uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-surface divide-y divide-border">
                   {filteredInvoices.map((invoice) => (
                     <tr
                       key={invoice.uuid}
-                      className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/30 transition-all duration-200 group"
+                      className="hover:bg-brand-light/30 transition-all duration-200 group"
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
-                          <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors duration-200">
-                            <FileText className="w-4 h-4 text-[#1B2A49]" />
+                          <div className="p-2 bg-status-info-bg rounded-lg group-hover:bg-brand-light transition-colors duration-200">
+                            <FileText className="w-4 h-4 text-secondary" />
                           </div>
                           <div>
-                            <div className="text-sm font-bold text-[#1B2A49]">
+                            <div className="text-sm font-bold text-text-heading">
                               {invoice.invoice_number}
                             </div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-text-muted">
                               AI Managed
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-[#344767]">
+                        <div className="text-sm font-semibold text-text-secondary">
                           {invoice.customer_name}
                         </div>
                         {invoice.customer_email && (
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-text-muted">
                             {invoice.customer_email}
                           </div>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[#344767]">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
                         <div>
                           {new Date(invoice.invoice_date).toLocaleDateString()}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-text-muted">
                           Due {new Date(invoice.due_date).toLocaleDateString()}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-bold text-[#1B2A49]">
+                        <div className="text-sm font-bold text-text-heading">
                           AED {invoice.total.toLocaleString()}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[#344767]">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
                         AED {invoice.vat.toLocaleString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-full ${getStatusBadge(
-                            invoice.status
+                            invoice.status,
                           )}`}
                         >
                           {invoice.status === "paid" && (
@@ -512,21 +606,21 @@ const InvoiceListPage: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <Link
                             href={`/dashboard/invoicing/preview/${invoice.uuid}`}
-                            className="p-2 text-gray-600 hover:text-[#1B2A49] hover:bg-blue-50 rounded-lg transition-all duration-200"
+                            className="p-2 text-text-muted hover:text-secondary hover:bg-brand-light rounded-lg transition-all duration-200"
                             title="View"
                           >
                             <Eye className="w-4 h-4" />
                           </Link>
                           <button
-                            onClick={() => handleSendInvoice(invoice.uuid)}
-                            className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200"
+                            onClick={() => openSendEmailModal(invoice)}
+                            className="p-2 text-text-muted hover:text-status-success hover:bg-status-success-bg rounded-lg transition-all duration-200"
                             title="Send"
                           >
                             <Send className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDownloadPDF(invoice)}
-                            className="p-2 text-gray-600 hover:text-[#1B2A49] hover:bg-blue-50 rounded-lg transition-all duration-200"
+                            className="p-2 text-text-muted hover:text-secondary hover:bg-brand-light rounded-lg transition-all duration-200"
                             title="Download"
                           >
                             <Download className="w-4 h-4" />
@@ -565,7 +659,7 @@ const InvoiceListPage: React.FC = () => {
                             ]}
                             triggerLabel="Invoice Actions"
                             align="right"
-                            triggerClassName="p-2 text-gray-600 hover:text-[#1B2A49] hover:bg-blue-50 rounded-lg transition-all duration-200"
+                            triggerClassName="p-2 text-text-muted hover:text-secondary hover:bg-brand-light rounded-lg transition-all duration-200"
                           />
                         </div>
                       </td>
@@ -575,40 +669,46 @@ const InvoiceListPage: React.FC = () => {
               </table>
 
               {filteredInvoices.length === 0 && (
-                <div className="text-center py-16">
-                  <div className="mx-auto h-24 w-24 text-gray-300 mb-4">
-                    <Brain className="w-full h-full" />
-                  </div>
-                  <h3 className="mt-4 text-xl font-semibold text-[#1B2A49]">
-                    No invoices found
-                  </h3>
-                  <p className="mt-2 text-[#344767] max-w-md mx-auto">
-                    {searchTerm || statusFilter !== "all"
-                      ? "Try adjusting your AI-powered search or filter criteria."
-                      : "Let AI help you create and manage your first intelligent invoice."}
-                  </p>
-                  <div className="mt-8 flex items-center justify-center">
-                    <Button
-                      onClick={() => router.push("/dashboard/invoicing/new")}
-                      className="bg-gradient-to-r from-[#1B2A49] to-[#2D4A7C] hover:from-[#2D4A7C] hover:to-[#1B2A49] shadow-lg hover:shadow-xl transition-all duration-200 text-white"
-                      startIcon={<Plus className="w-4 h-4" />}
-                    >
-                      Create AI Invoice
-                    </Button>
-                  </div>
+                <div className="p-6">
+                  <EmptyState
+                    icon={Brain}
+                    title={
+                      searchTerm || statusFilter !== "all"
+                        ? "No results match your filters"
+                        : "No invoices yet"
+                    }
+                    description={
+                      searchTerm || statusFilter !== "all"
+                        ? "Try adjusting your AI-powered search or filter criteria."
+                        : "Let AI help you create and manage your first intelligent invoice."
+                    }
+                    ctaLabel="Create Invoice"
+                    onCTAClick={() => router.push("/dashboard/invoicing/new")}
+                  />
                 </div>
               )}
             </div>
-          </div>
+          </Card>
 
           {/* AI Assistant Footer */}
           <div className="mt-8 text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-full text-sm text-gray-600">
-              <Bot className="w-4 h-4 text-[#1B2A49]" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-full text-sm text-text-secondary shadow-card">
+              <Bot className="w-4 h-4 text-secondary" />
               <span>AI Assistant is monitoring your invoices 24/7</span>
             </div>
           </div>
         </div>
+
+        {/* Send Invoice Modal Component */}
+        <SendInvoiceModal
+          isOpen={isModalOpen}
+          onClose={closeSendEmailModal}
+          invoiceNumber={currentInvoice?.invoice_number || ""}
+          emailFormData={emailFormData}
+          onEmailFormChange={handleEmailFormChange}
+          onSubmit={handleSendEmail}
+          isSending={isSending}
+        />
       </div>
     </DashboardLayout>
   );
