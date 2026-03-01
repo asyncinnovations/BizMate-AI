@@ -16,7 +16,7 @@ import { WalletTransaction } from "./wallet_transaction.entity";
 @Controller("wallet-transaction")
 export class WalletTransactionController {
   constructor(
-    private readonly walletTransactionService: WalletTransactionService
+    private readonly walletTransactionService: WalletTransactionService,
   ) {}
 
   //////////////////////////////////////
@@ -28,7 +28,7 @@ export class WalletTransactionController {
     try {
       const response =
         await this.walletTransactionService.create_wallet_transaction_service(
-          data
+          data,
         );
       return { message: "wallet transaction created", response };
     } catch (error) {
@@ -60,7 +60,7 @@ export class WalletTransactionController {
     try {
       const response =
         await this.walletTransactionService.single_wallet_transaction_service(
-          uuid
+          uuid,
         );
       return { message: "single transaction retrived", response };
     } catch (error) {
@@ -77,7 +77,7 @@ export class WalletTransactionController {
     try {
       const response =
         await this.walletTransactionService.user_wallet_transaction_service(
-          userId
+          userId,
         );
       return { message: "user transaction retrived", response };
     } catch (error) {
@@ -92,13 +92,13 @@ export class WalletTransactionController {
   @HttpCode(HttpStatus.OK)
   async update_wallet_transaction_status(
     @Param("uuid") uuid: string,
-    @Body("status") status: WalletTransaction["status"]
+    @Body("status") status: WalletTransaction["status"],
   ) {
     try {
       const response =
         await this.walletTransactionService.update_wallet_transaction_status_service(
           uuid,
-          status
+          status,
         );
       return { message: "trnsaction status updated", response };
     } catch (error) {
@@ -115,7 +115,7 @@ export class WalletTransactionController {
     try {
       const response =
         await this.walletTransactionService.refund_wallet_transaction_service(
-          uuid
+          uuid,
         );
       return { message: "transaction marked refund", response };
     } catch (error) {
@@ -132,7 +132,7 @@ export class WalletTransactionController {
     try {
       const response =
         await this.walletTransactionService.delete_wallet_transaction_service(
-          uuid
+          uuid,
         );
       return { message: "trasaction deleted success", response };
     } catch (error) {
@@ -149,7 +149,7 @@ export class WalletTransactionController {
     try {
       const response =
         await this.walletTransactionService.subscription_wallet_transaction_service(
-          userId
+          userId,
         );
       return { message: "subscription transaction record retrived", response };
     } catch (error) {
