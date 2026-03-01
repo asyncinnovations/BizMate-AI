@@ -1005,9 +1005,7 @@ const AIReplyHubDashboard: React.FC = () => {
                       <div
                         className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${icBg}`}
                       >
-                        {React.cloneElement(cfg.icon as React.ReactElement, {
-                          className: "w-4 h-4",
-                        })}
+                        {React.cloneElement(cfg.icon as React.ReactElement)}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold text-text-heading">

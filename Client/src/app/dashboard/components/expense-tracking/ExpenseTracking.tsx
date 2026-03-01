@@ -9,47 +9,50 @@ const ExpenseTracking = () => {
       title: "Office Rent",
       subtitle: "Monthly recurring",
       amount: "AED 4,500",
-      bg: "bg-red-50 border border-red-100",
-      iconBg: "bg-red-100",
-      icon: <Building2 className="w-4 h-4 text-red-600" />,
+      bg: "bg-status-error-bg border border-status-error-border",
+      iconBg: "bg-status-error-bg",
+      icon: <Building2 className="w-4 h-4 text-status-error" />,
     },
     {
       title: "Marketing Ads",
       subtitle: "Google & Social Media",
       amount: "AED 1,250",
-      bg: "bg-yellow-50 border border-yellow-100",
-      iconBg: "bg-yellow-100",
-      icon: <Users className="w-4 h-4 text-yellow-600" />,
+      bg: "bg-status-warning-bg border border-status-warning-border",
+      iconBg: "bg-status-warning-bg",
+      icon: <Users className="w-4 h-4 text-status-warning" />,
     },
     {
       title: "Software Subscriptions",
       subtitle: "AI Assistant Premium",
       amount: "AED 299",
-      bg: "bg-blue-50 border border-blue-100",
-      iconBg: "bg-blue-100",
-      icon: <Zap className="w-4 h-4 text-blue-600" />,
+      bg: "bg-status-info-bg border border-status-info-border",
+      iconBg: "bg-status-info-bg",
+      icon: <Zap className="w-4 h-4 text-status-info" />,
     },
   ];
+
   return (
     <Card className="flex flex-col h-[500px]">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-[#1B2A49]">
+        <h2 className="text-lg font-semibold text-text-heading">
           Expense Tracking
         </h2>
-        <Wallet className="w-5 h-5 text-[#344767]" />
+        <Wallet className="w-5 h-5 text-text-secondary" />
       </div>
 
       {/* Monthly Expense Progress */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-[#6B7C93]">This Month Expenses</span>
-          <span className="text-lg font-bold text-[#344767]">AED 8,750</span>
+          <span className="text-sm text-text-muted">This Month Expenses</span>
+          <span className="text-lg font-bold text-text-secondary">
+            AED 8,750
+          </span>
         </div>
-        <div className="w-full bg-[#E1E8F5] rounded-full h-2">
-          <div className="bg-[#2E69A4] h-2 rounded-full w-3/4"></div>
+        <div className="w-full bg-border rounded-full h-2">
+          <div className="bg-secondary h-2 rounded-full w-3/4"></div>
         </div>
-        <p className="text-xs text-[#6B7C93] mt-1">
+        <p className="text-xs text-text-muted mt-1">
           75% of monthly budget used
         </p>
       </div>
@@ -66,11 +69,13 @@ const ExpenseTracking = () => {
                 {expense.icon}
               </div>
               <div>
-                <p className="font-medium text-[#344767]">{expense.title}</p>
-                <p className="text-sm text-[#6B7C93]">{expense.subtitle}</p>
+                <p className="font-medium text-text-secondary">
+                  {expense.title}
+                </p>
+                <p className="text-sm text-text-muted">{expense.subtitle}</p>
               </div>
             </div>
-            <span className="font-semibold text-[#344767]">
+            <span className="font-semibold text-text-secondary">
               {expense.amount}
             </span>
           </div>
@@ -80,7 +85,7 @@ const ExpenseTracking = () => {
       {/* Button at bottom */}
       <div className="mt-4">
         <Button
-          className="w-full py-2 bg-gradient-to-r from-[#2E69A4] to-[#1B2A49]"
+          className="w-full py-2 bg-brand hover:bg-brand-hover text-on-brand"
           startIcon={<Plus className="w-4 h-4" />}
         >
           Add Expense

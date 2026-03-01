@@ -13,6 +13,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
+  type PieLabelRenderProps,
 } from "recharts";
 import {
   DollarSign,
@@ -26,6 +27,7 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import PageHeader from "@/components/page-header/PageHeader";
 import axiosInstance from "@/utils/axiosInstance";
 import { useAuth } from "@/context/AuthContext";
+
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -71,27 +73,17 @@ interface AiReminder {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const MONTH_LABELS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-const safeNum = (v: any): number => {
+const safeNum = (v: unknown): number => {
   const n = parseFloat(String(v ?? "0"));
   return isNaN(n) ? 0 : n;
 };
 
-const safeDate = (v: any): Date | null => {
+const safeDate = (v: unknown): Date | null => {
   if (!v) return null;
   const str = String(v).includes("T") ? String(v) : `${String(v)}T00:00:00`;
   const d = new Date(str);
@@ -159,13 +151,7 @@ function buildInvoiceStatusData(invoices: Invoice[]) {
 
 function buildInvoicePatternData(invoices: Invoice[]) {
   const counts: Record<string, number> = {
-    Sun: 0,
-    Mon: 0,
-    Tue: 0,
-    Wed: 0,
-    Thu: 0,
-    Fri: 0,
-    Sat: 0,
+    Sun: 0, Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0,
   };
 
   invoices.forEach((inv) => {
@@ -256,6 +242,10 @@ function buildReminderWeekData(reminders: AiReminder[]) {
   };
 }
 
+// ─── Shared pie label renderer — typed with PieLabelRenderProps ──────────────
+const renderPiePercent = ({ percent }: PieLabelRenderProps) =>
+  `${(((percent as number) || 0) * 100).toFixed(0)}%`;
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const AnalyticsPage = () => {
@@ -278,8 +268,8 @@ const AnalyticsPage = () => {
       const res = await axiosInstance.get(`/invoices/user/${userId}`);
       const list: Invoice[] = res.data?.response || res.data || [];
       setInvoices(list);
-    } catch (err: any) {
-      setError(err?.message || "Something went wrong.");
+    } catch (err: unknown) {
+      setError((err as Error)?.message || "Something went wrong.");
     } finally {
       setLoading(false);
     }
@@ -295,8 +285,8 @@ const AnalyticsPage = () => {
       const res = await axiosInstance.get(`/ai_reminder/user/${userId}`);
       const list: AiReminder[] = res.data?.response || res.data || [];
       setReminders(list);
-    } catch (err: any) {
-      setRemindersError(err?.message || "Failed to load reminders.");
+    } catch (err: unknown) {
+      setRemindersError((err as Error)?.message || "Failed to load reminders.");
     } finally {
       setRemindersLoading(false);
     }
@@ -335,19 +325,11 @@ const AnalyticsPage = () => {
   })();
 
   const myExpenseData = [
-    { category: "Office Rent", amount: 3200, color: "var(--color-secondary)" },
-    { category: "Software & Tools", amount: 1800, color: "#7c3aed" },
-    { category: "Marketing", amount: 2400, color: "#db2777" },
-    {
-      category: "Utilities",
-      amount: 800,
-      color: "var(--color-status-warning)",
-    },
-    {
-      category: "Miscellaneous",
-      amount: 1600,
-      color: "var(--color-status-success)",
-    },
+    { category: "Office Rent",        amount: 3200, color: "var(--color-secondary)" },
+    { category: "Software & Tools",   amount: 1800, color: "#7c3aed" },
+    { category: "Marketing",          amount: 2400, color: "#db2777" },
+    { category: "Utilities",          amount: 800,  color: "var(--color-status-warning)" },
+    { category: "Miscellaneous",      amount: 1600, color: "var(--color-status-success)" },
   ];
 
   // ── Stat cards ────────────────────────────────────────────────────────────
@@ -471,23 +453,9 @@ const AnalyticsPage = () => {
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={revenueData}>
                   <defs>
-                    <linearGradient
-                      id="colorRevenue"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="0%"
-                        stopColor="var(--color-secondary)"
-                        stopOpacity={0.3}
-                      />
-                      <stop
-                        offset="100%"
-                        stopColor="var(--color-secondary)"
-                        stopOpacity={0}
-                      />
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%"   stopColor="var(--color-secondary)" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="var(--color-secondary)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid
@@ -570,9 +538,7 @@ const AnalyticsPage = () => {
                         innerRadius={55}
                         outerRadius={90}
                         labelLine={false}
-                        label={({ percent }: { percent?: number }) =>
-                          `${((percent || 0) * 100).toFixed(0)}%`
-                        }
+                        label={renderPiePercent}
                         dataKey="value"
                       >
                         {invoiceStatusPie.map((entry, index) => (
@@ -593,18 +559,13 @@ const AnalyticsPage = () => {
                 )}
                 <div className="w-full space-y-2 mt-2">
                   {invoiceStatusLegend.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between"
-                    >
+                    <div key={idx} className="flex items-center justify-between">
                       <div className="flex items-center">
                         <div
                           className="w-2.5 h-2.5 rounded-full mr-2.5"
                           style={{
                             backgroundColor:
-                              item.value > 0
-                                ? item.color
-                                : "var(--color-border)",
+                              item.value > 0 ? item.color : "var(--color-border)",
                           }}
                         />
                         <span
@@ -685,8 +646,7 @@ const AnalyticsPage = () => {
                       fill={
                         entry.isToday
                           ? "var(--color-brand)"
-                          : entry.queries ===
-                              Math.max(...aiWeekData.map((d) => d.queries))
+                          : entry.queries === Math.max(...aiWeekData.map((d) => d.queries))
                             ? "var(--color-secondary)"
                             : "var(--color-status-info-border)"
                       }
@@ -697,12 +657,9 @@ const AnalyticsPage = () => {
             </ResponsiveContainer>
             <div className="flex items-center gap-5 mt-3 justify-center">
               {[
-                { color: "var(--color-brand)", label: "Today" },
-                { color: "var(--color-secondary)", label: "Peak day" },
-                {
-                  color: "var(--color-status-info-border)",
-                  label: "Other days",
-                },
+                { color: "var(--color-brand)",               label: "Today" },
+                { color: "var(--color-secondary)",           label: "Peak day" },
+                { color: "var(--color-status-info-border)",  label: "Other days" },
               ].map((l) => (
                 <div key={l.label} className="flex items-center gap-1.5">
                   <div
@@ -804,7 +761,7 @@ const AnalyticsPage = () => {
                     <Pie
                       data={[
                         { name: "Completed", value: reminderWeek.completed },
-                        { name: "Missed", value: reminderWeek.missed },
+                        { name: "Missed",    value: reminderWeek.missed },
                       ].filter((d) => d.value > 0)}
                       cx="50%"
                       cy="50%"
@@ -815,9 +772,7 @@ const AnalyticsPage = () => {
                       dataKey="value"
                       paddingAngle={2}
                       labelLine={false}
-                      label={({ percent }: { percent?: number }) =>
-                        `${((percent || 0) * 100).toFixed(0)}%`
-                      }
+                      label={renderPiePercent}
                     >
                       <Cell fill="var(--color-status-success)" />
                       <Cell fill="var(--color-status-error)" />
@@ -847,9 +802,7 @@ const AnalyticsPage = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <div className="w-3 h-3 rounded-full mr-3 bg-status-success" />
-                        <span className="text-sm text-text-secondary">
-                          Completed
-                        </span>
+                        <span className="text-sm text-text-secondary">Completed</span>
                       </div>
                       <span className="text-sm font-semibold text-text-heading">
                         {reminderWeek.completed}
@@ -858,9 +811,7 @@ const AnalyticsPage = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <div className="w-3 h-3 rounded-full mr-3 bg-status-error" />
-                        <span className="text-sm text-text-secondary">
-                          Missed
-                        </span>
+                        <span className="text-sm text-text-secondary">Missed</span>
                       </div>
                       <span className="text-sm font-semibold text-text-heading">
                         {reminderWeek.missed}
@@ -873,14 +824,11 @@ const AnalyticsPage = () => {
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-text-muted">
-                        Completion rate
-                      </span>
+                      <span className="text-sm text-text-muted">Completion rate</span>
                       <span className="text-sm font-bold text-status-success">
                         {reminderWeek.total > 0
                           ? Math.round(
-                              (reminderWeek.completed / reminderWeek.total) *
-                                100,
+                              (reminderWeek.completed / reminderWeek.total) * 100,
                             )
                           : 0}
                         %

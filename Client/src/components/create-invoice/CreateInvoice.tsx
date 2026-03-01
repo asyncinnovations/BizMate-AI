@@ -643,7 +643,7 @@ const CreateInvoicePage: React.FC = () => {
             className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary text-text-secondary bg-bg-base"
             value={field.value}
             onChange={onChange}
-            placeholder={field.placeholder}
+            // placeholder={field.placeholder}
           >
             {field.options?.map((option, index) => (
               <option key={index} value={option}>
