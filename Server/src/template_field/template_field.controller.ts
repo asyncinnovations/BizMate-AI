@@ -17,7 +17,7 @@ import { TemplateFieldEntity } from "./template_field.entity";
 import { JwtGuard } from "src/guards/auth/auth.guard";
 
 @Controller("template_field")
-@UseGuards(JwtGuard)
+// @UseGuards(JwtGuard)
 export class TemplateFieldController {
   constructor(private readonly templateFieldService: TemplateFieldService) {}
 

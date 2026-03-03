@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TemplateFieldController = void 0;
 const common_1 = require("@nestjs/common");
 const template_field_service_1 = require("./template_field.service");
-const auth_guard_1 = require("../guards/auth/auth.guard");
 let TemplateFieldController = class TemplateFieldController {
     templateFieldService;
     constructor(templateFieldService) {
@@ -193,7 +192,6 @@ __decorate([
 ], TemplateFieldController.prototype, "clone_fields", null);
 exports.TemplateFieldController = TemplateFieldController = __decorate([
     (0, common_1.Controller)("template_field"),
-    (0, common_1.UseGuards)(auth_guard_1.JwtGuard),
     __metadata("design:paramtypes", [template_field_service_1.TemplateFieldService])
 ], TemplateFieldController);
 //# sourceMappingURL=template_field.controller.js.map
