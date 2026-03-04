@@ -228,6 +228,14 @@ export class AiReplyHubChatService {
     return this.aireplyhubRepo.findOne({ where: { uuid: message_id } });
   }
 
+  //////////////////////////////////////////////
+  // FETCH CHAT HISTORY BY CLIENT
+  //////////////////////////////////////////////
+  async chat_mark_as_all_read_service(client_id: string) {
+    await this.aireplyhubRepo.update({ client_id: client_id }, { status: "read" });
+    return this.aireplyhubRepo.findOne({ where: { client_id: client_id } });
+  }
+
   ////////////////////////////////////////////////
   // FETCH ALL CHAT PARTNERS OF A USER
   ////////////////////////////////////////////////

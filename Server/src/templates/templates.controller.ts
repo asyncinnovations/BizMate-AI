@@ -20,7 +20,7 @@ import { join } from "path";
 import { EmailService } from "src/services/EmailService";
 
 @Controller("templates")
-@UseGuards(JwtGuard)
+// @UseGuards(JwtGuard)
 export class TemplatesController {
   constructor(
     private readonly templatesService: TemplatesService,

@@ -227,4 +227,14 @@ export class AiReplyHubChatController {
     const result = await this.aireplyHub.user_chat_partner_service(message_id);
     return { message: "Message marked as read", result };
   }
+  
+  //////////////////////////////////////////////
+  // FETCH CHAT HISTORY BY CLIENT
+  //////////////////////////////////////////////
+  @Patch("mark_as_all_read/:client_id")
+  @HttpCode(HttpStatus.OK)
+  async chat_mark_as_all_read_service(@Param("client_id") client_id: string) {
+    const result = await this.aireplyHub.chat_mark_as_all_read_service(client_id);
+    return { message: "Message marked as read", result };
+  }
 }
