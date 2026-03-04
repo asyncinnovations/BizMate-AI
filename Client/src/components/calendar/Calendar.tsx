@@ -67,10 +67,10 @@ const ReminderCalendar = ({
   const dayNames: string[] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const statusColors: Record<ReminderStatus, string> = {
-    pending: "bg-yellow-100 text-yellow-700",
-    sent: "bg-blue-100 text-blue-700",
-    completed: "bg-green-100 text-green-700",
-    missed: "bg-red-100 text-red-700",
+    pending: "bg-status-warning-bg text-status-warning",
+    sent: "bg-status-info-bg text-status-info",
+    completed: "bg-status-success-bg text-status-success",
+    missed: "bg-status-error-bg text-status-error",
   };
 
   const getDaysInMonth = (date: Date): number => {
@@ -88,11 +88,9 @@ const ReminderCalendar = ({
   const getRemindersForDate = (
     year: number,
     month: number,
-    day: number
+    day: number,
   ): Reminder[] => {
-    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(
-      day
-    ).padStart(2, "0")}`;
+    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     console.log(dateStr);
     return reminders.filter((r) => r.reminder_date.split("T")[0] === dateStr);
   };
@@ -108,9 +106,7 @@ const ReminderCalendar = ({
 
   const handleDateClick = (year: number, month: number, day: number): void => {
     const dateReminders = getRemindersForDate(year, month, day);
-    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(
-      day
-    ).padStart(2, "0")}`;
+    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     setSelectedDateReminders(dateReminders);
     setSelectedDate(dateStr);
     setShowCalendarModal(true);
@@ -118,13 +114,13 @@ const ReminderCalendar = ({
 
   const previousMonth = (): void => {
     setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
+      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1),
     );
   };
 
   const nextMonth = (): void => {
     setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
+      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1),
     );
   };
 
@@ -142,8 +138,8 @@ const ReminderCalendar = ({
       days.push(
         <div
           key={`empty-${i}`}
-          className="min-h-[100px] bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-[#E1E8F5] opacity-40"
-        ></div>
+          className="min-h-[100px] bg-bg-base rounded-xl border border-border opacity-40"
+        ></div>,
       );
     }
 
@@ -152,22 +148,15 @@ const ReminderCalendar = ({
       const dayReminders = getRemindersForDate(
         currentDate.getFullYear(),
         currentDate.getMonth(),
-        day
+        day,
       );
-
-      // Fixed: Dynamic today check
       const today = isToday(
         currentDate.getFullYear(),
         currentDate.getMonth(),
-        day
+        day,
       );
-
-      // const hasPendingReminders = dayReminders.some(
-      //   (r) => r.status === "pending"
-      // );
-
       const hasMissedReminders = dayReminders.some(
-        (r) => r.status === "missed"
+        (r) => r.status === "missed",
       );
 
       days.push(
@@ -177,16 +166,16 @@ const ReminderCalendar = ({
             handleDateClick(
               currentDate.getFullYear(),
               currentDate.getMonth(),
-              day
+              day,
             )
           }
-          className={`min-h-[100px] bg-white rounded-xl border-2 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] cursor-pointer group ${
+          className={`min-h-[100px] bg-surface rounded-xl border-2 transition-all duration-300 hover:shadow-raised hover:scale-[1.02] cursor-pointer group ${
             today
-              ? "border-[#2E69A4] shadow-lg ring-2 ring-[#2E69A4] ring-opacity-30"
+              ? "border-secondary shadow-card ring-2 ring-secondary ring-opacity-30"
               : hasMissedReminders
-              ? "border-red-200 hover:border-red-300"
-              : "border-[#E1E8F5] hover:border-[#2E69A4]"
-          } ${dayReminders.length > 0 ? "hover:bg-blue-50" : ""}`}
+                ? "border-status-error-border hover:border-status-error"
+                : "border-border hover:border-secondary"
+          } ${dayReminders.length > 0 ? "hover:bg-brand-light/30" : ""}`}
         >
           <div className="p-3 h-full flex flex-col">
             {/* Day header */}
@@ -194,22 +183,22 @@ const ReminderCalendar = ({
               <span
                 className={`text-sm font-bold transition-all ${
                   today
-                    ? "text-[#2E69A4] text-lg"
+                    ? "text-secondary text-lg"
                     : hasMissedReminders
-                    ? "text-red-600"
-                    : "text-[#344767] group-hover:text-[#2E69A4]"
+                      ? "text-status-error"
+                      : "text-text-secondary group-hover:text-secondary"
                 }`}
               >
                 {day}
               </span>
               <div className="flex items-center gap-1">
                 {today && (
-                  <span className="text-xs bg-gradient-to-r from-[#2E69A4] to-[#1B2A49] text-white px-2 py-1 rounded-full font-semibold shadow-sm animate-pulse">
+                  <span className="text-xs bg-brand text-on-brand px-2 py-1 rounded-full font-semibold shadow-card animate-pulse">
                     Today
                   </span>
                 )}
                 {dayReminders.length > 0 && !today && (
-                  <span className="text-xs bg-gradient-to-r from-purple-500 to-purple-600 text-white px-2 py-1 rounded-full font-semibold shadow-sm">
+                  <span className="text-xs bg-brand-light text-secondary px-2 py-1 rounded-full font-semibold border border-border">
                     {dayReminders.length}
                   </span>
                 )}
@@ -221,27 +210,25 @@ const ReminderCalendar = ({
               {dayReminders.slice(0, 1).map((reminder) => (
                 <div
                   key={reminder.uuid}
-                  className={`text-xs p-2 rounded-lg ${
-                    typeColors[reminder.type]
-                  } truncate flex items-center gap-1.5 shadow-sm hover:shadow-md transition-all transform hover:scale-105 ${
+                  className={`text-xs p-2 rounded-lg ${typeColors[reminder.type]} truncate flex items-center gap-1.5 shadow-card hover:shadow-raised transition-all transform hover:scale-105 ${
                     reminder.status === "completed" ? "opacity-50" : ""
                   }`}
                   title={reminder.title}
                 >
                   {reminder.status === "completed" && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-status-success flex-shrink-0"></span>
                   )}
                   <span className="truncate font-medium">{reminder.title}</span>
                 </div>
               ))}
               {dayReminders.length > 1 && (
-                <div className="text-xs text-[#2E69A4] font-bold bg-blue-50 px-2 py-1 rounded-lg text-center hover:bg-blue-100 transition-colors">
+                <div className="text-xs text-secondary font-bold bg-brand-light px-2 py-1 rounded-lg text-center hover:bg-brand hover:text-on-brand transition-colors">
                   +{dayReminders.length - 1} more
                 </div>
               )}
             </div>
           </div>
-        </div>
+        </div>,
       );
     }
 
@@ -268,15 +255,15 @@ const ReminderCalendar = ({
 
   return (
     <>
-      <div className="bg-white rounded-2xl shadow-lg border border-[#E1E8F5] p-6 hover:shadow-xl transition-shadow">
+      <div className="bg-surface rounded-2xl shadow-card border border-border p-6 hover:shadow-raised transition-shadow">
         {/* Calendar Header */}
-        <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#E1E8F5]">
+        <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
           <div>
-            <h2 className="text-2xl font-bold text-[#1B2A49] mb-1">
+            <h2 className="text-2xl font-bold text-text-heading mb-1">
               {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
             </h2>
-            <p className="text-sm text-[#344767] flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#2E69A4] animate-pulse"></span>
+            <p className="text-sm text-text-secondary flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
               {totalRemindersThisMonth} reminder
               {totalRemindersThisMonth !== 1 ? "s" : ""} this month
             </p>
@@ -284,24 +271,24 @@ const ReminderCalendar = ({
           <div className="flex items-center gap-2">
             <button
               onClick={goToToday}
-              className="px-4 py-2 text-sm font-medium text-[#2E69A4] hover:bg-blue-50 rounded-lg transition-all hover:scale-105"
+              className="px-4 py-2 text-sm font-medium text-secondary hover:bg-brand-light rounded-lg transition-all hover:scale-105"
             >
               Today
             </button>
-            <div className="flex gap-1 bg-[#F4F7FA] rounded-lg p-1">
+            <div className="flex gap-1 bg-bg-base rounded-lg p-1 border border-border">
               <button
                 onClick={previousMonth}
-                className="p-2 hover:bg-white rounded-lg transition-all hover:shadow-sm group"
+                className="p-2 hover:bg-surface rounded-lg transition-all hover:shadow-card group"
                 title="Previous month"
               >
-                <ChevronLeft className="w-5 h-5 text-[#344767] group-hover:text-[#2E69A4] transition-colors" />
+                <ChevronLeft className="w-5 h-5 text-text-secondary group-hover:text-secondary transition-colors" />
               </button>
               <button
                 onClick={nextMonth}
-                className="p-2 hover:bg-white rounded-lg transition-all hover:shadow-sm group"
+                className="p-2 hover:bg-surface rounded-lg transition-all hover:shadow-card group"
                 title="Next month"
               >
-                <ChevronRight className="w-5 h-5 text-[#344767] group-hover:text-[#2E69A4] transition-colors" />
+                <ChevronRight className="w-5 h-5 text-text-secondary group-hover:text-secondary transition-colors" />
               </button>
             </div>
           </div>
@@ -312,7 +299,7 @@ const ReminderCalendar = ({
           {dayNames.map((day) => (
             <div
               key={day}
-              className="text-center text-sm font-bold text-[#344767] py-3 bg-gradient-to-br from-[#F4F7FA] to-[#E1E8F5] rounded-lg"
+              className="text-center text-sm font-bold text-text-secondary py-3 bg-bg-base rounded-lg border border-border"
             >
               {day}
             </div>
@@ -323,22 +310,22 @@ const ReminderCalendar = ({
         <div className="grid grid-cols-7 gap-3">{renderCalendar()}</div>
 
         {/* Legend */}
-        <div className="mt-6 pt-4 border-t border-[#E1E8F5] flex flex-wrap items-center gap-4 text-xs">
+        <div className="mt-6 pt-4 border-t border-border flex flex-wrap items-center gap-4 text-xs">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-[#2E69A4]"></div>
-            <span className="text-[#344767]">Today</span>
+            <div className="w-3 h-3 rounded-full bg-secondary"></div>
+            <span className="text-text-secondary">Today</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-500"></div>
-            <span className="text-[#344767]">Missed</span>
+            <div className="w-3 h-3 rounded-full bg-status-error"></div>
+            <span className="text-text-secondary">Missed</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-            <span className="text-[#344767]">Completed</span>
+            <div className="w-3 h-3 rounded-full bg-status-success"></div>
+            <span className="text-text-secondary">Completed</span>
           </div>
           <div className="flex items-center gap-2">
-            <Sparkles className="w-3 h-3 text-[#F6A821]" />
-            <span className="text-[#344767]">AI Generated</span>
+            <Sparkles className="w-3 h-3 text-status-warning" />
+            <span className="text-text-secondary">AI Generated</span>
           </div>
         </div>
       </div>
@@ -354,8 +341,8 @@ const ReminderCalendar = ({
         <div className="p-6 max-h-[70vh] overflow-y-auto">
           {selectedDateReminders.length === 0 ? (
             <div className="text-center py-8">
-              <Calendar className="w-16 h-16 text-[#E1E8F5] mx-auto mb-4" />
-              <p className="text-[#344767]">No reminders for this date</p>
+              <Calendar className="w-16 h-16 text-border mx-auto mb-4" />
+              <p className="text-text-secondary">No reminders for this date</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -374,14 +361,14 @@ const ReminderCalendar = ({
             </div>
           )}
         </div>
-        <div className="p-4 border-t border-[#E1E8F5] bg-[#F4F7FA] flex justify-between items-center">
-          <span className="text-sm text-[#344767]">
+        <div className="p-4 border-t border-border bg-bg-base flex justify-between items-center">
+          <span className="text-sm text-text-secondary">
             {selectedDateReminders.length} reminder
             {selectedDateReminders.length !== 1 ? "s" : ""}
           </span>
           <button
             onClick={() => setShowCalendarModal(false)}
-            className="px-4 py-2 bg-[#2E69A4] text-white rounded-lg hover:bg-[#1B2A49] transition-colors"
+            className="px-4 py-2 bg-brand text-on-brand rounded-lg hover:bg-brand-hover transition-colors"
           >
             Close
           </button>
