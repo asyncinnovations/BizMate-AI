@@ -27,16 +27,21 @@ const StatCard: React.FC<StatCardProps> = ({
   className = "",
 }) => {
   const baseClasses =
-    "bg-surface rounded-xl p-5 shadow-card border border-border hover:shadow-raised transition-shadow duration-200";
+    "bg-white rounded-xl p-5 shadow-sm border border-[#E1E8F5] hover:shadow-md transition-shadow duration-200";
 
   return (
     <div className={twMerge(baseClasses, className)}>
-
-      {/* Header — icon + badge */}
+      {/* Header (icon + badge) */}
       <div className="flex items-center justify-between mb-3">
-        <div className={twMerge("rounded-full p-2.5 shadow-card", iconBg)}>
+        <div
+          className={twMerge(
+            "bg-green-50 rounded-full p-2.5 shadow-sm",
+            iconBg
+          )}
+        >
           <div className={iconColor}>{icon}</div>
         </div>
+
         <span
           className={twMerge(
             "text-sm font-semibold px-2 py-1 rounded-full",
@@ -47,13 +52,12 @@ const StatCard: React.FC<StatCardProps> = ({
           {badgeText}
         </span>
       </div>
-
       {/* Content */}
-      <h3 className="text-text-secondary text-xs font-medium uppercase tracking-wide mb-1">
+      <h3 className="text-gray-500 text-xs font-medium uppercase tracking-wide mb-1">
         {title}
       </h3>
-      <p className="text-2xl font-bold text-text-heading mb-1">{value}</p>
-      <p className="text-text-muted text-xs">{subtitle}</p>
+      <p className="text-2xl font-bold text-gray-900 mb-1">{value}</p>
+      <p className="text-gray-400 text-xs">{subtitle}</p>
     </div>
   );
 };

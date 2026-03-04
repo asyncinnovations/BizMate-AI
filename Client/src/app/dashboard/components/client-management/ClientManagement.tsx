@@ -14,7 +14,7 @@ const ClientManagement = () => {
       outstanding: "AED 8,500",
       lastContact: "2 days ago",
       avatar: "AM",
-      color: "bg-secondary",
+      color: "bg-blue-500",
     },
     {
       name: "Emirates Solutions",
@@ -24,7 +24,7 @@ const ClientManagement = () => {
       outstanding: "AED 12,300",
       lastContact: "5 days ago",
       avatar: "ES",
-      color: "bg-status-error",
+      color: "bg-red-500",
     },
     {
       name: "Emirates Solutions",
@@ -34,7 +34,7 @@ const ClientManagement = () => {
       outstanding: "AED 12,300",
       lastContact: "5 days ago",
       avatar: "ES",
-      color: "bg-status-error",
+      color: "bg-red-500",
     },
     {
       name: "Dubai Tech Partners",
@@ -44,7 +44,7 @@ const ClientManagement = () => {
       outstanding: "AED 3,200",
       lastContact: "1 week ago",
       avatar: "DT",
-      color: "bg-status-success",
+      color: "bg-green-500",
     },
     {
       name: "Abu Dhabi Holdings",
@@ -54,19 +54,18 @@ const ClientManagement = () => {
       outstanding: "AED 5,700",
       lastContact: "3 days ago",
       avatar: "AD",
-      color: "bg-brand",
+      color: "bg-purple-500",
     },
   ];
-
   return (
-    <Card className="xl:col-span-2">
+    <Card className="xl:col-span-2" hoverEffect>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-text-heading flex items-center">
-          <Users className="w-5 h-5 mr-2 text-secondary" />
+        <h2 className="text-lg font-semibold text-[#1B2A49] flex items-center">
+          <Users className="w-5 h-5 mr-2 text-purple-600" />
           Client Management
         </h2>
         <div className="flex items-center space-x-2">
-          <span className="px-2 py-1 bg-brand-light text-secondary rounded-full text-xs font-medium">
+          <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
             24 Active Clients
           </span>
           <Button className="text-sm px-3 rounded py-1">+ Add Client</Button>
@@ -78,42 +77,40 @@ const ClientManagement = () => {
         {clients.map((client, index) => (
           <div
             key={index}
-            className="flex items-center justify-between p-3 bg-bg-base rounded-lg border border-border hover:border-border-strong hover:shadow-card transition-all duration-200"
+            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-[#E1E8F5] hover:bg-gray-100 transition-colors"
           >
             <div className="flex items-center space-x-3">
               <div
-                className={`${client.color} rounded-full w-10 h-10 flex items-center justify-center text-on-brand font-semibold text-sm`}
+                className={`${client.color} rounded-full w-10 h-10 flex items-center justify-center text-white font-semibold`}
               >
                 {client.avatar}
               </div>
               <div>
                 <div className="flex items-center space-x-2">
-                  <p className="font-medium text-text-secondary">
-                    {client.name}
-                  </p>
+                  <p className="font-medium text-[#344767]">{client.name}</p>
                   <span
                     className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                       client.status === "active"
-                        ? "bg-status-success-bg text-status-success"
+                        ? "bg-green-100 text-green-800"
                         : client.status === "overdue"
-                          ? "bg-status-error-bg text-status-error"
-                          : "bg-status-warning-bg text-status-warning"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-yellow-100 text-yellow-800"
                     }`}
                   >
                     {client.status}
                   </span>
                 </div>
-                <p className="text-sm text-text-muted">{client.email}</p>
-                <p className="text-xs text-text-muted">{client.phone}</p>
+                <p className="text-sm text-gray-600">{client.email}</p>
+                <p className="text-xs text-gray-500">{client.phone}</p>
               </div>
             </div>
 
             <div className="text-right">
-              <p className="font-semibold text-text-secondary">
+              <p className="font-semibold text-[#344767]">
                 {client.outstanding}
               </p>
-              <p className="text-xs text-text-muted">Outstanding</p>
-              <p className="text-xs text-text-muted mt-1">
+              <p className="text-xs text-gray-500">Outstanding</p>
+              <p className="text-xs text-gray-400 mt-1">
                 Contact: {client.lastContact}
               </p>
             </div>
@@ -125,21 +122,21 @@ const ClientManagement = () => {
       <div className="grid grid-cols-3 gap-2 mt-4">
         <Button
           startIcon={<MessageCircle className="w-3 h-3" />}
-          className="justify-center p-2 bg-status-info-bg text-status-info hover:bg-status-info hover:text-on-brand text-xs font-medium transition-colors"
+          className="justify-center p-2 bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-medium"
         >
           Message All
         </Button>
 
         <Button
           startIcon={<FileText className="w-3 h-3" />}
-          className="justify-center p-2 bg-status-success-bg text-status-success hover:bg-status-success hover:text-on-brand text-xs font-medium transition-colors"
+          className="justify-center p-2 bg-green-50 text-green-700 hover:bg-green-100 text-xs font-medium"
         >
           Send Invoices
         </Button>
 
         <Button
           startIcon={<Calendar className="w-3 h-3" />}
-          className="justify-center p-2 bg-brand-light text-secondary hover:bg-brand hover:text-on-brand text-xs font-medium transition-colors"
+          className="justify-center p-2 bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs font-medium"
         >
           Schedule Follow-up
         </Button>

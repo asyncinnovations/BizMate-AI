@@ -4,110 +4,65 @@
 import React, { useState } from "react";
 import { Lock, Eye, EyeOff } from "lucide-react";
 import SectionCard from "@/components/section-card/SectionCard";
-import axiosInstance from "@/utils/axiosInstance";
-import { useAuth } from "@/context/AuthContext";
-import InputField from "@/components/ui/InputField";
-import toast from "react-hot-toast";
-import Button from "@/components/ui/Button";
 
 const ChangePasswordForm: React.FC = () => {
-  const { user } = useAuth();
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-
-  const [errors, setErrors] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: ""
-  })
-
-
-  const validateFields = () => {
-    const newErrors = {
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: ""
-    }
-
-    if (!currentPassword) newErrors.currentPassword = "Current password is required!";
-
-    if (!newPassword) newErrors.newPassword = "New password is required!";
-    else if (newPassword.length < 8) newErrors.newPassword = "Password must be at least 8 characters";
-
-    if (!confirmPassword) newErrors.confirmPassword = "Please confirm your password";
-    else if (confirmPassword !== newPassword) newErrors.confirmPassword = "Password do not match";
-
-    setErrors(newErrors);
-
-
-    return Object.values(newErrors).every((err) => err === "")
-
-  }
-
-
-  const isButtonDisabled = !currentPassword || !newPassword || !confirmPassword;
-
-
-  const resetUserPassword = async () => {
-
-    if (!validateFields()) return;
-
-    try {
-      await axiosInstance.put(`/auth/reset_password/${user?.user.user_id}`, { new_password: newPassword });
-      toast.success("Password updated successfully");
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      setErrors({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: ""
-      })
-    } catch (error) {
-      toast.error("Failed to update password")
-      console.log("Error occur while updating password", error)
-    }
-  }
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <SectionCard title="Change Password" icon={Lock}>
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InputField
-            type="password"
-            name="current_password"
-            label="Current Password"
-            placeholder="Enter current password"
-            value={currentPassword}
-            error={errors.currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-          />
-          <InputField
-            label="New Password"
-            name="new_password"
-            type="password"
-            placeholder="Enter new password"
-            onChange={(e) => setNewPassword(e.target.value)}
-            error={errors.newPassword}
-            value={newPassword}
-          />
-          <InputField
-            label="Confirm New Password"
-            name="confirm_password"
-            type="password"
-            placeholder="Confirm new password"
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            error={errors.confirmPassword}
-            value={confirmPassword}
-          />
+          <div>
+            <label className="block text-sm font-medium text-[#344767] mb-2">
+              Current Password
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                className="w-full px-4 py-3 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] bg-[#F4F7FA]"
+                placeholder="Enter current password"
+              />
+              <button
+                onClick={() => setShowPassword(!showPassword)}
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#344767]"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-[#344767] mb-2">
+              New Password
+            </label>
+            <input
+              type="password"
+              className="w-full px-4 py-3 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] bg-[#F4F7FA]"
+              placeholder="Enter new password"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-[#344767] mb-2">
+              Confirm New Password
+            </label>
+            <input
+              type="password"
+              className="w-full px-4 py-3 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] bg-[#F4F7FA]"
+              placeholder="Confirm new password"
+            />
+          </div>
         </div>
 
         <div>
-          <Button disabled={isButtonDisabled} onClick={resetUserPassword}>
+          <button className="mt-2 px-6 py-3 bg-[#1B2A49] text-white rounded-lg hover:bg-[#2E69A4] transition-colors font-medium">
             Update Password
-          </Button>
-
+          </button>
         </div>
       </div>
     </SectionCard>

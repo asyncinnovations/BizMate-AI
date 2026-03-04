@@ -2,600 +2,813 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import {
-  Send, Plus, Bot, Sparkles, Shield, Trash2, Search,
-  MessageSquare, FileCheck, Building, Users, TrendingUp,
-  FileText, Bell, ChevronRight, Clock, Calendar, X,
-  Languages, CheckCircle2, BellPlus,
+  Send,
+  Clock,
+  Download,
+  AlertCircle,
+  Calendar,
+  FileText,
+  HelpCircle,
+  Languages,
+  Search,
+  Building,
+  FileCheck,
+  Users,
+  Settings,
+  Star,
+  Bot,
+  Sparkles,
+  Shield,
+  TrendingUp,
+  Bell,
+  BellOff,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import LoadingSpinner from "@/components/loading-spinner/LoadingSpinner";
-import axiosInstance from "@/utils/axiosInstance";
-import { useAuth } from "@/context/AuthContext";
-import toast from "react-hot-toast";
-import MessageItem from "@/components/message-item/MessageItem";
-import HistoryItem from "@/components/chat-history-item/HistoryItem";
-import { renderContent } from "@/utils/renderContent";
+import Button from "@/components/ui/Button";
 
-// ================= TYPES ================= (exported for components)
-export interface ChatMessage {
+interface ChatMessage {
   id: string;
   content: string;
   isUser: boolean;
   timestamp: Date;
+  hasReminder?: boolean;
+  isPinned?: boolean;
   confidence?: number;
   sources?: string[];
-  reminderState?: "idle" | "saving" | "saved";
-  savedReminder?: SavedReminder;
 }
 
-export interface ChatHistoryItem {
-  uuid: string;
-  user_id: string;
-  question: string;
-  answer: string;
-  timestamp: string;
-}
-
-export type ReminderType = "VAT" | "License" | "Payroll" | "Custom";
-export type ReminderStatus = "pending";
-export type RecurrenceRule = "none" | "monthly" | "quarterly" | "yearly";
-
-export interface SavedReminder {
+interface Reminder {
   id: string;
   title: string;
   description: string;
-  type: ReminderType;
-  reminder_date: string;
-  notify_before: number;
-  recurrence_rule: RecurrenceRule;
-  status: ReminderStatus;
+  deadline: string;
+  priority: "high" | "medium" | "low";
+  category: string;
+  status: "pending" | "completed" | "overdue";
+  messageId?: string;
 }
 
-// ================= HELPERS =================
-export const fmtTime = (d: Date) =>
-  d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+interface ConversationHistory {
+  id: string;
+  title: string;
+  preview: string;
+  timestamp: Date;
+  messageCount: number;
+  category: string;
+  rating?: number;
+}
 
-export const relativeDate = (s: string) => {
-  const d = Math.floor((Date.now() - new Date(s).getTime()) / 86400000);
-  if (d === 0) return "Today";
-  if (d === 1) return "Yesterday";
-  if (d < 7) return `${d} days ago`;
-  return new Date(s).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-};
-
-export const typeColor: Record<ReminderType, string> = {
-  VAT: "bg-status-error-bg text-status-error",
-  License: "bg-status-warning-bg text-status-warning",
-  Payroll: "bg-status-success-bg text-status-success",
-  Custom: "bg-bg-base text-text-muted border border-border",
-};
-
-// Reads the AI message, detects type + deadline, builds reminder data
-export const extractReminderData = (content: string, msgId: string): SavedReminder => {
-  const lower = content.toLowerCase();
-
-  let type: ReminderType = "Custom";
-  let recurrence: RecurrenceRule = "none";
-  let daysOut = 30;
-
-  if (lower.includes("vat") || lower.includes("fta") || lower.includes("tax return")) { type = "VAT"; recurrence = "quarterly"; daysOut = 28; }
-  else if (lower.includes("license") || lower.includes("licence") || lower.includes("ded")) { type = "License"; recurrence = "yearly"; daysOut = 90; }
-  else if (lower.includes("payroll") || lower.includes("wps") || lower.includes("salary")) { type = "Payroll"; recurrence = "monthly"; daysOut = 30; }
-
-  // Try to find an explicit date like "28/10/2024" or "October 28"
-  const datePatterns = [
-    /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/,
-    /(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2})/i,
-  ];
-  let detectedDate: string | null = null;
-  for (const pattern of datePatterns) {
-    const match = content.match(pattern);
-    if (match) {
-      const parsed = new Date(match[0]);
-      if (!isNaN(parsed.getTime())) {
-        detectedDate = parsed.toISOString().split("T")[0];
-        break;
-      }
-    }
-  }
-  const deadline = detectedDate || new Date(Date.now() + daysOut * 86400000).toISOString().split("T")[0];
-
-  const cleanLines = content
-    .split("\n")
-    .map((l) => l.replace(/[*•\d.]/g, "").trim())
-    .filter((l) => l.length > 10);
-  const rawTitle = cleanLines[0] || `${type} Compliance Reminder`;
-  const title = rawTitle.length > 55 ? rawTitle.substring(0, 52) + "..." : rawTitle;
-
-  return {
-    id: `r-${msgId}`,
-    title,
-    description: content.replace(/\n+/g, " ").substring(0, 120) + "...",
-    type,
-    reminder_date: deadline,
-    notify_before: 3,
-    recurrence_rule: recurrence,
-    status: "pending",
-  };
-};
-
-// ================= STATIC DATA =================
-const QUICK_PROMPTS = [
-  { icon: <FileCheck className="w-4 h-4" />, label: "VAT Filing", prompt: "What are the steps for VAT filing in UAE for Q3 2024?" },
-  { icon: <Building className="w-4 h-4" />, label: "License Renewal", prompt: "What documents are needed for trade license renewal?" },
-  { icon: <Users className="w-4 h-4" />, label: "Employee Visa", prompt: "Process for new employee visa sponsorship in UAE?" },
-  { icon: <TrendingUp className="w-4 h-4" />, label: "ESR Compliance", prompt: "What are the Economic Substance Regulations requirements?" },
-  { icon: <Shield className="w-4 h-4" />, label: "AML Requirements", prompt: "What are AML requirements for SMEs in UAE?" },
-  { icon: <FileText className="w-4 h-4" />, label: "Corporate Tax", prompt: "How does UAE Corporate Tax apply to my business?" },
-];
-
-const WELCOME: ChatMessage = {
-  id: "welcome",
-  content: "Hello! I'm your UAE Compliance Assistant, powered by AI. I can help you navigate:\n\n• VAT filing and FTA regulations\n• Trade license renewals and DED procedures\n• Employment and visa compliance\n• ESR and AML requirements\n• Corporate tax guidance\n\nWhat would you like to know?",
-  isUser: false,
-  timestamp: new Date(),
-  confidence: 100,
-  sources: ["UAE Federal Tax Authority", "Department of Economic Development"],
-};
-
-// ================= PAGE =================
 const ComplianceAssistancePage = () => {
-  const { user } = useAuth();
-  const userId = user?.user?.user_id;
-
-  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME]);
-  const [input, setInput] = useState("");
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+    {
+      id: "1",
+      content:
+        "Welcome to your AI Compliance Assistant! I specialize in UAE business regulations, VAT compliance, license renewals, and government procedures. I'm here to provide accurate, up-to-date guidance tailored to your business needs.\n\nHow can I help you today?",
+      isUser: false,
+      timestamp: new Date(),
+      confidence: 100,
+      sources: [
+        "UAE Federal Tax Authority",
+        "Department of Economic Development",
+      ],
+    },
+  ]);
+  const [newMessage, setNewMessage] = useState("");
+  const [activeTab, setActiveTab] = useState<
+    "reminders" | "history" | "templates"
+  >("reminders");
   const [isLoading, setIsLoading] = useState(false);
-  const [sidebarTab, setSidebarTab] = useState<"chats" | "reminders">("chats");
-  const [history, setHistory] = useState<ChatHistoryItem[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const [searchKeyword, setSearchKeyword] = useState("");
-  const [isNewChat, setIsNewChat] = useState(true);
-  const [savedReminders, setSavedReminders] = useState<SavedReminder[]>([]);
-
   const chatEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+  const [reminders, setReminders] = useState<Reminder[]>([
+    {
+      id: "1",
+      title: "VAT Filing Deadline - Q3 2024",
+      description: "Quarterly VAT return submission to FTA",
+      deadline: "2024-10-28",
+      priority: "high",
+      category: "tax",
+      status: "pending",
+    },
+    {
+      id: "2",
+      title: "Trade License Renewal",
+      description: "Annual renewal with DED",
+      deadline: "2024-11-15",
+      priority: "high",
+      category: "licensing",
+      status: "pending",
+    },
+    {
+      id: "3",
+      title: "ESR Notification",
+      description: "Economic Substance Regulation submission",
+      deadline: "2024-12-31",
+      priority: "medium",
+      category: "reporting",
+      status: "pending",
+    },
+  ]);
+
+  const conversationHistory: ConversationHistory[] = [
+    {
+      id: "1",
+      title: "VAT Calculation for Services",
+      preview: "How to calculate VAT for consulting services in UAE?",
+      timestamp: new Date("2024-09-25"),
+      messageCount: 4,
+      category: "tax",
+      rating: 5,
+    },
+    {
+      id: "2",
+      title: "License Renewal Process",
+      preview: "Steps for Dubai trade license renewal requirements...",
+      timestamp: new Date("2024-09-20"),
+      messageCount: 6,
+      category: "licensing",
+      rating: 4,
+    },
+    {
+      id: "3",
+      title: "Employee Contract Clauses",
+      preview: "Mandatory requirements for UAE employment contracts",
+      timestamp: new Date("2024-09-15"),
+      messageCount: 5,
+      category: "hr",
+      rating: 5,
+    },
+  ];
+
+  const quickTemplates = [
+    {
+      title: "VAT Filing Query",
+      prompt: "What are the steps for VAT filing in UAE for Q3 2024?",
+      category: "tax",
+      description: "Complete filing process",
+    },
+    {
+      title: "License Renewal",
+      prompt: "What documents are needed for trade license renewal?",
+      category: "licensing",
+      description: "Required documents",
+    },
+    {
+      title: "Employee Visa",
+      prompt: "Process for new employee visa sponsorship?",
+      category: "hr",
+      description: "Visa requirements",
+    },
+  ];
+
+  const sampleResponses = [
+    "According to UAE Federal Tax Authority guidelines, VAT returns must be filed within 28 days after the tax period. For Q3 2024, deadline is October 28th.\n\n**Required:**\n• TRN Number\n• Financial records\n• Supporting invoices\n• Bank statements\n\n**Steps:**\n1. Log into FTA portal\n2. Access VAT return form\n3. Enter taxable supplies\n4. Review calculations\n5. Submit before deadline",
+    "Trade license renewal in Dubai requires several documents:\n\n**Documents:**\n• DED application form\n• Current license copy\n• Passport copies\n• Valid tenancy contract\n\n**Timeline:**\n• Preparation: 2-3 days\n• Processing: 5-7 days\n• Approval: 1-2 days",
+    "UAE VAT operates at 5% for most taxable supplies:\n\n**Standard Rate (5%):**\n• Goods and services\n• Restaurant meals\n• Professional services\n\n**Zero-Rated:**\n• Exports\n• International transport\n• Residential sales",
+  ];
+
+  const scrollToBottom = () => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   useEffect(() => {
-    const ta = textareaRef.current;
-    if (!ta) return;
-    ta.style.height = "auto";
-    ta.style.height = `${Math.min(ta.scrollHeight, 160)}px`;
-  }, [input]);
-  useEffect(() => { if (userId) fetchHistory(); }, [userId]);
+    scrollToBottom();
+  }, [chatMessages]);
 
+  const handleSendMessage = async (messageContent?: string) => {
+    const content = messageContent || newMessage;
+    if (!content.trim() || isLoading) return;
 
-  //////////////////////////////////////////
-  // Fetch User Chat History
-  ////////////////////////////////////////
-  const fetchHistory = async () => {
-    setHistoryLoading(true);
-    try {
-      const res = await axiosInstance.get(`/compliance_assistant_chat/user/history/${userId}`);
-      setHistory(res.data?.response || []);
-    } catch (e) { console.error("fetchHistory failed:", e); }
-    finally { setHistoryLoading(false); }
-  };
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      content: content,
+      isUser: true,
+      timestamp: new Date(),
+    };
 
-  ///////////////////////////////////////////
-  // Search In Chat History
-  ///////////////////////////////////////////
-  const handleSearch = async (kw: string) => {
-    setSearchKeyword(kw);
-    if (!kw.trim()) { fetchHistory(); return; }
-    try {
-      const res = await axiosInstance.get(
-        `/compliance_assistant_chat/search/${userId}?keyword=${encodeURIComponent(kw)}`
-      );
-      setHistory(res.data?.response || []);
-    } catch (e) { console.error("handleSearch failed:", e); }
-  };
-
-  /////////////////////////////////
-  // Delete A Single Chat
-  ////////////////////////////////
-  const handleDeleteHistory = async (chatId: string) => {
-    try {
-      await axiosInstance.delete(`/compliance_assistant_chat/delete/${chatId}/${userId}`);
-      setHistory((p) => p.filter((h) => h.uuid !== chatId));
-    } catch (e) { console.error("handleDeleteHistory failed:", e); toast.error("Failed to delete"); }
-  };
-
-  /////////////////////////////
-  // Clear All Chat History
-  ////////////////////////////
-  const handleClearHistory = async () => {
-    if (!history.length) return;
-    try {
-      await axiosInstance.delete(`/compliance_assistant_chat/clear/${userId}`);
-      setHistory([]);
-      toast.success("History cleared");
-    } catch (e) { console.error("handleClearHistory failed:", e); toast.error("Failed to clear"); }
-  };
-
-  const handleLoadChat = (item: ChatHistoryItem) => {
-    setMessages([
-      WELCOME,
-      { id: `${item.uuid}-q`, content: item.question, isUser: true, timestamp: new Date(item.timestamp) },
-      {
-        id: `${item.uuid}-a`, content: item.answer, isUser: false, timestamp: new Date(item.timestamp),
-        confidence: 95, sources: ["UAE FTA Guidelines"], reminderState: "idle"
-      },
-    ]);
-    setIsNewChat(false);
-  };
-
-  const handleNewChat = () => {
-    setMessages([WELCOME]);
-    setIsNewChat(true);
-    setInput("");
-  };
-
-
-  /////////////////////////////
-  // Ask Ai
-  //////////////////////////////
-  const handleSend = async (content?: string) => {
-    const text = content || input;
-    if (!text.trim() || isLoading) return;
-
-    setMessages((p) => [...p, { id: `u-${Date.now()}`, content: text, isUser: true, timestamp: new Date() }]);
-    setInput("");
+    setChatMessages((prev) => [...prev, userMessage]);
+    setNewMessage("");
     setIsLoading(true);
-    setIsNewChat(false);
 
-    try {
-      const res = await axiosInstance.post("/compliance_assistant_chat/ask-ai", { user_id: userId, question: text });
-      const data = res.data?.response;
-      const id = data?.uuid || `a-${Date.now()}`;
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      setMessages((p) => [...p, {
-        id,
-        content: data?.answer || "No response received.",
-        isUser: false,
-        timestamp: new Date(data?.timestamp || Date.now()),
-        confidence: 95,
-        sources: ["UAE FTA Guidelines", "DED Portal"],
-        reminderState: "idle",
-      }]);
-      fetchHistory();
-    } catch (e) {
-      console.error("handleSend failed:", e);
-      toast.error("Failed to get AI response. Please try again.");
-    } finally {
-      setIsLoading(false);
+    const randomResponse =
+      sampleResponses[Math.floor(Math.random() * sampleResponses.length)];
+    const aiResponse: ChatMessage = {
+      id: (Date.now() + 1).toString(),
+      content: randomResponse,
+      isUser: false,
+      timestamp: new Date(),
+      confidence: Math.floor(Math.random() * 15) + 85,
+      sources: ["UAE FTA Guidelines", "DED Portal"],
+    };
+
+    setChatMessages((prev) => [...prev, aiResponse]);
+    setIsLoading(false);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
-  };
-
-  // ── One-click reminder save ──
-  const handleSetReminder = async (msgId: string) => {
-    setMessages((p) =>
-      p.map((m) => m.id === msgId ? { ...m, reminderState: "saving" } : m)
+  const toggleReminder = (messageId: string, messageContent: string) => {
+    setChatMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === messageId ? { ...msg, hasReminder: !msg.hasReminder } : msg
+      )
     );
 
-    const msg = messages.find((m) => m.id === msgId);
-    if (!msg) return;
-
-    await new Promise((r) => setTimeout(r, 600)); // Simulate API call
-
-    const reminder = extractReminderData(msg.content, msgId);
-
-    setSavedReminders((p) => [reminder, ...p]);
-
-    setMessages((p) =>
-      p.map((m) => m.id === msgId ? { ...m, reminderState: "saved", savedReminder: reminder } : m)
+    // Check if reminder already exists for this message
+    const existingReminder = reminders.find(
+      (reminder) => reminder.messageId === messageId
     );
 
-    toast.success(`Reminder set — ${reminder.type} · ${new Date(reminder.reminder_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`, {
-      duration: 2500,
-      position: "bottom-right",
-    });
+    if (existingReminder) {
+      // Remove reminder if it exists
+      setReminders((prev) =>
+        prev.filter((reminder) => reminder.messageId !== messageId)
+      );
+    } else {
+      // Add new reminder
+      const newReminder: Reminder = {
+        id: `reminder-${Date.now()}`,
+        title: `Reminder: ${messageContent.split("\n")[0].substring(0, 30)}...`,
+        description: messageContent.substring(0, 100) + "...",
+        deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+          .toISOString()
+          .split("T")[0], // 7 days from now
+        priority: "medium",
+        category: "general",
+        status: "pending",
+        messageId: messageId,
+      };
+      setReminders((prev) => [...prev, newReminder]);
+    }
   };
 
-  const todayH = history.filter((h) => relativeDate(h.timestamp) === "Today");
-  const yesterdayH = history.filter((h) => relativeDate(h.timestamp) === "Yesterday");
-  const olderH = history.filter((h) => !["Today", "Yesterday"].includes(relativeDate(h.timestamp)));
-  const isEmpty = messages.length === 1;
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "high":
+        return "bg-red-500";
+      case "medium":
+        return "bg-amber-500";
+      case "low":
+        return "bg-emerald-500";
+      default:
+        return "bg-slate-500";
+    }
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case "tax":
+        return <FileCheck className="h-3 w-3" />;
+      case "licensing":
+        return <Building className="h-3 w-3" />;
+      case "hr":
+        return <Users className="h-3 w-3" />;
+      case "reporting":
+        return <TrendingUp className="h-3 w-3" />;
+      default:
+        return <FileText className="h-3 w-3" />;
+    }
+  };
+
+  const renderStars = (rating: number) => {
+    return [...Array(5)].map((_, i) => (
+      <Star
+        key={i}
+        className={`h-2 w-2 ${
+          i < rating ? "text-amber-400 fill-current" : "text-slate-300"
+        }`}
+      />
+    ));
+  };
 
   return (
     <DashboardLayout>
-      <div className="h-screen flex overflow-hidden bg-bg-base">
-
-        {/* ═══════════ SIDEBAR ═══════════ */}
-        <div className="w-72 flex flex-col bg-surface border-r border-border shrink-0">
-
-          {/* Header */}
-          <div className="p-4 border-b border-border">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center shrink-0">
-                <Bot className="w-4 h-4 text-on-brand" />
+      <div className="h-screen bg-slate-50 flex flex-col overflow-hidden">
+        {/* Compact Header */}
+        <header className="bg-white border-b border-slate-200">
+          <div className="px-6 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#1b2a49] rounded-lg flex items-center justify-center">
+                    <Bot className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-bold text-slate-900">
+                      Compliance Assistant
+                    </h1>
+                    <p className="text-sm text-slate-600 flex items-center gap-1">
+                      <Shield className="h-3 w-3 text-emerald-500" />
+                      AI-powered UAE regulations expert
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-bold text-text-heading">AI Compliance</p>
-                <p className="text-[10px] text-text-muted flex items-center gap-0.5">
-                  <Shield className="w-2.5 h-2.5 text-status-success" /> UAE Regulations Expert
-                </p>
+              <div className="flex items-center gap-3">
+                <Button
+                  className="bg-white py-2 border border-gray-300 text-gray-700 hover:bg-gray-50"
+                  startIcon={<Languages className="h-3 w-3" />}
+                >
+                  العربية
+                </Button>
+                <Button className="py-2">Upgrade</Button>
               </div>
             </div>
-            <button
-              onClick={handleNewChat}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-brand hover:bg-brand-hover text-on-brand rounded-lg text-sm font-semibold transition-all shadow-card hover:shadow-raised"
-            >
-              <Plus className="w-4 h-4" /> New Chat
-            </button>
           </div>
+        </header>
 
-          {/* Tabs */}
-          <div className="flex border-b border-border">
-            {(["chats", "reminders"] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setSidebarTab(tab)}
-                className={`flex-1 py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 border-b-2 transition-colors capitalize ${sidebarTab === tab
-                  ? "border-secondary text-secondary"
-                  : "border-transparent text-text-muted hover:text-text-primary"
-                  }`}
-              >
-                {tab === "chats"
-                  ? <><MessageSquare className="w-3.5 h-3.5" /> Chats</>
-                  : <>
-                    <Bell className="w-3.5 h-3.5" /> Reminders
-                    {savedReminders.length > 0 && (
-                      <span className="bg-status-warning text-on-brand text-[9px] font-bold px-1.5 py-0.5 rounded-full">
-                        {savedReminders.length}
-                      </span>
-                    )}
-                  </>
-                }
-              </button>
-            ))}
-          </div>
-
-          {/* Body */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar">
-
-            {sidebarTab === "chats" && (
-              <div className="p-3 space-y-1">
-                <div className="relative mb-3">
-                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted" />
-                  <input
-                    type="text"
-                    placeholder="Search chats..."
-                    value={searchKeyword}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    className="w-full pl-8 pr-3 py-2 text-xs bg-bg-base border border-border rounded-lg text-text-heading placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-border-focus"
-                  />
-                </div>
-
-                {historyLoading
-                  ? <div className="flex justify-center py-8"><LoadingSpinner size="w-5 h-5" /></div>
-                  : history.length === 0
-                    ? <div className="text-center py-10">
-                      <MessageSquare className="w-8 h-8 text-border-strong mx-auto mb-2" />
-                      <p className="text-xs text-text-muted">No conversations yet</p>
-                    </div>
-                    : <>
-                      {todayH.length > 0 && <>
-                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-2 py-1">Today</p>
-                        {todayH.map((h) => <HistoryItem key={h.uuid} item={h} onLoad={handleLoadChat} onDelete={handleDeleteHistory} />)}
-                      </>}
-                      {yesterdayH.length > 0 && <>
-                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-2 py-1 mt-2">Yesterday</p>
-                        {yesterdayH.map((h) => <HistoryItem key={h.uuid} item={h} onLoad={handleLoadChat} onDelete={handleDeleteHistory} />)}
-                      </>}
-                      {olderH.length > 0 && <>
-                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-2 py-1 mt-2">Older</p>
-                        {olderH.map((h) => <HistoryItem key={h.uuid} item={h} onLoad={handleLoadChat} onDelete={handleDeleteHistory} />)}
-                      </>}
-                    </>
-                }
-              </div>
-            )}
-
-            {sidebarTab === "reminders" && (
-              <div className="p-3 space-y-2">
-                <div className="flex items-center gap-2 px-1 mb-2">
-                  <Sparkles className="w-3.5 h-3.5 text-secondary" />
-                  <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Saved from chat</p>
-                </div>
-
-                {savedReminders.length === 0
-                  ? <div className="text-center py-10">
-                    <Bell className="w-8 h-8 text-border-strong mx-auto mb-2" />
-                    <p className="text-xs text-text-muted">No reminders yet</p>
-                    <p className="text-[10px] text-text-muted mt-0.5">Click &quot;Set Reminder&quot; on any AI message</p>
+        {/* Main Content */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Compact Sidebar */}
+          <div
+            className={`bg-white border-r border-slate-200 flex flex-col transition-all duration-300 w-80`}
+          >
+            {
+              <>
+                {/* Sidebar Tabs */}
+                <div className="p-3 border-b border-slate-200">
+                  <div className="flex p-1 bg-slate-100 rounded-lg">
+                    <button
+                      onClick={() => setActiveTab("reminders")}
+                      className={`flex-1 py-2 text-xs font-medium flex items-center justify-center gap-1 rounded-md ${
+                        activeTab === "reminders"
+                          ? "bg-white text-slate-900 shadow-sm"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      <AlertCircle className="h-3 w-3" />
+                      Reminders
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("history")}
+                      className={`flex-1 py-2 text-xs font-medium flex items-center justify-center gap-1 rounded-md ${
+                        activeTab === "history"
+                          ? "bg-white text-slate-900 shadow-sm"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      <Clock className="h-3 w-3" />
+                      History
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("templates")}
+                      className={`flex-1 py-2 text-xs font-medium flex items-center justify-center gap-1 rounded-md ${
+                        activeTab === "templates"
+                          ? "bg-white text-slate-900 shadow-sm"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      <FileText className="h-3 w-3" />
+                      Templates
+                    </button>
                   </div>
-                  : savedReminders.map((r) => (
-                    <div key={r.id} className="p-3 bg-bg-base rounded-xl border border-border">
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <p className="text-xs font-semibold text-text-heading leading-snug flex-1">{r.title}</p>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${typeColor[r.type]}`}>
-                          {r.type}
+                </div>
+
+                {/* Sidebar Content */}
+                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                  {activeTab === "reminders" && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-semibold text-slate-900">
+                          Deadlines
+                        </h3>
+                        <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
+                          {
+                            reminders.filter((r) => r.status === "pending")
+                              .length
+                          }{" "}
+                          pending
                         </span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1 text-[10px] text-text-muted">
-                          <Calendar className="w-3 h-3" />
-                          {new Date(r.reminder_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      {reminders.map((reminder) => (
+                        <div
+                          key={reminder.id}
+                          className="p-3 bg-slate-50 rounded-lg border border-slate-200"
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className="p-1.5 bg-white rounded">
+                                {getCategoryIcon(reminder.category)}
+                              </div>
+                              <div>
+                                <h4 className="text-xs font-semibold text-slate-900">
+                                  {reminder.title}
+                                </h4>
+                                <p className="text-xs text-slate-600 mt-0.5">
+                                  {reminder.description}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-[#1b2a49] flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {new Date(reminder.deadline).toLocaleDateString()}
+                            </span>
+                            <div
+                              className={`w-2 h-2 rounded-full ${getPriorityColor(
+                                reminder.priority
+                              )}`}
+                            />
+                          </div>
                         </div>
-                        {r.recurrence_rule !== "none" && (
-                          <span className="text-[10px] text-text-muted capitalize">{r.recurrence_rule}</span>
+                      ))}
+                    </div>
+                  )}
+
+                  {activeTab === "history" && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-semibold text-slate-900">
+                          History
+                        </h3>
+                        <div className="relative">
+                          <Search className="h-3 w-3 absolute left-2 top-1.5 text-slate-400" />
+                          <input
+                            type="text"
+                            placeholder="Search..."
+                            className="pl-7 pr-2 py-1.5 text-xs border border-slate-200 rounded-lg w-32 focus:outline-none focus:border-[#1b2a49]"
+                          />
+                        </div>
+                      </div>
+                      {conversationHistory.map((conversation) => (
+                        <div
+                          key={conversation.id}
+                          className="p-3 bg-slate-50 rounded-lg border border-slate-200"
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-start gap-2 flex-1">
+                              <div className="p-1.5 bg-white rounded">
+                                {getCategoryIcon(conversation.category)}
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="text-xs font-semibold text-slate-900 mb-1">
+                                  {conversation.title}
+                                </h4>
+                                <p className="text-xs text-slate-600 line-clamp-2">
+                                  {conversation.preview}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-slate-500">
+                              {conversation.timestamp.toLocaleDateString()}
+                            </span>
+                            {conversation.rating && (
+                              <div className="flex items-center gap-0.5">
+                                {renderStars(conversation.rating)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {activeTab === "templates" && (
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-semibold text-slate-900">
+                        Templates
+                      </h3>
+                      {quickTemplates.map((template, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleSendMessage(template.prompt)}
+                          className="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 hover:border-blue-300 text-left"
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="p-1.5 bg-white rounded">
+                              {getCategoryIcon(template.category)}
+                            </div>
+                            <div>
+                              <h4 className="text-xs font-semibold text-slate-900">
+                                {template.title}
+                              </h4>
+                              <p className="text-xs text-slate-600">
+                                {template.description}
+                              </p>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Quick Actions */}
+                <div className="p-3 border-t border-slate-200">
+                  <div className="grid grid-cols-4 gap-2">
+                    <button className="flex flex-col items-center p-2 bg-slate-100 rounded-lg hover:bg-slate-200 text-xs">
+                      <FileText className="h-3 w-3 text-[#1b2a49] mb-1" />
+                      <span>Docs</span>
+                    </button>
+                    <button className="flex flex-col items-center p-2 bg-slate-100 rounded-lg hover:bg-slate-200 text-xs">
+                      <Download className="h-3 w-3 text-emerald-600 mb-1" />
+                      <span>Export</span>
+                    </button>
+                    <button className="flex flex-col items-center p-2 bg-slate-100 rounded-lg hover:bg-slate-200 text-xs">
+                      <Calendar className="h-3 w-3 text-amber-600 mb-1" />
+                      <span>Calendar</span>
+                    </button>
+                    <button className="flex flex-col items-center p-2 bg-slate-100 rounded-lg hover:bg-slate-200 text-xs">
+                      <HelpCircle className="h-3 w-3 text-purple-600 mb-1" />
+                      <span>Help</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            }
+          </div>
+
+          {/* Main Chat Area */}
+          <div className="flex-1 flex flex-col bg-white">
+            {/* Chat Header */}
+            <div className="border-b border-slate-200 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-[#1f4c78] to-[#1b2a49] rounded-lg flex items-center justify-center">
+                    <Sparkles className="h-4 w-4 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                      AI Compliance Assistant
+                      <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded-full">
+                        Online
+                      </span>
+                    </h3>
+                    <p className="text-xs text-slate-600">
+                      UAE business regulations • Fast responses
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button className="p-1.5 hover:bg-slate-100 rounded">
+                    <Settings className="h-4 w-4 text-slate-500" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Chat Messages - Wider Container */}
+            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+              <div className="max-w-5xl mx-auto space-y-4">
+                {chatMessages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`flex ${
+                      message.isUser ? "justify-end" : "justify-start"
+                    }`}
+                  >
+                    <div
+                      className={`max-w-3xl ${
+                        message.isUser ? "ml-16" : "mr-16"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        {!message.isUser && (
+                          <div className="w-6 h-6 bg-[#1b2a49] rounded flex items-center justify-center">
+                            <Bot className="h-3 w-3 text-white" />
+                          </div>
+                        )}
+                        <span className="text-xs font-medium text-slate-700">
+                          {message.isUser ? "You" : "Assistant"}
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          {message.timestamp.toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                        {!message.isUser && message.confidence && (
+                          <span className="text-xs text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
+                            {message.confidence}%
+                          </span>
+                        )}
+                      </div>
+                      <div
+                        className={`rounded-xl px-4 py-3 ${
+                          message.isUser
+                            ? "bg-[#1b2a49] text-white"
+                            : "bg-slate-100 text-slate-900"
+                        }`}
+                      >
+                        <div className="text-sm leading-6 whitespace-pre-wrap">
+                          {message.content.split("\n").map((line, index) => {
+                            if (line.startsWith("**") && line.endsWith("**")) {
+                              return (
+                                <div
+                                  key={index}
+                                  className={`font-semibold mt-2 mb-1 ${
+                                    message.isUser
+                                      ? "text-blue-100"
+                                      : "text-slate-800"
+                                  }`}
+                                >
+                                  {line.slice(2, -2)}
+                                </div>
+                              );
+                            } else if (line.startsWith("• ")) {
+                              return (
+                                <div
+                                  key={index}
+                                  className={`ml-3 ${
+                                    message.isUser
+                                      ? "text-blue-50"
+                                      : "text-slate-700"
+                                  }`}
+                                >
+                                  {line}
+                                </div>
+                              );
+                            } else if (line.match(/^\d+\./)) {
+                              return (
+                                <div
+                                  key={index}
+                                  className={`ml-3 font-medium ${
+                                    message.isUser
+                                      ? "text-blue-50"
+                                      : "text-slate-700"
+                                  }`}
+                                >
+                                  {line}
+                                </div>
+                              );
+                            }
+                            return (
+                              line && (
+                                <div key={index} className="mb-1">
+                                  {line}
+                                </div>
+                              )
+                            );
+                          })}
+                        </div>
+                        {!message.isUser && message.sources && (
+                          <div className="mt-2 pt-2 border-t border-slate-200/40">
+                            <div className="flex flex-wrap gap-1">
+                              {message.sources.map((source, idx) => (
+                                <span
+                                  key={idx}
+                                  className="text-xs bg-white/80 text-slate-600 px-2 py-0.5 rounded"
+                                >
+                                  {source}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div
+                        className={`flex items-center gap-2 mt-1 text-xs ${
+                          message.isUser ? "justify-end" : "justify-start"
+                        }`}
+                      >
+                        {!message.isUser && (
+                          <>
+                            <button className="text-slate-500 hover:text-slate-700">
+                              Copy
+                            </button>
+                            <button className="text-slate-500 hover:text-slate-700">
+                              Save
+                            </button>
+                            <button
+                              onClick={() =>
+                                toggleReminder(message.id, message.content)
+                              }
+                              className={`flex items-center gap-1 ${
+                                message.hasReminder
+                                  ? "text-amber-600 hover:text-amber-700"
+                                  : "text-slate-500 hover:text-slate-700"
+                              }`}
+                            >
+                              {message.hasReminder ? (
+                                <>
+                                  <Bell className="h-3 w-3" />
+                                  Reminder Set
+                                </>
+                              ) : (
+                                <>
+                                  <BellOff className="h-3 w-3" />
+                                  Set Reminder
+                                </>
+                              )}
+                            </button>
+                            <button className="text-slate-500 hover:text-slate-700">
+                              Helpful
+                            </button>
+                          </>
                         )}
                       </div>
                     </div>
-                  ))
-                }
-              </div>
-            )}
-          </div>
-
-          {sidebarTab === "chats" && history.length > 0 && (
-            <div className="p-3 border-t border-border">
-              <button
-                onClick={handleClearHistory}
-                className="w-full flex items-center justify-center gap-2 py-2 text-xs text-status-error hover:bg-status-error-bg rounded-lg transition-colors"
-              >
-                <Trash2 className="w-3.5 h-3.5" /> Clear all history
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* ═══════════ CHAT AREA ═══════════ */}
-        <div className="flex-1 flex flex-col min-w-0">
-
-          {/* Topbar */}
-          <div className="h-14 flex items-center justify-between px-6 bg-surface border-b border-border shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-7 h-7 bg-brand rounded-lg flex items-center justify-center">
-                <Sparkles className="w-3.5 h-3.5 text-on-brand" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-text-heading">
-                  {isNewChat ? "New Conversation" : "Compliance Chat"}
-                </p>
-                <p className="text-[10px] text-status-success flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-status-success inline-block animate-pulse" />
-                  AI Online
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] text-text-muted bg-bg-base border border-border px-2.5 py-1 rounded-full font-medium">
-                🇦🇪 UAE Regulations
-              </span>
-              <button className="text-[11px] font-semibold text-secondary flex items-center gap-1 px-3 py-1.5 border border-border rounded-lg hover:bg-bg-base transition-colors">
-                <Languages className="w-3.5 h-3.5" /> العربية
-              </button>
-            </div>
-          </div>
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar">
-            {isEmpty ? (
-              <div className="max-w-3xl mx-auto px-6 pt-12 pb-4">
-                <div className="text-center mb-10">
-                  <div className="w-16 h-16 bg-brand rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-raised">
-                    <Bot className="w-8 h-8 text-on-brand" />
                   </div>
-                  <h2 className="text-2xl font-bold text-text-heading mb-2">UAE Compliance Assistant</h2>
-                  <p className="text-text-secondary text-sm max-w-md mx-auto leading-relaxed">
-                    Ask anything about UAE regulations. Click{" "}
-                    <span className="inline-flex items-center gap-1 text-secondary font-semibold">
-                      <BellPlus className="w-3.5 h-3.5" /> Set Reminder
-                    </span>{" "}
-                    on any response to save important deadlines instantly.
-                  </p>
-                </div>
-
-                <div className="bg-surface border border-border rounded-2xl p-5 mb-8 shadow-card">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-6 h-6 bg-brand rounded-md flex items-center justify-center">
-                      <Bot className="w-3.5 h-3.5 text-on-brand" />
-                    </div>
-                    <span className="text-xs font-semibold text-text-heading">Assistant</span>
-                  </div>
-                  <div className="text-sm text-text-primary leading-relaxed">
-                    {renderContent(WELCOME.content, false)}
-                  </div>
-                </div>
-
-                <p className="text-xs font-semibold text-text-muted uppercase tracking-widest mb-3">Quick Start</p>
-                <div className="grid grid-cols-2 gap-3">
-                  {QUICK_PROMPTS.map((p, i) => (
-                    <button
-                      key={i}
-                      onClick={() => handleSend(p.prompt)}
-                      className="flex items-center gap-3 p-4 bg-surface border border-border rounded-xl hover:border-secondary hover:bg-brand-light text-left transition-all group shadow-card hover:shadow-raised"
-                    >
-                      <div className="w-8 h-8 bg-brand-light rounded-lg flex items-center justify-center text-secondary shrink-0 group-hover:bg-secondary group-hover:text-on-secondary transition-colors">
-                        {p.icon}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-text-heading">{p.label}</p>
-                        <p className="text-[10px] text-text-muted mt-0.5 truncate">{p.prompt}</p>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-text-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="px-6 py-6 space-y-6">
-                {messages.map((message) => (
-                  <MessageItem
-                    key={message.id}
-                    message={message}
-                    onSetReminder={handleSetReminder}
-                  />
                 ))}
 
-                {/* Typing */}
                 {isLoading && (
-                  <div className="flex gap-3">
-                    <div className="w-7 h-7 bg-brand rounded-lg flex items-center justify-center shrink-0 shadow-card">
-                      <Bot className="w-3.5 h-3.5 text-on-brand" />
-                    </div>
-                    <div className="bg-surface border border-border rounded-2xl rounded-tl-sm px-4 py-3 shadow-card">
-                      <div className="flex items-center gap-1.5">
-                        {[0, 150, 300].map((delay, i) => (
-                          <span key={i} className="w-2 h-2 bg-brand rounded-full animate-bounce" style={{ animationDelay: `${delay}ms` }} />
-                        ))}
+                  <div className="flex justify-start">
+                    <div className="max-w-3xl mr-16">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-6 h-6 bg-[#1b2a49] rounded flex items-center justify-center">
+                          <Bot className="h-3 w-3 text-white" />
+                        </div>
+                        <span className="text-xs font-medium text-slate-700">
+                          Assistant
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          typing...
+                        </span>
+                      </div>
+                      <div className="bg-slate-100 rounded-xl px-4 py-3">
+                        <div className="flex items-center space-x-1">
+                          <div className="w-2 h-2 bg-[#1b2a49] rounded-full animate-bounce"></div>
+                          <div
+                            className="w-2 h-2 bg-[#1b2a49] rounded-full animate-bounce"
+                            style={{ animationDelay: "0.2s" }}
+                          ></div>
+                          <div
+                            className="w-2 h-2 bg-[#1b2a49] rounded-full animate-bounce"
+                            style={{ animationDelay: "0.4s" }}
+                          ></div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 )}
                 <div ref={chatEndRef} />
               </div>
-            )}
-          </div>
+            </div>
 
-          {/* Input */}
-          <div className="px-6 py-4 bg-surface border-t border-border shrink-0">
-            <div>
-              <div className="flex gap-3 items-center bg-bg-base border border-border rounded-xl px-4 py-3 focus-within:border-secondary focus-within:ring-1 focus-within:ring-secondary transition-all shadow-card">
-                <textarea
-                  ref={textareaRef}
-                  rows={1}
-                  placeholder="Ask about VAT, licenses, compliance..."
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className="flex-1 resize-none bg-transparent text-sm text-text-heading placeholder:text-text-muted focus:outline-none leading-relaxed max-h-40"
-                />
-                <button
-                  onClick={() => handleSend()}
-                  disabled={isLoading || !input.trim()}
-                  className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all ${input.trim() && !isLoading
-                    ? "bg-brand hover:bg-brand-hover text-on-brand shadow-card hover:shadow-raised"
-                    : "bg-border text-text-muted cursor-not-allowed"
-                    }`}
-                >
-                  {isLoading
-                    ? <LoadingSpinner size="w-4 h-4" color="border-text-muted" />
-                    : <Send className="w-3.5 h-3.5" />}
-                </button>
+            {/* Chat Input */}
+            <div className="border-t border-slate-200 p-4">
+              <div className="max-w-5xl mx-auto">
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <div className="relative bg-white border border-slate-200 rounded-lg focus-within:[#1b2a49]">
+                      <textarea
+                        placeholder="Ask about UAE compliance, VAT, licenses..."
+                        className="w-full border-0 rounded-lg px-3 py-2 pr-12 focus:outline-none resize-none text-sm"
+                        rows={2}
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        onKeyDown={handleKeyPress}
+                      />
+                      <button
+                        onClick={() => handleSendMessage()}
+                        disabled={isLoading || !newMessage.trim()}
+                        className={`absolute right-2 bottom-2 p-1.5 rounded ${
+                          isLoading || !newMessage.trim()
+                            ? "text-slate-400"
+                            : "bg-[#1b2a49] text-white hover:bg-[#1b2a49]"
+                        }`}
+                      >
+                        <Send className="h-3 w-3" />
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between mt-2 text-xs text-slate-500">
+                      <span>Press Enter to send</span>
+                      <span>Shift+Enter for new line</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <p className="text-center text-[10px] text-text-muted mt-2">
-                Enter to send · Shift+Enter for new line · Click &quot;Set Reminder&quot; on any response to save deadlines
-              </p>
             </div>
           </div>
         </div>
-      </div>
 
-      <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar       { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--color-border-strong); border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
-        .line-clamp-1 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
-      `}</style>
+        <style jsx global>{`
+          .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+          }
+
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+          }
+
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+          }
+
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+          }
+
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+          }
+        `}</style>
+      </div>
     </DashboardLayout>
   );
 };

@@ -5,8 +5,6 @@ import React, { useState } from "react";
 import { Mail, MessageSquare, Bell } from "lucide-react";
 import SectionCard from "@/components/section-card/SectionCard";
 import ToggleSwitch from "@/components/ui/ToggleSwitch";
-import NotificationPreferences from "@/components/notification-preferences/NotificationPreferences";
-import ReminderSettings from "@/components/reminders-settings/ReminderSettings";
 
 const NotificationsTab: React.FC = () => {
   const [emailNotifications, setEmailNotifications] = useState(true);
@@ -14,9 +12,7 @@ const NotificationsTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <NotificationPreferences />
-      <ReminderSettings />
-      {/* <SectionCard title="Email Notifications" icon={Mail}>
+      <SectionCard title="Email Notifications" icon={Mail}>
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
@@ -89,9 +85,9 @@ const NotificationsTab: React.FC = () => {
             </div>
           )}
         </div>
-      </SectionCard> */}
+      </SectionCard>
 
-      {/* <SectionCard title="Reminder Preferences" icon={Bell}>
+      <SectionCard title="Reminder Preferences" icon={Bell}>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-[#344767] mb-2">
@@ -114,7 +110,7 @@ const NotificationsTab: React.FC = () => {
             />
           </div>
         </div>
-      </SectionCard> */}
+      </SectionCard>
     </div>
   );
 };

@@ -15,11 +15,11 @@ const Card: React.FC<CardProps> = ({
   hoverEffect = false,
 }) => {
   const baseClasses =
-    "bg-surface rounded-xl p-6 shadow-card border border-border transition-all duration-300";
+    "bg-white rounded-xl p-6 shadow-sm border border-[#E1E8F5] transition-all duration-300";
 
   const mergedClasses = twMerge(
     baseClasses,
-    hoverEffect ? "hover:shadow-raised hover:-translate-y-[2px]" : "",
+    hoverEffect ? "hover:shadow-md hover:-translate-y-[2px]" : "",
     className
   );
 

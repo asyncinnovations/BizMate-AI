@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   Brain,
   CheckCircle,
@@ -6,65 +6,11 @@ import {
   Zap,
   Shield,
   Clock,
-  Eye,
-  AlertTriangle,
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
-import axiosInstance from "@/utils/axiosInstance";
-import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
-
-// TypeScript interface
-interface Invoice {
-  uuid: string;
-  invoice_number: string;
-  customer_name: string;
-  status: "paid" | "unpaid" | "draft" | "saved";
-  total: number;
-  invoice_date: string;
-}
 
 const AiInsights = () => {
-  const { user, loading } = useAuth();
-  const router = useRouter();
-
-  /////////////////////////////////////
-  // Recent invoices state
-  /////////////////////////////////////
-  const [recentInvoices, setRecentInvoices] = useState<Invoice[]>([]);
-
-  /////////////////////////////////////
-  // Fetch user invoices — show only 2 most recent
-  // API returns response.data as a plain array (same as InvoiceListPage)
-  /////////////////////////////////////
-  const fetchRecentInvoices = async () => {
-    try {
-      const response = await axiosInstance.get(
-        `/invoices/user/${user?.user.user_id}`,
-      );
-      if (response.status === 200) {
-        const data = response.data;
-        const invoices: Invoice[] = Array.isArray(data) ? data : [];
-        // Sort by invoice_date descending, take first 2
-        const sorted = [...invoices].sort(
-          (a, b) =>
-            new Date(b.invoice_date).getTime() -
-            new Date(a.invoice_date).getTime(),
-        );
-        setRecentInvoices(sorted.slice(0, 2));
-      }
-    } catch (error) {
-      console.log("Error fetching recent invoices for AI Insights", error);
-    }
-  };
-
-  useEffect(() => {
-    if (!loading && user?.user.user_id) {
-      fetchRecentInvoices();
-    }
-  }, [loading, user?.user.user_id]);
-
   // AI Insights data
   const aiInsights = [
     {
@@ -99,79 +45,39 @@ const AiInsights = () => {
   const getInsightIcon = (type: string) => {
     switch (type) {
       case "compliance":
-        return <Shield className="w-4 h-4 text-status-warning" />;
+        return <Shield className="w-4 h-4 text-amber-600" />;
       case "opportunity":
-        return <Lightbulb className="w-4 h-4 text-status-success" />;
+        return <Lightbulb className="w-4 h-4 text-green-600" />;
       case "efficiency":
-        return <Zap className="w-4 h-4 text-status-info" />;
+        return <Zap className="w-4 h-4 text-blue-600" />;
       default:
-        return <Brain className="w-4 h-4 text-secondary" />;
+        return <Brain className="w-4 h-4 text-purple-600" />;
     }
   };
 
-  const getPriorityStyle = (priority: string) => {
+  const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "high":
-        return "bg-status-error-bg border-status-error-border";
+        return "bg-red-50 border-red-200";
       case "medium":
-        return "bg-status-warning-bg border-status-warning-border";
+        return "bg-amber-50 border-amber-200";
       case "low":
-        return "bg-status-info-bg border-status-info-border";
+        return "bg-blue-50 border-blue-200";
       default:
-        return "bg-bg-base border-border";
-    }
-  };
-
-  const getStatusIcon = (status: Invoice["status"]) => {
-    switch (status) {
-      case "paid":
-        return (
-          <div className="bg-status-success-bg rounded-full p-1.5">
-            <CheckCircle className="w-4 h-4 text-status-success" />
-          </div>
-        );
-      case "unpaid":
-        return (
-          <div className="bg-status-warning-bg rounded-full p-1.5">
-            <Clock className="w-4 h-4 text-status-warning" />
-          </div>
-        );
-      default:
-        return (
-          <div className="bg-bg-base rounded-full p-1.5">
-            <AlertTriangle className="w-4 h-4 text-text-muted" />
-          </div>
-        );
-    }
-  };
-
-  const getStatusLabel = (status: Invoice["status"]) => {
-    switch (status) {
-      case "paid":
-        return <p className="text-xs text-status-success font-medium">Paid</p>;
-      case "unpaid":
-        return (
-          <p className="text-xs text-status-warning font-medium">Pending</p>
-        );
-      default:
-        return (
-          <p className="text-xs text-text-muted font-medium capitalize">
-            {status}
-          </p>
-        );
+        return "bg-gray-50 border-gray-200";
     }
   };
 
   return (
     <div className="lg:col-span-2">
-      <Card className="h-full">
+      <Card className="h-full" hoverEffect>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-text-heading flex items-center">
-            <Brain className="w-5 h-5 mr-2 text-secondary" />
+          <h2 className="text-lg font-semibold text-gray-800 flex items-center">
+            <Brain className="w-5 h-5 mr-2 text-purple-600" />
             AI Business Insights
           </h2>
           <div className="flex items-center space-x-2">
-            <span className="px-2 py-1 bg-status-warning text-on-brand rounded-full text-xs font-medium">
+            <span className="px-2 py-1 bg-[#F6A821] text-white rounded-full text-xs font-medium">
               Live Analysis
             </span>
           </div>
@@ -182,29 +88,31 @@ const AiInsights = () => {
           {aiInsights.map((insight) => (
             <div
               key={insight.id}
-              className={`p-4 rounded-lg border ${getPriorityStyle(insight.priority)}`}
+              className={`p-4 rounded-lg border ${getPriorityColor(
+                insight.priority
+              )}`}
             >
               <div className="flex items-start space-x-3">
-                <div className="bg-surface rounded-full p-1.5 mt-0.5">
+                <div className="bg-white rounded-full p-1.5 mt-0.5">
                   {getInsightIcon(insight.type)}
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
-                    <h3 className="font-medium text-text-heading">
+                    <h3 className="font-medium text-gray-800">
                       {insight.title}
                     </h3>
-                    <span className="px-2 py-1 bg-status-info-bg text-status-info rounded-full text-xs font-medium">
+                    <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-medium">
                       {insight.confidence}% confidence
                     </span>
                   </div>
-                  <p className="text-sm text-text-secondary mb-3">
+                  <p className="text-sm text-gray-600 mb-3">
                     {insight.message}
                   </p>
                   <div className="flex space-x-2">
                     <Button className="rounded text-sm px-3 py-1">
                       View Details
                     </Button>
-                    <Button className="rounded bg-transparent text-sm px-3 py-1 border border-secondary text-secondary hover:bg-secondary hover:text-on-brand">
+                    <Button className="rounded bg-transparent text-sm px-3 py-1 border border-[#2E69A4] text-[#2E69A4] hover:bg-[#2E69A4] hover:text-white">
                       Learn More
                     </Button>
                   </div>
@@ -217,59 +125,43 @@ const AiInsights = () => {
         {/* Recent Invoices */}
         <div className="mt-6">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-medium text-text-heading">Recent Invoices</h3>
-            <button
-              onClick={() => router.push("/dashboard/invoicing")}
-              className="text-secondary text-sm font-medium hover:underline"
-            >
+            <h3 className="font-medium text-gray-800">Recent Invoices</h3>
+            <button className="text-[#2E69A4] text-sm font-medium hover:underline">
               View All
             </button>
           </div>
-
           <div className="space-y-2">
-            {recentInvoices.length > 0 ? (
-              recentInvoices.map((invoice) => (
-                <div
-                  key={invoice.uuid}
-                  className="flex items-center justify-between p-3 bg-bg-base rounded-lg border border-border hover:border-border-strong hover:shadow-card transition-all duration-200"
-                >
-                  <div className="flex items-center space-x-3">
-                    {getStatusIcon(invoice.status)}
-                    <div>
-                      <p className="font-medium text-text-heading text-sm">
-                        {invoice.invoice_number}
-                      </p>
-                      <p className="text-xs text-text-muted">
-                        {invoice.customer_name}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <p className="font-medium text-text-heading text-sm">
-                        AED {Number(invoice.total).toLocaleString()}
-                      </p>
-                      {getStatusLabel(invoice.status)}
-                    </div>
-                    <button
-                      onClick={() =>
-                        router.push(
-                          `/dashboard/invoicing/preview/${invoice.uuid}`,
-                        )
-                      }
-                      className="p-1.5 text-text-muted hover:text-secondary hover:bg-brand-light rounded-lg transition-all duration-200"
-                      title="View invoice"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
-                  </div>
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="bg-green-100 rounded-full p-1.5">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-6 text-text-muted text-sm">
-                No invoices yet
+                <div>
+                  <p className="font-medium text-gray-800">INV-001</p>
+                  <p className="text-sm text-gray-600">Al Manara Trading LLC</p>
+                </div>
               </div>
-            )}
+              <div className="text-right">
+                <p className="font-medium text-gray-800">AED 2,500</p>
+                <p className="text-xs text-green-600">Paid</p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="bg-yellow-100 rounded-full p-1.5">
+                  <Clock className="w-4 h-4 text-yellow-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-800">INV-002</p>
+                  <p className="text-sm text-gray-600">Emirates Solutions</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="font-medium text-gray-800">AED 3,200</p>
+                <p className="text-xs text-yellow-600">Pending</p>
+              </div>
+            </div>
           </div>
         </div>
       </Card>

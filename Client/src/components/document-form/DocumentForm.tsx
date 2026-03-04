@@ -27,7 +27,6 @@ import Card from "@/components/ui/Card";
 import axiosInstance from "@/utils/axiosInstance";
 import { useAuth } from "@/context/AuthContext";
 import Button from "../ui/Button";
-import InputField from "@/components/ui/InputField";
 
 interface FieldConfig {
   id: string;
@@ -232,7 +231,7 @@ export default function DocumentForm() {
   const fetchPrebuiltFields = async () => {
     try {
       const response = await axiosInstance.get(
-        `/template_field/template/${template_id}`,
+        `/template_field/template/${template_id}`
       );
       if (response.status === 200) {
         const fields = (response.data.response || []).map((f: FieldConfig) => ({
@@ -364,8 +363,8 @@ export default function DocumentForm() {
 
     setFields((prev) =>
       prev.map((f) =>
-        f.unique_id === editingField.unique_id ? { ...f, ...updatedData } : f,
-      ),
+        f.unique_id === editingField.unique_id ? { ...f, ...updatedData } : f
+      )
     );
 
     toast.success("Field Updated!");
@@ -414,7 +413,7 @@ export default function DocumentForm() {
   const fetchTemplate = async () => {
     try {
       const response = await axiosInstance.get(
-        `/templates/single/${template_id}`,
+        `/templates/single/${template_id}`
       );
       if (response.status === 200) {
         console.log(response.data);
@@ -440,12 +439,12 @@ export default function DocumentForm() {
 
       // Fields to delete (present in original but not in current)
       const fieldsToDelete = originalFields.filter(
-        (field) => !currentFieldIds.includes(field.unique_id),
+        (field) => !currentFieldIds.includes(field.unique_id)
       );
 
       // Fields to add (present in current but not in original)
       const fieldsToAdd = fields.filter(
-        (field) => !originalFieldIds.includes(field.unique_id),
+        (field) => !originalFieldIds.includes(field.unique_id)
       );
 
       // Fields to update (present in both but potentially modified)
@@ -453,7 +452,7 @@ export default function DocumentForm() {
         if (!originalFieldIds.includes(field.unique_id)) return false;
 
         const originalField = originalFields.find(
-          (f) => f.unique_id === field.unique_id,
+          (f) => f.unique_id === field.unique_id
         );
         return (
           originalField &&
@@ -489,7 +488,7 @@ export default function DocumentForm() {
 
         await axiosInstance.post(
           `/template_field/bulk/${template_id}`,
-          fieldsForBulkCreate,
+          fieldsForBulkCreate
         );
         console.log(`Added ${fieldsToAdd.length} new fields`);
       }
@@ -508,7 +507,7 @@ export default function DocumentForm() {
 
           await axiosInstance.patch(
             `/template_field/update/${field.uuid}`,
-            updatedData,
+            updatedData
           );
           console.log(`Updated field: ${field.field_name}`);
         }
@@ -548,7 +547,7 @@ export default function DocumentForm() {
         // Bulk insert AI fields to template_field table
         await axiosInstance.post(
           `/template_field/bulk/${newId}`,
-          fieldsForBulk,
+          fieldsForBulk
         );
 
         router.push(`/dashboard/documents/new/${newId}`);
@@ -584,7 +583,7 @@ export default function DocumentForm() {
   const handleInputChange = (
     section: "header" | "main" | "footer",
     field: string,
-    value: string,
+    value: string
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -697,16 +696,16 @@ export default function DocumentForm() {
     if (result?.success) {
       const previewPath = isCustomTemplate
         ? `/dashboard/documents/preview/custom-template?data=${encodeURIComponent(
-            JSON.stringify(formData),
+            JSON.stringify(formData)
           )}`
         : `/dashboard/documents/preview/${templateName}?data=${encodeURIComponent(
-            JSON.stringify(formData),
+            JSON.stringify(formData)
           )}`;
       setTimeout(
         () => {
           router.push(previewPath);
         },
-        isCustomTemplate ? 2000 : 0,
+        isCustomTemplate ? 2000 : 0
       );
     } else {
       toast.error("Template save Failed. Preview not generated.");
@@ -753,98 +752,30 @@ export default function DocumentForm() {
     return isCustomTemplate ? templateDescription : templateDescription;
   };
 
-  // ─── Shared field renderer ─────────────────────────────────────────────────
-  // Uses InputField for text / email / date / number / textarea — label is
-  // passed directly so InputField renders it with the platform label style.
-  // Native <select> is kept for dropdowns (InputField doesn't support select).
-  // showLabel = false is used in the "main" section where the label row also
-  // contains the edit/delete action buttons and is rendered separately.
-  const renderField = (
-    field: FieldConfig,
-    section: "header" | "main" | "footer",
-    showLabel = true,
-  ) => {
-    const value = formData[section]?.[field.field_name] || "";
-    const error = errors[section]?.[field.field_name];
-
-    if (field.field_type === "select") {
-      return (
-        <div className="w-full">
-          {showLabel && (
-            <label className="block mb-2 text-text-secondary text-sm font-medium">
-              {field.field_name}
-              {field.required && (
-                <span className="text-status-error ml-1">*</span>
-              )}
-            </label>
-          )}
-          <select
-            value={value}
-            onChange={(e) =>
-              handleInputChange(section, field.field_name, e.target.value)
-            }
-            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary text-sm text-text-secondary bg-bg-base transition-all ${
-              error ? "border-status-error" : "border-border"
-            }`}
-          >
-            <option value="">Select {field.field_name}</option>
-            {(field.options ?? field.placeholder?.split(","))?.map((op) => (
-              <option key={op} value={op.trim()}>
-                {op.trim()}
-              </option>
-            ))}
-          </select>
-          {error && (
-            <div className="flex items-center mt-1 space-x-1">
-              <AlertCircle className="w-4 h-4 text-status-error" />
-              <span className="text-status-error text-xs">{error}</span>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    // text / email / date / number / textarea — reusable InputField
-    return (
-      <InputField
-        name={field.field_name}
-        type={field.field_type}
-        label={showLabel ? field.field_name : undefined}
-        value={value}
-        onChange={(e) =>
-          handleInputChange(section, field.field_name, e.target.value)
-        }
-        placeholder={field.placeholder}
-        error={error}
-        required={field.required}
-      />
-    );
-  };
-
   if (isGenerating) {
     return (
       <ProtectedRoute>
         <DashboardLayout>
-          <div className="min-h-screen bg-bg-base p-6 flex items-center justify-center">
+          <div className="min-h-screen bg-[#F4F7FA] p-6 flex items-center justify-center">
             <div className="text-center">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-brand rounded-full mb-6">
-                <Sparkles className="w-10 h-10 text-on-brand animate-pulse" />
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#1B2A49] to-[#2E69A4] rounded-full mb-6">
+                <Sparkles className="w-10 h-10 text-white animate-pulse" />
               </div>
-              <h2 className="text-2xl font-bold text-text-heading mb-2">
+              <h2 className="text-2xl font-bold text-[#1B2A49] mb-2">
                 Generating Your Custom Template
               </h2>
-              <p className="text-text-secondary mb-6">
+              <p className="text-[#344767] mb-6">
                 AI is analyzing your requirements and creating a tailored
                 document template...
               </p>
               <div className="flex items-center justify-center gap-2">
-                <div className="w-3 h-3 bg-secondary rounded-full animate-bounce"></div>
+                <div className="w-3 h-3 bg-[#2E69A4] rounded-full animate-bounce"></div>
                 <div
-                  className="w-3 h-3 bg-secondary rounded-full animate-bounce"
+                  className="w-3 h-3 bg-[#2E69A4] rounded-full animate-bounce"
                   style={{ animationDelay: "0.1s" }}
                 ></div>
                 <div
-                  className="w-3 h-3 bg-secondary rounded-full animate-bounce"
+                  className="w-3 h-3 bg-[#2E69A4] rounded-full animate-bounce"
                   style={{ animationDelay: "0.2s" }}
                 ></div>
               </div>
@@ -858,7 +789,7 @@ export default function DocumentForm() {
   return (
     <ProtectedRoute>
       <DashboardLayout>
-        <div className="min-h-screen bg-bg-base p-4 mb-8">
+        <div className="min-h-screen bg-[#F4F7FA] p-4 mb-8">
           {/* Header */}
           <PageHeader
             title={getPageTitle()}
@@ -881,15 +812,15 @@ export default function DocumentForm() {
                 {/* AI Auto-fill Notice */}
                 {(hasAutoFilled ||
                   Object.values(formData).some((val) => val)) && (
-                  <div className="mb-6 p-4 bg-brand-light border border-secondary/20 rounded-lg flex items-start gap-3">
-                    <Sparkles className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
+                  <div className="mb-6 p-4 bg-[#2E69A4]/5 border border-[#2E69A4]/20 rounded-lg flex items-start gap-3">
+                    <Sparkles className="w-5 h-5 text-[#2E69A4] flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-text-heading font-semibold text-sm">
+                      <p className="text-[#1B2A49] font-semibold text-sm">
                         {hasAutoFilled
                           ? "AI Auto-fill Complete"
                           : "AI Auto-fill Active"}
                       </p>
-                      <p className="text-text-secondary text-sm">
+                      <p className="text-[#344767] text-sm">
                         {hasAutoFilled
                           ? "All fields have been automatically filled by AI based on your prompt and business profile. Review and edit as needed."
                           : "Some fields have been pre-filled from your business profile. Review and edit as needed."}
@@ -900,13 +831,13 @@ export default function DocumentForm() {
 
                 {/* Add Field and Auto-fill Buttons */}
                 <div className="mb-6 flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-text-heading">
+                  <h3 className="text-lg font-bold text-[#1B2A49]">
                     {isCustomTemplate ? "Template Fields" : "Document Fields"}
                   </h3>
                   <div className="flex items-center gap-3">
                     <button
                       disabled={aiProcessing}
-                      className="flex items-center gap-2 px-4 py-2 bg-status-warning-bg border border-status-warning-border text-status-warning rounded-lg hover:shadow-card transition-all duration-200 font-semibold text-sm disabled:opacity-50"
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#F6A821] to-[#FFC107] text-white rounded-lg hover:shadow-lg transition-all duration-200 font-semibold text-sm disabled:opacity-50"
                     >
                       {aiProcessing ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -917,7 +848,7 @@ export default function DocumentForm() {
                     </button>
                     <button
                       onClick={handleOpenAddFieldModal}
-                      className="flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-hover text-on-brand rounded-lg hover:shadow-raised transition-all duration-200 font-semibold text-sm"
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#1B2A49] to-[#2E69A4] text-white rounded-lg hover:shadow-lg transition-all duration-200 font-semibold text-sm"
                     >
                       <Plus className="w-4 h-4" />
                       Add Field
@@ -928,18 +859,18 @@ export default function DocumentForm() {
                 {/* Form Fields */}
                 <form className="space-y-8">
                   {/* Header Section */}
-                  <div className="border-b border-border pb-6">
-                    <h4 className="text-lg font-bold text-text-heading mb-4 flex items-center gap-2">
-                      <Image className="w-5 h-5 text-secondary" />
+                  <div className="border-b border-[#E1E8F5] pb-6">
+                    <h4 className="text-lg font-bold text-[#1B2A49] mb-4 flex items-center gap-2">
+                      <Image className="w-5 h-5 text-[#2E69A4]" />
                       Document Header
                     </h4>
                     <div className="space-y-6">
                       {/* Logo Upload Section */}
                       <div className="space-y-3">
-                        <label className="block text-[11px] font-bold text-text-secondary uppercase tracking-widest">
+                        <label className="block text-[#1B2A49] font-semibold text-sm">
                           Company Logo
-                          <span className="text-text-muted text-xs font-normal ml-2 normal-case tracking-normal">
-                            (Optional — will be displayed in document header)
+                          <span className="text-[#344767] text-xs font-normal ml-2">
+                            (Optional - will be displayed in document header)
                           </span>
                         </label>
                         <div className="flex items-center gap-4">
@@ -953,7 +884,7 @@ export default function DocumentForm() {
                             />
                             <label
                               htmlFor="logoUpload"
-                              className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-border hover:border-secondary rounded-lg transition-colors cursor-pointer text-text-secondary"
+                              className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-[#E1E8F5] rounded-lg hover:border-[#2E69A4] transition-colors cursor-pointer text-[#344767]"
                             >
                               <Upload className="w-5 h-5" />
                               <span className="font-medium">
@@ -963,7 +894,7 @@ export default function DocumentForm() {
                           </div>
                           {logoPreview && (
                             <div className="flex items-center gap-3">
-                              <div className="w-16 h-16 border border-border rounded-lg overflow-hidden bg-surface">
+                              <div className="w-16 h-16 border border-[#E1E8F5] rounded-lg overflow-hidden bg-white">
                                 <img
                                   src={logoPreview}
                                   alt="Logo preview"
@@ -973,7 +904,7 @@ export default function DocumentForm() {
                               <button
                                 type="button"
                                 onClick={removeLogo}
-                                className="p-2 bg-status-error-bg text-status-error rounded-lg hover:bg-status-error hover:text-on-brand transition-colors"
+                                className="p-2 bg-red-100 text-red-500 rounded-lg hover:bg-red-200 transition-colors"
                                 title="Remove logo"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -981,7 +912,7 @@ export default function DocumentForm() {
                             </div>
                           )}
                         </div>
-                        <p className="text-text-muted text-xs">
+                        <p className="text-[#344767] text-xs">
                           Recommended: PNG or JPG, max 5MB. Square images work
                           best.
                         </p>
@@ -990,15 +921,72 @@ export default function DocumentForm() {
                       {/* Header Form Fields */}
                       {headerFields.map((field) => (
                         <div
-                          key={field.id}
-                          className="space-y-1.5 relative group"
+                          key={field.unique_id}
+                          className="space-y-3 relative group"
                         >
-                          {renderField(field, "header")}
+                          {/* Field Actions */}
+                          <div className="flex items-center justify-between">
+                            <label className="block text-[#1B2A49] font-semibold text-sm">
+                              {field.field_name}
+                              {field.required && (
+                                <span className="text-red-500 ml-1">*</span>
+                              )}
+                            </label>
+                          </div>
 
+                          <div>
+                            {field.field_type === "textarea" ? (
+                              <textarea
+                                value={
+                                  formData.header?.[field.field_name] || ""
+                                }
+                                onChange={(e) =>
+                                  handleInputChange(
+                                    "header",
+                                    field.field_name,
+                                    e.target.value
+                                  )
+                                }
+                                placeholder={field.placeholder}
+                                rows={3}
+                                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] resize-none ${
+                                  errors.header?.[field.field_name]
+                                    ? "border-red-500"
+                                    : "border-[#E1E8F5]"
+                                }`}
+                              />
+                            ) : (
+                              <input
+                                value={
+                                  formData.header?.[field.field_name] || ""
+                                }
+                                type={field.field_type}
+                                onChange={(e) =>
+                                  handleInputChange(
+                                    "header",
+                                    field.field_name,
+                                    e.target.value
+                                  )
+                                }
+                                placeholder={field.placeholder}
+                                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] ${
+                                  errors.header?.[field.field_name]
+                                    ? "border-red-500"
+                                    : "border-[#E1E8F5]"
+                                }`}
+                              />
+                            )}
+                          </div>
                           {field.helpText && (
-                            <div className="flex items-start gap-2 text-text-muted text-xs">
+                            <div className="flex items-start gap-2 text-[#344767] text-xs">
                               <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
                               <span>{field.helpText}</span>
+                            </div>
+                          )}
+                          {errors.header?.[field.field_name] && (
+                            <div className="flex items-center gap-2 text-red-500 text-sm">
+                              <AlertCircle className="w-4 h-4" />
+                              <span>{errors.header?.[field.field_name]}</span>
                             </div>
                           )}
                         </div>
@@ -1008,26 +996,24 @@ export default function DocumentForm() {
 
                   {/* Main Document Fields Section */}
                   <div>
-                    <h4 className="text-lg font-bold text-text-heading mb-4">
+                    <h4 className="text-lg font-bold text-[#1B2A49] mb-4">
                       Document Content
                     </h4>
                     <div className="space-y-6">
                       {fields.map((field) => (
                         <div
                           key={field.unique_id}
-                          className="space-y-1.5 relative group"
+                          className="space-y-3 relative group"
                         >
-                          {/* Field label row with edit/delete actions */}
+                          {/* Field Actions */}
                           <div className="flex items-center justify-between">
-                            <label className="block text-text-secondary text-sm font-medium">
+                            <label className="block text-[#1B2A49] font-semibold text-sm">
                               {field.field_name}
                               {field.required && (
-                                <span className="text-status-error ml-1">
-                                  *
-                                </span>
+                                <span className="text-red-500 ml-1">*</span>
                               )}
                               {field.aiSuggestion && (
-                                <span className="ml-2 text-secondary text-xs font-normal">
+                                <span className="ml-2 text-[#2E69A4] text-xs font-normal">
                                   ({field.aiSuggestion})
                                 </span>
                               )}
@@ -1037,7 +1023,7 @@ export default function DocumentForm() {
                               <button
                                 type="button"
                                 onClick={() => handleOpenEditFieldModal(field)}
-                                className="p-1.5 bg-status-info-bg text-status-info rounded hover:bg-status-info hover:text-on-brand transition-colors"
+                                className="p-1.5 bg-blue-100 text-[#2E69A4] rounded hover:bg-blue-200 transition-colors"
                                 title="Edit field"
                               >
                                 <Edit2 className="w-4 h-4" />
@@ -1047,7 +1033,7 @@ export default function DocumentForm() {
                                 onClick={() =>
                                   handleRemoveField(field.unique_id)
                                 }
-                                className="p-1.5 bg-status-error-bg text-status-error rounded hover:bg-status-error hover:text-on-brand transition-colors"
+                                className="p-1.5 bg-red-100 text-red-500 rounded hover:bg-red-200 transition-colors"
                                 title="Remove field"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -1055,12 +1041,82 @@ export default function DocumentForm() {
                             </div>
                           </div>
 
-                          {renderField(field, "main", false)}
+                          <div>
+                            {field.field_type === "textarea" ? (
+                              <textarea
+                                value={formData.main?.[field.field_name] || ""}
+                                onChange={(e) =>
+                                  handleInputChange(
+                                    "main",
+                                    field.field_name,
+                                    e.target.value
+                                  )
+                                }
+                                placeholder={field.placeholder}
+                                rows={4}
+                                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] resize-none ${
+                                  errors.main?.[field.field_name]
+                                    ? "border-red-500"
+                                    : "border-[#E1E8F5]"
+                                }`}
+                              />
+                            ) : field.field_type === "select" ? (
+                              <select
+                                value={formData.main?.[field.field_name] || ""}
+                                onChange={(e) =>
+                                  handleInputChange(
+                                    "main",
+                                    field.field_name,
+                                    e.target.value
+                                  )
+                                }
+                                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] bg-white ${
+                                  errors.main?.[field.field_name]
+                                    ? "border-red-500"
+                                    : "border-[#E1E8F5]"
+                                }`}
+                              >
+                                <option value={""}>
+                                  Select {field.field_name}
+                                </option>
+                                {field.placeholder?.split(",")?.map((op) => (
+                                  <option key={op} value={op}>
+                                    {op}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <input
+                                value={formData.main?.[field.field_name] || ""}
+                                type={field.field_type}
+                                onChange={(e) =>
+                                  handleInputChange(
+                                    "main",
+                                    field.field_name,
+                                    e.target.value
+                                  )
+                                }
+                                placeholder={field.placeholder}
+                                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] ${
+                                  errors.main?.[field.field_name]
+                                    ? "border-red-500"
+                                    : "border-[#E1E8F5]"
+                                }`}
+                              />
+                            )}
+                          </div>
 
                           {field.helpText && (
-                            <div className="flex items-start gap-2 text-text-muted text-xs">
+                            <div className="flex items-start gap-2 text-[#344767] text-xs">
                               <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
                               <span>{field.helpText}</span>
+                            </div>
+                          )}
+
+                          {errors.main?.[field.field_name] && (
+                            <div className="flex items-center gap-2 text-red-500 text-sm">
+                              <AlertCircle className="w-4 h-4" />
+                              <span>{errors.main?.[field.field_name]}</span>
                             </div>
                           )}
                         </div>
@@ -1069,22 +1125,106 @@ export default function DocumentForm() {
                   </div>
 
                   {/* Footer Section */}
-                  <div className="border-t border-border pt-6">
-                    <h4 className="text-lg font-bold text-text-heading mb-4">
+                  <div className="border-t border-[#E1E8F5] pt-6">
+                    <h4 className="text-lg font-bold text-[#1B2A49] mb-4">
                       Document Footer
                     </h4>
                     <div className="space-y-6">
                       {footerFields.map((field) => (
                         <div
-                          key={field.id}
-                          className="space-y-1.5 relative group"
+                          key={field.unique_id}
+                          className="space-y-3 relative group"
                         >
-                          {renderField(field, "footer")}
+                          {/* Field Actions */}
+                          <div className="flex items-center justify-between">
+                            <label className="block text-[#1B2A49] font-semibold text-sm">
+                              {field.field_name}
+                              {field.required && (
+                                <span className="text-red-500 ml-1">*</span>
+                              )}
+                            </label>
+                          </div>
 
+                          <div>
+                            {field.field_type === "textarea" ? (
+                              <textarea
+                                value={
+                                  formData.footer?.[field.field_name] || ""
+                                }
+                                onChange={(e) =>
+                                  handleInputChange(
+                                    "footer",
+                                    field.field_name,
+                                    e.target.value
+                                  )
+                                }
+                                placeholder={field.placeholder}
+                                rows={3}
+                                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] resize-none ${
+                                  errors.footer?.[field.field_name]
+                                    ? "border-red-500"
+                                    : "border-[#E1E8F5]"
+                                }`}
+                              />
+                            ) : field.field_type === "select" ? (
+                              <select
+                                value={
+                                  formData.footer?.[field.field_name] || ""
+                                }
+                                onChange={(e) =>
+                                  handleInputChange(
+                                    "footer",
+                                    field.field_name,
+                                    e.target.value
+                                  )
+                                }
+                                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] bg-white ${
+                                  errors.footer?.[field.field_name]
+                                    ? "border-red-500"
+                                    : "border-[#E1E8F5]"
+                                }`}
+                              >
+                                <option value={""}>
+                                  Select {field.field_name}
+                                </option>
+                                {field.options?.map((op) => (
+                                  <option key={op} value={op}>
+                                    {op}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <input
+                                value={
+                                  formData.footer?.[field.field_name] || ""
+                                }
+                                type={field.field_type}
+                                onChange={(e) =>
+                                  handleInputChange(
+                                    "footer",
+                                    field.field_name,
+                                    e.target.value
+                                  )
+                                }
+                                placeholder={field.placeholder}
+                                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] ${
+                                  errors.footer?.[field.field_name]
+                                    ? "border-red-500"
+                                    : "border-[#E1E8F5]"
+                                }`}
+                              />
+                            )}
+                          </div>
                           {field.helpText && (
-                            <div className="flex items-start gap-2 text-text-muted text-xs">
+                            <div className="flex items-start gap-2 text-[#344767] text-xs">
                               <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
                               <span>{field.helpText}</span>
+                            </div>
+                          )}
+                          {errors.footer?.[field.field_name] && (
+                            <div className="flex items-center gap-2 text-red-500 text-sm">
+                              <AlertCircle className="w-4 h-4" />
+                              <span>{errors.footer?.[field.field_name]}</span>
                             </div>
                           )}
                         </div>
@@ -1094,10 +1234,10 @@ export default function DocumentForm() {
                 </form>
 
                 {/* Action Buttons */}
-                <div className="flex items-center space-x-4 pt-6 border-t border-border">
+                <div className="flex items-center space-x-4 pt-6 border-t border-[#E1E8F5]">
                   <Button
                     onClick={() => router.push("/dashboard/documents")}
-                    className="border border-border text-text-secondary bg-surface hover:bg-bg-base shadow-sm"
+                    className="border border-[#E1E8F5] text-[#344767] bg-white hover:bg-[#F4F7FA] shadow-sm"
                   >
                     Cancel
                   </Button>
@@ -1116,16 +1256,16 @@ export default function DocumentForm() {
             <div className="space-y-6 sticky top-2 h-[80vh]">
               {/* Document Progress */}
               <Card>
-                <h3 className="text-text-heading font-bold text-lg mb-4">
+                <h3 className="text-[#1B2A49] font-bold text-lg mb-4">
                   {isCustomTemplate ? "Template Progress" : "Document Progress"}
                 </h3>
                 <div className="space-y-4">
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-text-secondary text-sm font-medium">
+                      <span className="text-[#344767] text-sm font-medium">
                         Completion
                       </span>
-                      <span className="text-secondary text-sm font-bold">
+                      <span className="text-[#2E69A4] text-sm font-bold">
                         {Math.round(
                           ((
                             Object.keys(formData) as Array<keyof FormDataTypes>
@@ -1133,14 +1273,14 @@ export default function DocumentForm() {
                             (fields.length +
                               headerFields.length +
                               footerFields.length)) *
-                            100,
+                            100
                         )}
                         %
                       </span>
                     </div>
-                    <div className="w-full h-2 bg-border rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-[#E1E8F5] rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-brand transition-all duration-300"
+                        className="h-full bg-gradient-to-r from-[#2E69A4] to-[#1B2A49] transition-all duration-300"
                         style={{
                           width: `${
                             ((
@@ -1158,18 +1298,18 @@ export default function DocumentForm() {
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-border space-y-2 text-sm">
+                  <div className="pt-4 border-t border-[#E1E8F5] space-y-2 text-sm">
                     <div className="flex items-center justify-between">
-                      <span className="text-text-secondary">Total Fields</span>
-                      <span className="font-semibold text-text-heading">
+                      <span className="text-[#344767]">Total Fields</span>
+                      <span className="font-semibold text-[#1B2A49]">
                         {fields.length +
                           headerFields.length +
                           footerFields.length}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-text-secondary">Completed</span>
-                      <span className="font-semibold text-secondary">
+                      <span className="text-[#344767]">Completed</span>
+                      <span className="font-semibold text-[#2E69A4]">
                         {
                           (
                             Object.keys(formData) as Array<keyof FormDataTypes>
@@ -1178,8 +1318,8 @@ export default function DocumentForm() {
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-text-secondary">Remaining</span>
-                      <span className="font-semibold text-text-secondary">
+                      <span className="text-[#344767]">Remaining</span>
+                      <span className="font-semibold text-[#344767]">
                         {fields.length +
                           headerFields.length +
                           footerFields.length -
@@ -1194,18 +1334,18 @@ export default function DocumentForm() {
 
               {/* Quick Actions */}
               <Card>
-                <h3 className="text-text-heading font-bold text-lg mb-4">
+                <h3 className="text-[#1B2A49] font-bold text-lg mb-4">
                   Quick Actions
                 </h3>
                 <div className="space-y-2">
                   <button
                     onClick={handleOpenAddFieldModal}
-                    className="w-full flex items-center gap-2 px-4 py-2.5 bg-bg-base border border-border text-text-heading rounded-lg hover:border-border-strong hover:shadow-card transition-all text-sm font-medium"
+                    className="w-full flex items-center gap-2 px-4 py-2.5 bg-[#F4F7FA] text-[#1B2A49] rounded-lg hover:bg-[#E9EEF5] transition-colors text-sm font-medium"
                   >
                     <Plus className="w-4 h-4" />
                     Add New Field
                   </button>
-                  <button className="w-full flex items-center gap-2 px-4 py-2.5 bg-bg-base border border-border text-text-heading rounded-lg hover:border-border-strong hover:shadow-card transition-all text-sm font-medium">
+                  <button className="w-full flex items-center gap-2 px-4 py-2.5 bg-[#F4F7FA] text-[#1B2A49] rounded-lg hover:bg-[#E9EEF5] transition-colors text-sm font-medium">
                     <Save className="w-4 h-4" />
                     Save as Draft
                   </button>
@@ -1227,20 +1367,23 @@ export default function DocumentForm() {
         >
           <div className="p-6">
             <div className="space-y-4">
-              <InputField
-                label="Field Label"
-                name="add_field_name"
-                type="text"
-                value={newField.field_name}
-                onChange={(e) =>
-                  setNewField({ ...newField, field_name: e.target.value })
-                }
-                placeholder="e.g., Contract Value"
-                required
-              />
+              <div>
+                <label className="block text-sm font-semibold text-[#1B2A49] mb-2">
+                  Field Label <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={newField.field_name}
+                  onChange={(e) =>
+                    setNewField({ ...newField, field_name: e.target.value })
+                  }
+                  placeholder="e.g., Contract Value"
+                  className="w-full px-4 py-2.5 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-sm text-[#344767]"
+                />
+              </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-text-secondary uppercase tracking-widest mb-2">
+                <label className="block text-sm font-semibold text-[#1B2A49] mb-2">
                   Field Type
                 </label>
                 <select
@@ -1258,7 +1401,7 @@ export default function DocumentForm() {
                         | "file",
                     })
                   }
-                  className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary text-sm text-text-secondary bg-bg-base"
+                  className="w-full px-4 py-2.5 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-sm text-[#344767] bg-white"
                 >
                   <option value="text">Text</option>
                   <option value="email">Email</option>
@@ -1270,27 +1413,35 @@ export default function DocumentForm() {
               </div>
 
               {newField.field_type === "select" ? (
-                <InputField
-                  label="Options (comma-separated)"
-                  name="add_field_options"
-                  type="text"
-                  value={newField.placeholder}
-                  onChange={(e) =>
-                    setNewField({ ...newField, placeholder: e.target.value })
-                  }
-                  placeholder="e.g., Option 1, Option 2, Option 3"
-                />
+                <div>
+                  <label className="block text-sm font-semibold text-[#1B2A49] mb-2">
+                    Options (comma-separated)
+                  </label>
+                  <input
+                    type="text"
+                    value={newField.placeholder}
+                    onChange={(e) =>
+                      setNewField({ ...newField, placeholder: e.target.value })
+                    }
+                    placeholder="e.g., Option 1, Option 2, Option 3"
+                    className="w-full px-4 py-2.5 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-sm text-[#344767]"
+                  />
+                </div>
               ) : (
-                <InputField
-                  label="Placeholder Text"
-                  name="add_field_placeholder"
-                  type="text"
-                  value={newField.placeholder}
-                  onChange={(e) =>
-                    setNewField({ ...newField, placeholder: e.target.value })
-                  }
-                  placeholder="e.g., Enter contract value"
-                />
+                <div>
+                  <label className="block text-sm font-semibold text-[#1B2A49] mb-2">
+                    Placeholder Text
+                  </label>
+                  <input
+                    type="text"
+                    value={newField.placeholder}
+                    onChange={(e) =>
+                      setNewField({ ...newField, placeholder: e.target.value })
+                    }
+                    placeholder="e.g., Enter contract value"
+                    className="w-full px-4 py-2.5 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-sm text-[#344767]"
+                  />
+                </div>
               )}
 
               <div className="flex items-center gap-3">
@@ -1301,11 +1452,11 @@ export default function DocumentForm() {
                   onChange={(e) =>
                     setNewField({ ...newField, required: e.target.checked })
                   }
-                  className="w-4 h-4 accent-secondary border-border rounded"
+                  className="w-4 h-4 text-[#2E69A4] border-[#E1E8F5] rounded focus:ring-[#2E69A4]"
                 />
                 <label
                   htmlFor="newFieldRequired"
-                  className="text-sm font-medium text-text-secondary cursor-pointer"
+                  className="text-sm font-medium text-[#344767] cursor-pointer"
                 >
                   Make this field required
                 </label>
@@ -1315,14 +1466,14 @@ export default function DocumentForm() {
             <div className="flex items-center gap-3 mt-6">
               <button
                 onClick={handleCloseAddFieldModal}
-                className="flex-1 px-4 py-2.5 border border-border text-text-secondary font-semibold text-sm rounded-lg hover:bg-bg-base transition-colors"
+                className="flex-1 px-4 py-2.5 border border-[#E1E8F5] text-[#344767] font-semibold text-sm rounded-lg hover:bg-[#F4F7FA] transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAddField}
                 disabled={!newField.field_name.trim()}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-brand hover:bg-brand-hover text-on-brand rounded-lg hover:shadow-raised transition-all duration-200 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#1B2A49] to-[#2E69A4] text-white rounded-lg hover:shadow-lg transition-all duration-200 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Plus className="w-4 h-4" />
                 Add Field
@@ -1343,20 +1494,23 @@ export default function DocumentForm() {
         >
           <div className="p-6">
             <div className="space-y-4">
-              <InputField
-                label="Field Label"
-                name="edit_field_name"
-                type="text"
-                value={newField.field_name}
-                onChange={(e) =>
-                  setNewField({ ...newField, field_name: e.target.value })
-                }
-                placeholder="Enter field label"
-                required
-              />
+              <div>
+                <label className="block text-sm font-semibold text-[#1B2A49] mb-2">
+                  Field Label <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={newField.field_name}
+                  onChange={(e) =>
+                    setNewField({ ...newField, field_name: e.target.value })
+                  }
+                  placeholder="Enter field label"
+                  className="w-full px-4 py-2.5 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-sm text-[#344767]"
+                />
+              </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-text-secondary uppercase tracking-widest mb-2">
+                <label className="block text-sm font-semibold text-[#1B2A49] mb-2">
                   Field Type
                 </label>
                 <select
@@ -1374,7 +1528,7 @@ export default function DocumentForm() {
                         | "file",
                     })
                   }
-                  className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary text-sm text-text-secondary bg-bg-base"
+                  className="w-full px-4 py-2.5 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-sm text-[#344767] bg-white"
                 >
                   <option value="text">Text</option>
                   <option value="email">Email</option>
@@ -1386,27 +1540,35 @@ export default function DocumentForm() {
               </div>
 
               {newField.field_type === "select" ? (
-                <InputField
-                  label="Options (comma-separated)"
-                  name="edit_field_options"
-                  type="text"
-                  value={newField.placeholder}
-                  onChange={(e) =>
-                    setNewField({ ...newField, placeholder: e.target.value })
-                  }
-                  placeholder="e.g., Option 1, Option 2, Option 3"
-                />
+                <div>
+                  <label className="block text-sm font-semibold text-[#1B2A49] mb-2">
+                    Options (comma-separated)
+                  </label>
+                  <input
+                    type="text"
+                    value={newField.placeholder}
+                    onChange={(e) =>
+                      setNewField({ ...newField, placeholder: e.target.value })
+                    }
+                    placeholder="e.g., Option 1, Option 2, Option 3"
+                    className="w-full px-4 py-2.5 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-sm text-[#344767]"
+                  />
+                </div>
               ) : (
-                <InputField
-                  label="Placeholder Text"
-                  name="edit_field_placeholder"
-                  type="text"
-                  value={newField.placeholder}
-                  onChange={(e) =>
-                    setNewField({ ...newField, placeholder: e.target.value })
-                  }
-                  placeholder="e.g., Enter contract value"
-                />
+                <div>
+                  <label className="block text-sm font-semibold text-[#1B2A49] mb-2">
+                    Placeholder Text
+                  </label>
+                  <input
+                    type="text"
+                    value={newField.placeholder}
+                    onChange={(e) =>
+                      setNewField({ ...newField, placeholder: e.target.value })
+                    }
+                    placeholder="e.g., Enter contract value"
+                    className="w-full px-4 py-2.5 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-sm text-[#344767]"
+                  />
+                </div>
               )}
 
               <div className="flex items-center gap-3">
@@ -1417,19 +1579,19 @@ export default function DocumentForm() {
                   onChange={(e) =>
                     setNewField({ ...newField, required: e.target.checked })
                   }
-                  className="w-4 h-4 accent-secondary border-border rounded"
+                  className="w-4 h-4 text-[#2E69A4] border-[#E1E8F5] rounded focus:ring-[#2E69A4]"
                 />
                 <label
                   htmlFor="editFieldRequired"
-                  className="text-sm font-medium text-text-secondary cursor-pointer"
+                  className="text-sm font-medium text-[#344767] cursor-pointer"
                 >
                   Make this field required
                 </label>
               </div>
 
-              <div className="bg-status-info-bg border border-status-info-border rounded-lg p-3 flex items-start gap-2">
-                <Info className="w-4 h-4 text-status-info flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-text-secondary">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
+                <Info className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-blue-900">
                   You can update this field&apos;s name, type, or other
                   properties anytime. Make sure to review changes before saving
                   to ensure data consistency.
@@ -1440,14 +1602,14 @@ export default function DocumentForm() {
             <div className="flex items-center gap-3 mt-6">
               <button
                 onClick={handleCloseEditFieldModal}
-                className="flex-1 px-4 py-2.5 border border-border text-text-secondary font-semibold text-sm rounded-lg hover:bg-bg-base transition-colors"
+                className="flex-1 px-4 py-2.5 border border-[#E1E8F5] text-[#344767] font-semibold text-sm rounded-lg hover:bg-[#F4F7FA] transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleUpdateField}
                 disabled={!newField.field_name.trim()}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-brand hover:bg-brand-hover text-on-brand rounded-lg hover:shadow-raised transition-all duration-200 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#1B2A49] to-[#2E69A4] text-white rounded-lg hover:shadow-lg transition-all duration-200 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <CheckCircle className="w-4 h-4" />
                 Update Field

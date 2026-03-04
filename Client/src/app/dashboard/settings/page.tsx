@@ -13,7 +13,6 @@ import IntegrationsTab from "./fragements/IntegrationsTab";
 import AIAssistantTab from "./fragements/AIAssistantTab";
 import ComplianceLegalTab from "./fragements/ComplianceLegalTab";
 import DangerZoneTab from "./fragements/DangerZoneTab";
-import AppearanceSection from "./fragements/AppearanceTab";
 
 const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState("account");
@@ -28,8 +27,6 @@ const SettingsPage = () => {
         return <NotificationsTab />;
       case "integrations":
         return <IntegrationsTab />;
-      case "appearance":
-        return <AppearanceSection />;
       case "ai":
         return <AIAssistantTab />;
       case "compliance":

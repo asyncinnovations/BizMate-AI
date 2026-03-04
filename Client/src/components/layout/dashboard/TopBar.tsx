@@ -25,7 +25,7 @@ const TopBar = () => {
             <Zap className="w-6 h-6" />
           </span>
           <div>
-            <h1 className="text-2xl font-bold">Bizmate</h1>
+            <h1 className="text-2xl font-bold">BizMate AI</h1>
             <h4 className="text-gray-200 text-sm">
               Farhan Trading LLC • VAT: 123456789
             </h4>

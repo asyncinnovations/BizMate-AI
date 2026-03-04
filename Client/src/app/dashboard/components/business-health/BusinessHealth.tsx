@@ -5,68 +5,67 @@ import Card from "@/components/ui/Card";
 
 const BusinessHealth = () => {
   return (
-    <Card className="xl:col-span-1">
+    <Card className="xl:col-span-1" hoverEffect>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-text-heading flex items-center">
-          <div className="bg-brand rounded-full p-1.5 mr-2">
-            <Target className="w-4 h-4 text-on-brand" />
+        <h2 className="text-lg font-semibold text-[#1B2A49] flex items-center">
+          <div className="bg-gradient-to-r from-green-400 to-blue-500 rounded-full p-1.5 mr-2">
+            <Target className="w-4 h-4 text-white" />
           </div>
           Business Health
         </h2>
-        <span className="px-3 py-1 bg-status-success-bg text-status-success rounded-full text-sm font-medium border border-status-success-border">
+        <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
           Good
         </span>
       </div>
 
       <div className="space-y-4">
-        {/* Overall Score */}
-        <div className="bg-status-success-bg rounded-lg p-4 border border-status-success-border">
+        <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-lg p-4 border border-green-100">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-text-muted uppercase tracking-wide">
+            <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">
               Overall Score
             </span>
-            <span className="text-status-success text-sm font-semibold">+5.2%</span>
+            <span className="text-green-600 text-sm font-semibold">+5.2%</span>
           </div>
           <div className="flex items-center space-x-2">
-            <span className="text-3xl font-bold text-text-secondary">78/100</span>
+            <span className="text-3xl font-bold text-[#344767]">78/100</span>
           </div>
-          <div className="w-full bg-border rounded-full h-2 mt-2">
+          <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
             <div
-              className="bg-brand h-2 rounded-full"
+              className="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full"
               style={{ width: "78%" }}
             ></div>
           </div>
-          <p className="text-xs text-text-muted mt-1">Better than last month</p>
+          <p className="text-xs text-gray-500 mt-1">Better than last month</p>
         </div>
 
         {/* Compliance Readiness */}
-        <div className="bg-status-warning-bg rounded-lg p-4 border border-status-warning-border">
+        <div className="bg-amber-50 rounded-lg p-4 border border-amber-100">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-text-muted uppercase tracking-wide">
+            <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">
               Compliance
             </span>
-            <Shield className="w-4 h-4 text-status-warning" />
+            <Shield className="w-4 h-4 text-amber-600" />
           </div>
-          <span className="text-2xl font-bold text-text-secondary">65%</span>
-          <div className="w-full bg-border rounded-full h-2 mt-2">
+          <span className="text-2xl font-bold text-[#344767]">65%</span>
+          <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
             <div
-              className="bg-status-warning h-2 rounded-full"
+              className="bg-[#F6A821] h-2 rounded-full"
               style={{ width: "65%" }}
             ></div>
           </div>
-          <p className="text-xs text-text-muted mt-1">3 actions required</p>
+          <p className="text-xs text-gray-500 mt-1">3 actions required</p>
         </div>
 
         {/* Risk Assessment */}
-        <div className="bg-status-error-bg rounded-lg p-4 border border-status-error-border">
+        <div className="bg-red-50 rounded-lg p-4 border border-red-100">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-text-muted uppercase tracking-wide">
+            <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">
               Risk Level
             </span>
-            <AlertTriangle className="w-4 h-4 text-status-error" />
+            <AlertTriangle className="w-4 h-4 text-red-600" />
           </div>
-          <span className="text-2xl font-bold text-text-secondary">Medium</span>
-          <p className="text-status-error font-semibold">
+          <span className="text-2xl font-bold text-[#344767]">Medium</span>
+          <p className="text-red-600 font-semibold">
             2 alerts – monitor closely
           </p>
         </div>
