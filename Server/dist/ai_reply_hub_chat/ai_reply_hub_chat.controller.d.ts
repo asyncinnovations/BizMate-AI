@@ -68,4 +68,8 @@ export declare class AiReplyHubChatController {
         message: string;
         result: any;
     }>;
+    chat_mark_as_all_read_service(client_id: string): Promise<{
+        message: string;
+        result: import("./ai_reply_hub_chat.entity").AiReplyHubChat | null;
+    }>;
 }

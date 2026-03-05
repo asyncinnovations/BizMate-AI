@@ -42,7 +42,10 @@ let TemplateFieldService = class TemplateFieldService {
         return await this.templateFieldRepo.save(fieldEntities);
     }
     async field_by_templateId_service(templateId) {
-        const sql = await this.templateFieldRepo.query(`SELECT tf.*,t.template_name FROM templates AS t JOIN template_fields as tf ON t.uuid=tf.template_id WHERE t.uuid=$1`, [templateId]);
+        const sql = await this.templateFieldRepo.query(`SELECT tf.*,t.template_name 
+      FROM templates AS t 
+      JOIN template_fields as tf ON t.uuid=tf.template_id 
+      WHERE t.uuid=$1`, [templateId]);
         return sql;
     }
     async single_template_field_service(tfield_id) {

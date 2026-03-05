@@ -51,7 +51,10 @@ export class TemplateFieldService {
     templateId: string
   ): Promise<TemplateFieldEntity[]> {
     const sql = await this.templateFieldRepo.query(
-      `SELECT tf.*,t.template_name FROM templates AS t JOIN template_fields as tf ON t.uuid=tf.template_id WHERE t.uuid=$1`,
+      `SELECT tf.*,t.template_name 
+      FROM templates AS t 
+      JOIN template_fields as tf ON t.uuid=tf.template_id 
+      WHERE t.uuid=$1`,
       [templateId]
     );
     return sql;

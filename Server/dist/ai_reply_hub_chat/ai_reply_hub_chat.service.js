@@ -158,6 +158,10 @@ let AiReplyHubChatService = class AiReplyHubChatService {
         await this.aireplyhubRepo.update({ uuid: message_id }, { status: "read" });
         return this.aireplyhubRepo.findOne({ where: { uuid: message_id } });
     }
+    async chat_mark_as_all_read_service(client_id) {
+        await this.aireplyhubRepo.update({ client_id: client_id }, { status: "read" });
+        return this.aireplyhubRepo.findOne({ where: { client_id: client_id } });
+    }
     async user_chat_partner_service(userId) {
         const partners = await this.aireplyhubRepo.query(`
       SELECT 

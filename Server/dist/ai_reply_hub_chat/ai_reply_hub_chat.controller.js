@@ -96,6 +96,10 @@ let AiReplyHubChatController = class AiReplyHubChatController {
         const result = await this.aireplyHub.user_chat_partner_service(message_id);
         return { message: "Message marked as read", result };
     }
+    async chat_mark_as_all_read_service(client_id) {
+        const result = await this.aireplyHub.chat_mark_as_all_read_service(client_id);
+        return { message: "Message marked as read", result };
+    }
 };
 exports.AiReplyHubChatController = AiReplyHubChatController;
 __decorate([
@@ -227,6 +231,14 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], AiReplyHubChatController.prototype, "chat_mark_as_read_service", null);
+__decorate([
+    (0, common_1.Patch)("mark_as_all_read/:client_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Param)("client_id")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], AiReplyHubChatController.prototype, "chat_mark_as_all_read_service", null);
 exports.AiReplyHubChatController = AiReplyHubChatController = __decorate([
     (0, common_1.Controller)("reply_hub_chat"),
     __metadata("design:paramtypes", [ai_reply_hub_chat_service_1.AiReplyHubChatService])

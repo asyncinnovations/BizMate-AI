@@ -31,6 +31,10 @@ type Platform = "whatsapp" | "instagram" | "email";
 type MsgStatus = "sent" | "delivered" | "read" | "failed";
 
 // ── API shapes ──
+// NOTE TO BACKEND: The chat_partner query should be updated to also return:
+//   • unread_count      → COUNT of inbound messages WHERE status != 'read' per client
+//   • ai_reply_enable   → client-level AI toggle (needs new column in client_lists table)
+// Until those fields exist, we fall back gracefully (unreadCount = 0, aiEnabled = true).
 interface ApiChatPartner {
   client_uuid: string;
   client_name: string;
@@ -41,6 +45,9 @@ interface ApiChatPartner {
   status: MsgStatus | null;
   platform: Platform | null;
   sent_at: string | null;
+  // ↓ New fields — available once backend SQL query is updated
+  unread_count?: number; // COUNT of unread inbound messages per client
+  ai_reply_enable?: boolean; // client-level AI toggle from client_lists table
 }
 
 interface ApiMessage {
@@ -62,7 +69,7 @@ interface ApiMessage {
 
 // ── UI shapes ──
 interface Client {
-  id: string; // client_uuid
+  id: string;
   name: string;
   platform: Platform;
   lastMessage: string;
@@ -144,30 +151,26 @@ const avatarToken = (name: string) =>
 
 const formatTimestamp = (isoString: string | null): string => {
   if (!isoString) return "";
-  const date = new Date(isoString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-  if (diffMins < 1) return "now";
-  if (diffMins < 60) return `${diffMins}m`;
-  if (diffHours < 24) return `${diffHours}h`;
-  if (diffDays === 1) return "1d";
-  return `${diffDays}d`;
+  const diffMs = Date.now() - new Date(isoString).getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  const diffH = Math.floor(diffMs / 3600000);
+  const diffD = Math.floor(diffMs / 86400000);
+  if (diffMin < 1) return "now";
+  if (diffMin < 60) return `${diffMin}m`;
+  if (diffH < 24) return `${diffH}h`;
+  if (diffD === 1) return "1d";
+  return `${diffD}d`;
 };
 
 const formatMessageTime = (isoString: string): string => {
   const date = new Date(isoString);
-  const now = new Date();
-  const diffDays = Math.floor((now.getTime() - date.getTime()) / 86400000);
-  if (diffDays === 0)
+  const diffD = Math.floor((Date.now() - date.getTime()) / 86400000);
+  if (diffD === 0)
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  if (diffDays === 1) return "Yesterday";
-  return `${diffDays} days ago`;
+  if (diffD === 1) return "Yesterday";
+  return `${diffD} days ago`;
 };
 
-// Map API message → UI message
 const mapApiMessage = (msg: ApiMessage): Message => ({
   id: String(msg.id),
   uuid: msg.uuid,
@@ -180,14 +183,15 @@ const mapApiMessage = (msg: ApiMessage): Message => ({
 });
 
 // Map API partner → UI client
+// ✅ Uses unread_count & ai_reply_enable from backend when available
 const mapApiPartner = (partner: ApiChatPartner): Client => ({
   id: partner.client_uuid,
   name: partner.client_name || "Unknown",
   platform: partner.platform || "whatsapp",
   lastMessage: partner.message || "No messages yet",
   timestamp: formatTimestamp(partner.sent_at),
-  unreadCount: 0,
-  aiEnabled: true,
+  unreadCount: partner.unread_count ?? 0, // ✅ from backend, fallback 0
+  aiEnabled: partner.ai_reply_enable ?? true, // ✅ from backend, fallback true
   online: false,
 });
 
@@ -219,20 +223,16 @@ const AIReplyHubDashboard: React.FC = () => {
   const { user } = useAuth();
   const userId = user?.user?.user_id;
 
-  // ── Data ──
   const [clients, setClients] = useState<Client[]>([]);
   const [selected, setSelected] = useState<Client | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [aiSuggestion, setAiSuggestion] = useState("");
-
-  // ── UI state ──
   const [searchQuery, setSearchQuery] = useState("");
   const [newMessage, setNewMessage] = useState("");
   const [aiAutoReply, setAiAutoReply] = useState(true);
   const [suggestionOpen, setSuggestionOpen] = useState(true);
   const [inserted, setInserted] = useState(false);
 
-  // ── Loading flags ──
   const [loadingClients, setLoadingClients] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [loadingAiSuggestion, setLoadingAiSuggestion] = useState(false);
@@ -242,12 +242,10 @@ const AIReplyHubDashboard: React.FC = () => {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // ── Auto-scroll on new messages ──
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // ── Auto-resize textarea ──
   useEffect(() => {
     const ta = textareaRef.current;
     if (!ta) return;
@@ -255,9 +253,7 @@ const AIReplyHubDashboard: React.FC = () => {
     ta.style.height = `${Math.min(ta.scrollHeight, 120)}px`;
   }, [newMessage]);
 
-  //////////////////////////////////////////////
-  // Fetch chat history for a client
-  /////////////////////////////////////////////////
+  // ── Load chat history ─────────────────────────────────────────────────────
   const loadChatHistory = useCallback(
     async (client: Client) => {
       if (!userId) return;
@@ -269,47 +265,52 @@ const AIReplyHubDashboard: React.FC = () => {
       setSuggestionOpen(true);
       setLoadingMessages(true);
 
+      // ✅ Sync AI toggle from client-level aiEnabled (comes from backend chat_partner)
+      setAiAutoReply(client.aiEnabled);
+
       try {
         const res = await axiosInstance.get(
           `/reply_hub_chat/history/${userId}/${client.id}`,
         );
-        console.log("Fetch chat history response:", res.data);
         const data: ApiMessage[] = res.data?.result ?? res.data ?? [];
-        const mapped = data.map(mapApiMessage);
-        setMessages(mapped);
+        setMessages(data.map(mapApiMessage));
 
-        // Sync ai_reply_enable from latest message
+        // Fallback: if backend doesn't yet return ai_reply_enable per client in
+        // chat_partner, derive it from the latest message. Remove once client_lists
+        // has the ai_reply_enable column.
         if (data.length > 0) {
           const latest = data[data.length - 1];
-          setAiAutoReply(latest.ai_reply_enable);
-          setClients((prev) =>
-            prev.map((c) =>
-              c.id === client.id
-                ? { ...c, aiEnabled: latest.ai_reply_enable }
-                : c,
-            ),
-          );
+          if (typeof client.aiEnabled === "undefined") {
+            setAiAutoReply(latest.ai_reply_enable);
+            setClients((prev) =>
+              prev.map((c) =>
+                c.id === client.id
+                  ? { ...c, aiEnabled: latest.ai_reply_enable }
+                  : c,
+              ),
+            );
+          }
         }
 
         // Pre-fill AI suggestion from latest inbound that already has one
-        const lastInboundWithAI = [...data]
+        const lastWithAI = [...data]
           .reverse()
           .find((m) => m.direction === "inbound" && m.ai_reply);
-        if (lastInboundWithAI) {
-          setAiSuggestion(lastInboundWithAI.ai_reply!);
-        }
+        if (lastWithAI?.ai_reply) setAiSuggestion(lastWithAI.ai_reply);
 
-        // Mark unread inbound messages as read — fire-and-forget
-        const unread = data.filter(
+        // ✅ UPDATED: Use bulk endpoint /mark_as_all_read/:client_id
+        // instead of the old loop over individual message uuids.
+        // Backend: PATCH /reply_hub_chat/mark_as_all_read/:client_id (already exists ✓)
+        const hasUnread = data.some(
           (m) => m.direction === "inbound" && m.status !== "read",
         );
-        for (const msg of unread) {
+        if (hasUnread) {
           axiosInstance
-            .patch(`/reply_hub_chat/mark_as_read/${msg.uuid}`)
+            .patch(`/reply_hub_chat/mark_as_all_read/${client.id}`)
             .catch(() => {});
         }
 
-        // Clear unread badge in sidebar
+        // Clear unread badge immediately in the sidebar
         setClients((prev) =>
           prev.map((c) => (c.id === client.id ? { ...c, unreadCount: 0 } : c)),
         );
@@ -323,8 +324,7 @@ const AIReplyHubDashboard: React.FC = () => {
     [userId],
   );
 
-  // ── Fetch chat partners on mount ──────────────────────────────────────────
-
+  // ── Fetch chat partners ───────────────────────────────────────────────────
   const fetchChatPartners = useCallback(async () => {
     if (!userId) return;
     setLoadingClients(true);
@@ -332,11 +332,10 @@ const AIReplyHubDashboard: React.FC = () => {
       const res = await axiosInstance.get(
         `/reply_hub_chat/chat_partner/${userId}`,
       );
-      console.log("Fetch chat partners response:", res.data);
       const data: ApiChatPartner[] = res.data?.result ?? res.data ?? [];
       const mapped = data.map(mapApiPartner);
+      console.log(data)
       setClients(mapped);
-      // Auto-select first conversation
       if (mapped.length > 0) loadChatHistory(mapped[0]);
     } catch (error) {
       console.error("fetchChatPartners error:", error);
@@ -351,16 +350,13 @@ const AIReplyHubDashboard: React.FC = () => {
   }, [fetchChatPartners]);
 
   // ── Send message ──────────────────────────────────────────────────────────
-
   const handleSend = async () => {
     if (!newMessage.trim() || !selected || sendingMessage || !userId) return;
-
     const text = newMessage.trim();
     setNewMessage("");
     setInserted(false);
     setSendingMessage(true);
 
-    // Optimistic message so UI feels instant
     const tempId = `temp-${Date.now()}`;
     const optimistic: Message = {
       id: tempId,
@@ -384,14 +380,10 @@ const AIReplyHubDashboard: React.FC = () => {
         direction: "outbound",
         ai_reply_enable: aiAutoReply,
       });
-      console.log("Create message response:", res.data);
       const created: ApiMessage = res.data?.result ?? res.data;
-
-      // Replace optimistic entry with real one from server
-      const realMsg = mapApiMessage(created);
-      setMessages((prev) => prev.map((m) => (m.id === tempId ? realMsg : m)));
-
-      // Update last message preview in sidebar
+      setMessages((prev) =>
+        prev.map((m) => (m.id === tempId ? mapApiMessage(created) : m)),
+      );
       setClients((prev) =>
         prev.map((c) =>
           c.id === selected.id
@@ -399,8 +391,6 @@ const AIReplyHubDashboard: React.FC = () => {
             : c,
         ),
       );
-
-      // Simulate delivery → read status progression
       setTimeout(async () => {
         try {
           await axiosInstance.patch(
@@ -414,7 +404,6 @@ const AIReplyHubDashboard: React.FC = () => {
           );
         } catch {}
       }, 1000);
-
       setTimeout(async () => {
         try {
           await axiosInstance.patch(
@@ -431,7 +420,6 @@ const AIReplyHubDashboard: React.FC = () => {
     } catch (error) {
       console.error("handleSend error:", error);
       toast.error("Failed to send message");
-      // Show failure indicator on the optimistic bubble
       setMessages((prev) =>
         prev.map((m) => (m.id === tempId ? { ...m, status: "failed" } : m)),
       );
@@ -440,35 +428,26 @@ const AIReplyHubDashboard: React.FC = () => {
     }
   };
 
-  // ── Generate / regenerate AI suggestion ──────────────────────────────────
-
+  // ── Generate AI suggestion ────────────────────────────────────────────────
   const handleRegenerate = async () => {
     if (!selected) return;
-
-    // Find latest inbound message that has a uuid to send to the API
     const lastInbound = [...messages]
       .reverse()
       .find((m) => m.type === "incoming" && m.uuid);
-
     if (!lastInbound?.uuid) {
       toast.error("No incoming message to generate a reply for");
       return;
     }
-
     setLoadingAiSuggestion(true);
     setInserted(false);
     setSuggestionOpen(true);
-
     try {
       const res = await axiosInstance.post(
         `/reply_hub_chat/generate-ai-reply/${lastInbound.uuid}`,
       );
-      console.log("Generate AI reply response:", res.data);
       const updated: ApiMessage = res.data?.result ?? res.data;
-
       if (updated?.ai_reply) {
         setAiSuggestion(updated.ai_reply);
-        // Sync ai_reply into messages list so re-selecting stays consistent
         setMessages((prev) =>
           prev.map((m) =>
             m.uuid === lastInbound.uuid
@@ -487,31 +466,36 @@ const AIReplyHubDashboard: React.FC = () => {
   };
 
   // ── Toggle AI auto-reply ──────────────────────────────────────────────────
-
+  // ⚠️  BACKEND ACTION NEEDED:
+  // The current endpoint PATCH /reply_hub_chat/toggle-ai-reply/:message_uuid
+  // works per message — not per client. Two options to fix this:
+  //   Option A (recommended): Add ai_reply_enable column to client_lists table
+  //             and expose: PATCH /client_lists/toggle-ai/:client_id?enable=true|false
+  //   Option B: Add new endpoint: PATCH /reply_hub_chat/toggle-ai-reply/client/:client_id?enable=true|false
+  //             which updates ai_reply_enable on ALL messages for that client.
+  // Until then, we call the message-level endpoint on the latest message uuid as a workaround.
   const handleToggleAI = async () => {
     if (!selected || togglingAI) return;
     const next = !aiAutoReply;
-
-    // Optimistic update
     setAiAutoReply(next);
     setClients((prev) =>
       prev.map((c) => (c.id === selected.id ? { ...c, aiEnabled: next } : c)),
     );
 
-    // Persist against most recent message uuid
     const lastMsg = [...messages].reverse().find((m) => m.uuid);
-    if (!lastMsg?.uuid) return;
-
     setTogglingAI(true);
     try {
-      const res = await axiosInstance.patch(
-        `/reply_hub_chat/toggle-ai-reply/${lastMsg.uuid}?enable=${next}`,
-      );
-      console.log("Toggle AI reply response:", res.data);
+      if (lastMsg?.uuid) {
+        // Workaround until client-level endpoint exists:
+        await axiosInstance.patch(
+          `/reply_hub_chat/toggle-ai-reply/${lastMsg.uuid}?enable=${next}`,
+        );
+      }
+      // ✅ Replace above with this once backend Option A or B is implemented:
+      // await axiosInstance.patch(`/reply_hub_chat/toggle-ai-reply/client/${selected.id}?enable=${next}`);
     } catch (error) {
       console.error("handleToggleAI error:", error);
       toast.error("Failed to toggle AI reply");
-      // Revert on failure
       setAiAutoReply(!next);
       setClients((prev) =>
         prev.map((c) =>
@@ -523,8 +507,6 @@ const AIReplyHubDashboard: React.FC = () => {
     }
   };
 
-  // ── Insert suggestion into compose box ───────────────────────────────────
-
   const handleInsert = () => {
     setNewMessage(aiSuggestion);
     setInserted(true);
@@ -532,24 +514,18 @@ const AIReplyHubDashboard: React.FC = () => {
     textareaRef.current?.focus();
   };
 
-  // ── Derived ───────────────────────────────────────────────────────────────
-
   const filtered = clients.filter(
     (c) =>
       !searchQuery ||
       c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.lastMessage.toLowerCase().includes(searchQuery.toLowerCase()),
   );
-
   const latestIncoming = [...messages]
     .reverse()
     .find((m) => m.type === "incoming");
   const totalUnread = clients.reduce((s, c) => s + c.unreadCount, 0);
 
   // ─────────────────────────────────────────────────────────────────────────
-  // RENDER
-  // ─────────────────────────────────────────────────────────────────────────
-
   return (
     <DashboardLayout>
       <div className="h-screen flex overflow-hidden bg-bg-base">
@@ -587,7 +563,7 @@ const AIReplyHubDashboard: React.FC = () => {
               </div>
             ) : filtered.length === 0 ? (
               <div className="text-center py-12">
-                <MessageSquare className="w-8 h-8 text-border-strong mx-auto mb-2" />
+                <MessageSquare className="w-8 h-8 text-border mx-auto mb-2" />
                 <p className="text-xs text-text-muted">
                   No conversations found
                 </p>
@@ -625,7 +601,7 @@ const AIReplyHubDashboard: React.FC = () => {
                           </p>
                           <div className="flex items-center gap-1.5 shrink-0 ml-1">
                             {client.unreadCount > 0 && (
-                              <span className="text-[9px] font-bold bg-secondary text-on-secondary px-1.5 py-0.5 rounded-full">
+                              <span className="text-[9px] font-bold bg-secondary text-on-brand px-1.5 py-0.5 rounded-full">
                                 {client.unreadCount}
                               </span>
                             )}
@@ -710,14 +686,12 @@ const AIReplyHubDashboard: React.FC = () => {
                     </span>
                     <div className="flex-1 h-px bg-border" />
                   </div>
-
                   {messages.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-16 gap-2">
-                      <MessageSquare className="w-8 h-8 text-border-strong" />
+                      <MessageSquare className="w-8 h-8 text-border" />
                       <p className="text-xs text-text-muted">No messages yet</p>
                     </div>
                   )}
-
                   {messages.map((msg) => (
                     <div
                       key={msg.id}
@@ -734,7 +708,7 @@ const AIReplyHubDashboard: React.FC = () => {
                         <div
                           className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-card ${
                             msg.type === "incoming"
-                              ? "bg-surface border border-border text-text-primary rounded-tl-sm"
+                              ? "bg-surface border border-border text-text-heading rounded-tl-sm"
                               : "bg-brand text-on-brand rounded-tr-sm"
                           }`}
                         >
@@ -804,12 +778,11 @@ const AIReplyHubDashboard: React.FC = () => {
                     )}
                   </div>
                 </button>
-
                 {suggestionOpen && (
                   <div className="px-5 pb-3">
                     <div className="flex items-start gap-3 p-3 bg-brand-light border border-secondary/20 rounded-xl">
                       <Sparkles className="w-3.5 h-3.5 text-secondary shrink-0 mt-0.5" />
-                      <p className="flex-1 text-xs text-text-primary leading-relaxed">
+                      <p className="flex-1 text-xs text-text-heading leading-relaxed">
                         {loadingAiSuggestion
                           ? "Generating suggestion…"
                           : aiSuggestion ||
@@ -840,7 +813,7 @@ const AIReplyHubDashboard: React.FC = () => {
               </div>
             )}
 
-            {/* Input */}
+            {/* Compose */}
             <div className="px-5 py-4 pb-6 border-t border-border bg-surface shrink-0">
               <div className="flex items-center gap-3 bg-bg-base border border-border rounded-xl px-4 py-3 focus-within:border-secondary focus-within:ring-1 focus-within:ring-secondary transition-all shadow-card">
                 <textarea
@@ -885,9 +858,8 @@ const AIReplyHubDashboard: React.FC = () => {
             </div>
           </div>
         ) : (
-          // Empty state when no client is selected
           <div className="flex-1 flex flex-col items-center justify-center bg-bg-base gap-3">
-            <MessageSquare className="w-12 h-12 text-border-strong" />
+            <MessageSquare className="w-12 h-12 text-border" />
             <p className="text-sm text-text-muted">Select a conversation</p>
           </div>
         )}
@@ -926,13 +898,11 @@ const AIReplyHubDashboard: React.FC = () => {
                   onClick={handleToggleAI}
                   disabled={!selected || togglingAI}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${
-                    aiAutoReply ? "bg-secondary" : "bg-border-strong"
+                    aiAutoReply ? "bg-secondary" : "bg-border"
                   }`}
                 >
                   <span
-                    className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
-                      aiAutoReply ? "translate-x-6" : "translate-x-1"
-                    }`}
+                    className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${aiAutoReply ? "translate-x-6" : "translate-x-1"}`}
                   />
                 </button>
               </div>
@@ -958,7 +928,7 @@ const AIReplyHubDashboard: React.FC = () => {
                   </div>
                 ) : (
                   <>
-                    <p className="text-xs text-text-primary leading-relaxed">
+                    <p className="text-xs text-text-secondary leading-relaxed">
                       {latestIncoming?.text || "No incoming messages yet"}
                     </p>
                     {latestIncoming && selected && (
@@ -974,10 +944,10 @@ const AIReplyHubDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* AI paused */}
+            {/* AI paused notice */}
             {!aiAutoReply && (
               <div className="p-4 bg-bg-base border-2 border-dashed border-border rounded-xl text-center">
-                <Zap className="w-6 h-6 text-border-strong mx-auto mb-2" />
+                <Zap className="w-6 h-6 text-text-muted mx-auto mb-2" />
                 <p className="text-xs font-semibold text-text-heading mb-1">
                   AI is paused
                 </p>
@@ -987,7 +957,7 @@ const AIReplyHubDashboard: React.FC = () => {
               </div>
             )}
 
-            {/* Connected platforms — counts derived from fetched data */}
+            {/* Connected platforms */}
             <div>
               <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-3">
                 Connected Platforms
@@ -1037,7 +1007,7 @@ const AIReplyHubDashboard: React.FC = () => {
           background: transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: var(--color-border-strong);
+          background: var(--color-border);
           border-radius: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {

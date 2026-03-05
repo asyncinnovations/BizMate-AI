@@ -26,5 +26,6 @@ export declare class AiReplyHubChatService {
     generate_ai_reply_service(message: AiReplyHubChat): Promise<AiReplyHubChat | undefined>;
     message_by_client_service(user_id: string, client_id: string): Promise<AiReplyHubChat[]>;
     chat_mark_as_read_service(message_id: string): Promise<AiReplyHubChat | null>;
+    chat_mark_as_all_read_service(client_id: string): Promise<AiReplyHubChat | null>;
     user_chat_partner_service(userId: string): Promise<any>;
 }
