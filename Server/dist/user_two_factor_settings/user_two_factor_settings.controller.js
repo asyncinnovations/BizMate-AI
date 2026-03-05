@@ -22,13 +22,7 @@ let UserTwoFactorSettingsController = class UserTwoFactorSettingsController {
         this.twoFactorService = twoFactorService;
     }
     async getSettings(userId) {
-        try {
-            const response = await this.twoFactorService.getSettings(userId);
-            return response;
-        }
-        catch (error) {
-            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
-        }
+        return this.twoFactorService.getSettings(userId);
     }
     async enableTOTP(user_id) {
         try {
