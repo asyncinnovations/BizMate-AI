@@ -24,41 +24,60 @@ export default function PageHeader({
   buttons = [],
 }: HeaderProps) {
   return (
-    <div className="mb-8">
-      <div className="flex items-center justify-between mb-2">
+    <div className="mb-6">
+      <div className="flex items-center justify-between">
+
+        {/* LEFT SECTION */}
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl font-bold text-[#1B2A49]">
-              {icon && (
-                <span className="inline-flex items-center mr-2 p-2 rounded-full bg-gradient-to-br from-green-400/20 to-blue-500/20 border border-green-400/30 shadow-lg shadow-green-500/10">
-                  {icon}
-                </span>
-              )}
-              {title}
-            </h1>
-            {showAIBadge && (
-              <div className="flex items-center gap-1 px-3 py-1 bg-purple-100 rounded-full">
-                <Sparkles size={14} className="text-purple-600" />
-                <span className="text-xs font-semibold text-purple-600">
-                  AI Powered
-                </span>
-              </div>
+
+            {/* Icon bubble */}
+            {icon && (
+              <span className="flex items-center justify-center w-12 h-12 rounded-full bg-brand-light border border-border shadow-card">
+                {icon}
+              </span>
             )}
+
+            <div>
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-bold text-text-heading">
+                  {title}
+                </h1>
+
+                {/* AI badge — kept purple as it's a distinct product identity color */}
+                {showAIBadge && (
+                  <div className="flex items-center gap-1 px-3 py-1 bg-purple-100 rounded-full">
+                    <Sparkles size={14} className="text-purple-600" />
+                    <span className="text-xs font-semibold text-purple-600">
+                      AI Powered
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <p className="text-text-primary mt-1">
+                {description}
+              </p>
+            </div>
           </div>
-          <p className="text-[#344767]">{description}</p>
         </div>
-        <div className="flex gap-3">
-          {buttons.map((button, index) => (
-            <Button
-              key={index}
-              onClick={button.onClick}
-              startIcon={button.icon}
-              className={button.className}
-            >
-              {button.text}
-            </Button>
-          ))}
-        </div>
+
+        {/* RIGHT SECTION — action buttons */}
+        {buttons.length > 0 && (
+          <div className="flex gap-3">
+            {buttons.map((button, index) => (
+              <Button
+                key={index}
+                onClick={button.onClick}
+                startIcon={button.icon}
+                className={button.className}
+              >
+                {button.text}
+              </Button>
+            ))}
+          </div>
+        )}
+
       </div>
     </div>
   );

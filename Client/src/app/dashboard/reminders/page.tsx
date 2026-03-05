@@ -74,7 +74,7 @@ const AIRemindersPage = () => {
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
 
   const [formData, setFormData] = useState<FormData>({
-    user_id:  user?.user.user_id,
+    user_id: user?.user.user_id,
     title: "",
     description: "",
     type: "Custom",
@@ -101,17 +101,17 @@ const AIRemindersPage = () => {
   const recurrenceOptions = ["none", "monthly", "quarterly", "yearly"];
 
   const typeColors: Record<ReminderType, string> = {
-    VAT: "bg-purple-100 text-purple-700",
-    License: "bg-blue-100 text-blue-700",
-    Payroll: "bg-green-100 text-green-700",
-    Custom: "bg-gray-100 text-gray-700",
+    VAT: "bg-brand-light text-secondary",
+    License: "bg-status-info-bg text-status-info",
+    Payroll: "bg-status-success-bg text-status-success",
+    Custom: "bg-bg-base text-text-muted",
   };
 
   const statusColors: Record<ReminderStatus, string> = {
-    pending: "bg-yellow-100 text-yellow-700",
-    sent: "bg-blue-100 text-blue-700",
-    completed: "bg-green-100 text-green-700",
-    missed: "bg-red-100 text-red-700",
+    pending: "bg-status-warning-bg text-status-warning",
+    sent: "bg-status-info-bg text-status-info",
+    completed: "bg-status-success-bg text-status-success",
+    missed: "bg-status-error-bg text-status-error",
   };
 
   /////////////////////////
@@ -121,7 +121,7 @@ const AIRemindersPage = () => {
     try {
       setIsLoading(true);
       const response = await axiosInstance.get(
-        `/ai_reminder/user/${user?.user.user_id}`
+        `/ai_reminder/user/${user?.user.user_id}`,
       );
       if (response.status === 200) {
         console.log(response.data.response);
@@ -135,14 +135,13 @@ const AIRemindersPage = () => {
   };
 
   //////////////////////////
-  //Fetch Recurring Reminders
+  // Fetch Recurring Reminders
   /////////////////////////
   const fetchRecurringReminders = async () => {
     try {
       const response = await axiosInstance.get(
-        `/ai_reminder/recurring/${user?.user.user_id}`
+        `/ai_reminder/recurring/${user?.user.user_id}`,
       );
-
       if (response.status === 200) {
         setRecurringReminders(response.data.response);
       }
@@ -169,7 +168,7 @@ const AIRemindersPage = () => {
     try {
       const response = await axiosInstance.post(
         "/ai_reminder/create",
-        formData
+        formData,
       );
       if (response.status === 201) {
         toast.success("Reminder created successfully!");
@@ -187,14 +186,9 @@ const AIRemindersPage = () => {
         type: "Custom",
         reminder_date: "",
         notify_before: 1,
-        notify_channels: {
-          email: true,
-          whatsapp: true,
-          push: false,
-        },
+        notify_channels: { email: true, whatsapp: true, push: false },
         recurrence_rule: "none",
       });
-
       setShowForm(false);
     }
   };
@@ -206,7 +200,7 @@ const AIRemindersPage = () => {
     if (confirm("Are you sure you to want to delete the reminder?")) {
       try {
         const response = await axiosInstance.delete(
-          `/ai_reminder/delete/${uuid}`
+          `/ai_reminder/delete/${uuid}`,
         );
         if (response.status === 200) {
           toast.success("Reminder deleted!");
@@ -232,9 +226,8 @@ const AIRemindersPage = () => {
     try {
       const response = await axiosInstance.put(
         `/ai_reminder/update/${editingReminder?.uuid}`,
-        formData
+        formData,
       );
-
       if (response.status === 200) {
         toast.success("Reminder updated successfully!");
         fetchRecurringReminders();
@@ -242,8 +235,8 @@ const AIRemindersPage = () => {
           prev.map((r) =>
             r.uuid === editingReminder?.uuid
               ? { ...r, ...response.data.response }
-              : r
-          )
+              : r,
+          ),
         );
       }
     } catch (error) {
@@ -259,7 +252,7 @@ const AIRemindersPage = () => {
   const toggleStatus = async (reminder: Reminder) => {
     if (reminder.status === "sent" || reminder.status === "missed") {
       return toast.error(
-        `You can't change status as its already marked as ${reminder.status}`
+        `You can't change status as its already marked as ${reminder.status}`,
       );
     }
 
@@ -268,16 +261,14 @@ const AIRemindersPage = () => {
         reminder.status.toLowerCase() === "pending" ? "completed" : "pending";
       const response = await axiosInstance.patch(
         `/ai_reminder/update/status/${reminder.uuid}`,
-        {
-          status: updatedStatus,
-        }
+        { status: updatedStatus },
       );
       if (response.status === 200) {
         toast.success("Status updated successfully!");
         setReminders(
           reminders.map((r) =>
-            r.uuid === reminder.uuid ? { ...r, status: updatedStatus } : r
-          )
+            r.uuid === reminder.uuid ? { ...r, status: updatedStatus } : r,
+          ),
         );
       }
     } catch (error) {
@@ -320,11 +311,7 @@ const AIRemindersPage = () => {
       type: "Custom",
       reminder_date: "",
       notify_before: 1,
-      notify_channels: {
-        email: true,
-        whatsapp: true,
-        push: false,
-      },
+      notify_channels: { email: true, whatsapp: true, push: false },
       recurrence_rule: "none",
     });
   };
@@ -333,7 +320,7 @@ const AIRemindersPage = () => {
   // Notify Channel Change
   ///////////////////////////
   const handleNotifyChannelChange = (
-    channel: keyof FormData["notify_channels"]
+    channel: keyof FormData["notify_channels"],
   ) => {
     setFormData({
       ...formData,
@@ -352,34 +339,33 @@ const AIRemindersPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen text-[#1B2A49] p-4 mb-8">
+      <div className="min-h-screen text-text-heading p-4 mb-8">
         <div className="w-full">
           {/* Header */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
               <div>
-                <h1 className="text-3xl font-bold text-[#1B2A49] flex items-center gap-3">
+                <h1 className="text-3xl font-bold text-text-heading flex items-center gap-3">
                   <div className="relative">
                     <Bell className="w-8 h-8" />
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#F6A821] rounded-full animate-pulse"></div>
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-status-warning rounded-full animate-pulse"></div>
                   </div>
                   Smart Reminders
                 </h1>
-                <p className="text-[#344767] mt-2 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#F6A821] animate-pulse" />
+                <p className="text-text-secondary mt-2 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-status-warning animate-pulse" />
                   AI-powered compliance & business automation
                 </p>
               </div>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setShowRecurring(true)}
-                  className="relative bg-white p-3 rounded-lg shadow-sm border border-[#E1E8F5] hover:shadow-md transition-all"
+                  className="relative bg-surface p-3 rounded-lg shadow-card border border-border hover:shadow-raised transition-all"
                   title="View Recurring Reminders"
                 >
-                  <RefreshCcw className="w-5 h-5 text-[#344767]" />
-
+                  <RefreshCcw className="w-5 h-5 text-text-secondary" />
                   {recurringReminders.length > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-[#F6A821] text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-semibold animate-bounce">
+                    <span className="absolute -top-1 -right-1 bg-status-warning text-on-brand text-xs w-5 h-5 flex items-center justify-center rounded-full font-semibold animate-bounce">
                       {recurringReminders.length}
                     </span>
                   )}
@@ -387,7 +373,7 @@ const AIRemindersPage = () => {
                 <Button
                   onClick={handleCreateModalOpen}
                   startIcon={<Plus className="w-5 h-5" />}
-                  className="bg-gradient-to-r from-[#1B2A49] to-[#2E69A4]"
+                  className="bg-brand hover:bg-brand-hover text-on-brand"
                 >
                   New Reminder
                 </Button>
@@ -399,18 +385,18 @@ const AIRemindersPage = () => {
             {/* Main Content Area */}
             <div className="lg:col-span-2">
               {/* Filters and View Toggle */}
-              <div className="bg-white p-4 rounded-xl shadow-sm border border-[#E1E8F5] mb-6">
+              <div className="bg-surface p-4 rounded-xl shadow-card border border-border mb-6">
                 <div className="flex flex-wrap items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <Filter className="w-4 h-4 text-[#344767]" />
-                    <span className="text-sm font-medium text-[#344767]">
+                    <Filter className="w-4 h-4 text-text-secondary" />
+                    <span className="text-sm font-medium text-text-secondary">
                       Filter by:
                     </span>
                   </div>
                   <select
                     value={filterType}
                     onChange={(e) => setFilterType(e.target.value)}
-                    className="px-3 py-2 border border-[#E1E8F5] rounded-lg text-sm text-[#344767] focus:outline-none focus:ring-2 focus:ring-[#2E69A4]"
+                    className="px-3 py-2 border border-border rounded-lg text-sm text-text-secondary bg-bg-base focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary"
                   >
                     <option value="all">All Types</option>
                     {reminderTypes.map((type) => (
@@ -422,7 +408,7 @@ const AIRemindersPage = () => {
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    className="px-3 py-2 border border-[#E1E8F5] rounded-lg text-sm text-[#344767] focus:outline-none focus:ring-2 focus:ring-[#2E69A4]"
+                    className="px-3 py-2 border border-border rounded-lg text-sm text-text-secondary bg-bg-base focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary"
                   >
                     <option value="all">All Status</option>
                     <option value="pending">Pending</option>
@@ -435,8 +421,8 @@ const AIRemindersPage = () => {
                       onClick={() => setViewMode("list")}
                       className={`p-2 rounded-lg transition-all ${
                         viewMode === "list"
-                          ? "bg-[#1B2A49] text-white shadow-md"
-                          : "bg-gray-100 text-[#344767] hover:bg-gray-200"
+                          ? "bg-brand text-on-brand shadow-card"
+                          : "bg-bg-base text-text-secondary hover:bg-border"
                       }`}
                       title="List View"
                     >
@@ -446,8 +432,8 @@ const AIRemindersPage = () => {
                       onClick={() => setViewMode("calendar")}
                       className={`p-2 rounded-lg transition-all ${
                         viewMode === "calendar"
-                          ? "bg-[#1B2A49] text-white shadow-md"
-                          : "bg-gray-100 text-[#344767] hover:bg-gray-200"
+                          ? "bg-brand text-on-brand shadow-card"
+                          : "bg-bg-base text-text-secondary hover:bg-border"
                       }`}
                       title="Calendar View"
                     >
@@ -472,12 +458,12 @@ const AIRemindersPage = () => {
                 <div className="space-y-4">
                   {!isLoading ? (
                     filteredReminders.length === 0 ? (
-                      <div className="bg-white p-12 rounded-xl shadow-sm border border-[#E1E8F5] text-center">
-                        <Bell className="w-16 h-16 text-[#E1E8F5] mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-[#344767] mb-2">
+                      <div className="bg-surface p-12 rounded-xl shadow-card border border-border text-center">
+                        <Bell className="w-16 h-16 text-border mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-text-secondary mb-2">
                           No reminders found
                         </h3>
-                        <p className="text-sm text-[#344767] opacity-70">
+                        <p className="text-sm text-text-muted">
                           Create your first reminder or let AI auto-detect them
                         </p>
                       </div>
@@ -507,49 +493,55 @@ const AIRemindersPage = () => {
             {/* Sidebar */}
             <div className="space-y-6">
               {/* Overview Stats */}
-              <div className="bg-white p-5 rounded-xl shadow-sm border border-[#E1E8F5]">
+              <div className="bg-surface p-5 rounded-xl shadow-card border border-border">
                 <div className="flex items-center gap-2 mb-4">
-                  <TrendingUp className="w-5 h-5 text-[#2E69A4]" />
-                  <h3 className="font-semibold text-[#1B2A49]">Overview</h3>
+                  <TrendingUp className="w-5 h-5 text-secondary" />
+                  <h3 className="font-semibold text-text-heading">Overview</h3>
                 </div>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-[#F4F7FA] rounded-lg hover:shadow-sm transition-shadow">
-                    <span className="text-sm text-[#344767]">
+                  <div className="flex items-center justify-between p-3 bg-bg-base rounded-lg border border-border hover:shadow-card transition-shadow">
+                    <span className="text-sm text-text-secondary">
                       Total Reminders
                     </span>
-                    <span className="font-bold text-[#1B2A49] text-lg">
+                    <span className="font-bold text-text-heading text-lg">
                       {reminders.length}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg hover:shadow-sm transition-shadow">
-                    <span className="text-sm text-[#344767]">Pending</span>
-                    <span className="font-bold text-[#F6A821] text-lg">
+                  <div className="flex items-center justify-between p-3 bg-status-warning-bg rounded-lg border border-status-warning-border hover:shadow-card transition-shadow">
+                    <span className="text-sm text-text-secondary">Pending</span>
+                    <span className="font-bold text-status-warning text-lg">
                       {reminders.filter((r) => r.status === "pending").length}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg hover:shadow-sm transition-shadow">
-                    <span className="text-sm text-[#344767]">Completed</span>
-                    <span className="font-bold text-green-600 text-lg">
+                  <div className="flex items-center justify-between p-3 bg-status-success-bg rounded-lg border border-status-success-border hover:shadow-card transition-shadow">
+                    <span className="text-sm text-text-secondary">
+                      Completed
+                    </span>
+                    <span className="font-bold text-status-success text-lg">
                       {reminders.filter((r) => r.status === "completed").length}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg hover:shadow-sm transition-shadow">
+                  <div className="flex items-center justify-between p-3 bg-brand-light rounded-lg border border-border hover:shadow-card transition-shadow">
                     <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-purple-600" />
-                      <span className="text-sm text-[#344767]">AI Created</span>
+                      <Sparkles className="w-4 h-4 text-secondary" />
+                      <span className="text-sm text-text-secondary">
+                        AI Created
+                      </span>
                     </div>
-                    <span className="font-bold text-purple-600 text-lg">0</span>
+                    <span className="font-bold text-secondary text-lg">0</span>
                   </div>
                 </div>
               </div>
 
               {/* By Type */}
-              <div className="bg-white p-5 rounded-xl shadow-sm border border-[#E1E8F5]">
-                <h3 className="font-semibold text-[#1B2A49] mb-4">By Type</h3>
+              <div className="bg-surface p-5 rounded-xl shadow-card border border-border">
+                <h3 className="font-semibold text-text-heading mb-4">
+                  By Type
+                </h3>
                 <div className="space-y-2">
                   {reminderTypes.map((type) => {
                     const count = reminders.filter(
-                      (r) => r.type === type
+                      (r) => r.type === type,
                     ).length;
                     const percentage =
                       reminders.length > 0
@@ -563,13 +555,13 @@ const AIRemindersPage = () => {
                           >
                             {type}
                           </span>
-                          <span className="text-sm font-semibold text-[#344767]">
+                          <span className="text-sm font-semibold text-text-secondary">
                             {count}
                           </span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-1.5">
+                        <div className="w-full bg-border rounded-full h-1.5">
                           <div
-                            className="bg-gradient-to-r from-[#2E69A4] to-[#1B2A49] h-1.5 rounded-full transition-all"
+                            className="bg-brand h-1.5 rounded-full transition-all"
                             style={{ width: `${percentage}%` }}
                           ></div>
                         </div>
@@ -595,7 +587,7 @@ const AIRemindersPage = () => {
             <div className="p-6">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-[#344767] mb-2">
+                  <label className="block text-sm font-medium text-text-secondary mb-2">
                     Title *
                   </label>
                   <input
@@ -604,13 +596,13 @@ const AIRemindersPage = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, title: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767]"
+                    className="w-full px-4 py-2 border border-border rounded-lg bg-bg-base text-text-secondary focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary"
                     placeholder="Enter reminder title"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-[#344767] mb-2">
+                  <label className="block text-sm font-medium text-text-secondary mb-2">
                     Description
                   </label>
                   <textarea
@@ -618,7 +610,7 @@ const AIRemindersPage = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, description: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] resize-none"
+                    className="w-full px-4 py-2 border border-border rounded-lg bg-bg-base text-text-secondary focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary resize-none"
                     placeholder="Enter reminder description"
                     rows={3}
                   />
@@ -626,7 +618,7 @@ const AIRemindersPage = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-[#344767] mb-2">
+                    <label className="block text-sm font-medium text-text-secondary mb-2">
                       Type *
                     </label>
                     <select
@@ -637,7 +629,7 @@ const AIRemindersPage = () => {
                           type: e.target.value as ReminderType,
                         })
                       }
-                      className="w-full px-4 py-2 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767]"
+                      className="w-full px-4 py-2 border border-border rounded-lg bg-bg-base text-text-secondary focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary"
                     >
                       {reminderTypes.map((type) => (
                         <option key={type} value={type}>
@@ -648,7 +640,7 @@ const AIRemindersPage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-[#344767] mb-2">
+                    <label className="block text-sm font-medium text-text-secondary mb-2">
                       Reminder Date *
                     </label>
                     <input
@@ -660,14 +652,14 @@ const AIRemindersPage = () => {
                           reminder_date: e.target.value,
                         })
                       }
-                      className="w-full px-4 py-2 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767]"
+                      className="w-full px-4 py-2 border border-border rounded-lg bg-bg-base text-text-secondary focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-[#344767] mb-2">
+                    <label className="block text-sm font-medium text-text-secondary mb-2">
                       Notify Before
                     </label>
                     <select
@@ -678,7 +670,7 @@ const AIRemindersPage = () => {
                           notify_before: Number(e.target.value),
                         })
                       }
-                      className="w-full px-4 py-2 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767]"
+                      className="w-full px-4 py-2 border border-border rounded-lg bg-bg-base text-text-secondary focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary"
                     >
                       {notifyBeforeOptions.map((option) => (
                         <option key={option.name} value={option.value}>
@@ -688,7 +680,7 @@ const AIRemindersPage = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#344767] mb-2">
+                    <label className="block text-sm font-medium text-text-secondary mb-2">
                       Recurrence
                     </label>
                     <select
@@ -699,7 +691,7 @@ const AIRemindersPage = () => {
                           recurrence_rule: e.target.value,
                         })
                       }
-                      className="w-full px-4 py-2 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767]"
+                      className="w-full px-4 py-2 border border-border rounded-lg bg-bg-base text-text-secondary focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary"
                     >
                       {recurrenceOptions.map((option) => (
                         <option key={option} value={option}>
@@ -713,50 +705,40 @@ const AIRemindersPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-[#344767] mb-2">
+                  <label className="block text-sm font-medium text-text-secondary mb-2">
                     Notification Channels
                   </label>
                   <div className="flex gap-4">
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={formData.notify_channels.email}
-                        onChange={() => handleNotifyChannelChange("email")}
-                        className="rounded border-[#E1E8F5] text-[#2E69A4] focus:ring-[#2E69A4]"
-                      />
-                      <span className="text-sm text-[#344767]">Email</span>
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={formData.notify_channels.whatsapp}
-                        onChange={() => handleNotifyChannelChange("whatsapp")}
-                        className="rounded border-[#E1E8F5] text-[#2E69A4] focus:ring-[#2E69A4]"
-                      />
-                      <span className="text-sm text-[#344767]">Whatsapp</span>
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={formData.notify_channels.push}
-                        onChange={() => handleNotifyChannelChange("push")}
-                        className="rounded border-[#E1E8F5] text-[#2E69A4] focus:ring-[#2E69A4]"
-                      />
-                      <span className="text-sm text-[#344767]">Push</span>
-                    </label>
+                    {(["email", "whatsapp", "push"] as const).map((channel) => (
+                      <label
+                        key={channel}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.notify_channels[channel]}
+                          onChange={() => handleNotifyChannelChange(channel)}
+                          className="rounded accent-secondary border-border focus:ring-1 focus:ring-secondary"
+                        />
+                        <span className="text-sm text-text-secondary capitalize">
+                          {channel}
+                        </span>
+                      </label>
+                    ))}
                   </div>
                 </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
-                  <Sparkles className="w-4 h-4 text-[#2E69A4] flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-[#344767]">
+                <div className="bg-status-info-bg border border-status-info-border rounded-lg p-3 flex items-start gap-2">
+                  <Sparkles className="w-4 h-4 text-status-info flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-text-secondary">
                     <strong>Note:</strong> Set your preferred reminder date and
                     notification preferences.
                   </p>
                 </div>
+
                 <div className="flex gap-3 pt-4">
                   <Button
-                    className="border border-[#E1E8F5] text-[#344767] hover:bg-[#F4F7FA] bg-transparent flex-1"
+                    className="border border-border text-text-secondary hover:bg-bg-base bg-transparent flex-1"
                     onClick={() => {
                       setShowForm(false);
                       setEditingReminder(null);
@@ -779,7 +761,7 @@ const AIRemindersPage = () => {
             </div>
           </Modal>
 
-          {/* Reminders Modal */}
+          {/* Recurring Reminders Modal */}
           <Modal
             isOpen={showRecurring}
             onClose={() => setShowRecurring(false)}
@@ -790,12 +772,12 @@ const AIRemindersPage = () => {
             <div className="p-6 max-h-[70vh] overflow-y-auto">
               {recurringReminders.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <Calendar className="w-16 h-16 text-[#C8D4E7] mb-4" />
-                  <h3 className="text-lg font-semibold text-[#1B2A49] mb-1">
+                  <Calendar className="w-16 h-16 text-border mb-4" />
+                  <h3 className="text-lg font-semibold text-text-heading mb-1">
                     No Recurring Reminders
                   </h3>
-                  <p className="text-sm text-[#6B7A99]">
-                    You haven’t created any recurring reminders yet.
+                  <p className="text-sm text-text-muted">
+                    You haven&apos;t created any recurring reminders yet.
                   </p>
                 </div>
               ) : (
@@ -816,8 +798,8 @@ const AIRemindersPage = () => {
               )}
             </div>
 
-            <div className="p-4 border-t border-[#E1E8F5] bg-[#F4F7FA] flex justify-between items-center">
-              <span className="text-sm text-[#344767]">
+            <div className="p-4 border-t border-border bg-bg-base flex justify-between items-center">
+              <span className="text-sm text-text-secondary">
                 {recurringReminders.length} reminder
                 {recurringReminders.length !== 1 ? "s" : ""}
               </span>

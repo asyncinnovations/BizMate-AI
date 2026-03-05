@@ -14,6 +14,7 @@ import {
 import SectionCard from "@/components/section-card/SectionCard";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
+import EmptyState from "@/components/empty-state/EmptyState";
 import { IntegrationForm } from "@/components/integration-form/IntegrationForm";
 import { useAuth } from "@/context/AuthContext";
 import axiosInstance from "@/utils/axiosInstance";
@@ -22,6 +23,7 @@ import PlatformCard from "@/components/platform-card/PlatformCard";
 import LoadingSpinner from "@/components/loading-spinner/LoadingSpinner";
 import PaymentMethods from "@/components/payment-methods/PaymentMethods";
 
+// ================= TYPES =================
 interface Platforms {
   uuid: string;
   user_id: string;
@@ -42,30 +44,32 @@ interface PlatformOptions {
   color: string;
 }
 
+const EMPTY_CREDENTIALS = {
+  phone_number_id: "",
+  business_account_id: "",
+  access_token: "",
+  instagram_user_id: "",
+  app_id: "",
+  app_secret: "",
+  smtp_host: "",
+  smtp_port: "",
+  smtp_username: "",
+  smtp_password: "",
+  from_email: "",
+};
+
+// ================= COMPONENT =================
 const IntegrationsTab: React.FC = () => {
   const { user, loading } = useAuth();
+
   const [showConnectModal, setShowConnectModal] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState("whatsapp");
   const [platforms, setPlatforms] = useState<Platforms[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [editingPlatform, setEditingPlatform] = useState<Platforms | null>(
-    null
-  );
-  const [credentials, setCredentials] = useState({
-    phone_number_id: "",
-    business_account_id: "",
-    access_token: "",
-    instagram_user_id: "",
-    app_id: "",
-    app_secret: "",
-    smtp_host: "",
-    smtp_port: "",
-    smtp_username: "",
-    smtp_password: "",
-    from_email: "",
-  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [editingPlatform, setEditingPlatform] = useState<Platforms | null>(null);
+  const [credentials, setCredentials] = useState(EMPTY_CREDENTIALS);
 
-  const [platformOptions, setPlatformOptions] = useState<PlatformOptions[]>([
+  const [platformOptions] = useState<PlatformOptions[]>([
     {
       value: "whatsapp",
       label: "WhatsApp",
@@ -86,105 +90,70 @@ const IntegrationsTab: React.FC = () => {
     },
   ]);
 
-  ////////////////////////////////////
-  // Handle Connect Platform
-  ////////////////////////////////////
-  const handleConnectPlatform = async () => {
-    try {
-      // Firstly filtered credentials to get only entries that are filled
-      const filteredCredentials = Object.fromEntries(
-        Object.entries(credentials).filter(([_, value]) => value?.trim() !== "")
-      );
-
-      // Make payload to pass to api endpoint
-      const payload = {
-        user_id: user?.user.user_id,
-        platform: selectedPlatform,
-        access_token: filteredCredentials.access_token,
-        metadata: filteredCredentials,
-      };
-
-      const response = await axiosInstance.post(
-        `/user_integration/create`,
-        payload
-      );
-
-      if (response.status === 201) {
-        toast.success("Platform connected successfully!");
-        console.log(response.data);
-        setPlatforms((prev) => [...prev, response.data.response]);
-      }
-    } catch (error) {
-      console.log("Error occur while connecting playtform", error);
-    } finally {
-      setShowConnectModal(false);
-    }
-  };
-
-  ////////////////////////////////
-  // Fetch User Added PLatforms
-  ///////////////////////////////
+  // ─────────────────────────────────────────
+  // API: GET /user_integration/user/:user_id
+  // Returns: { response: Platforms[] }
+  // ─────────────────────────────────────────
   const fetchUserPlatforms = async () => {
     try {
       setIsLoading(true);
       const response = await axiosInstance.get(
         `/user_integration/user/${user?.user.user_id}`
       );
-      if (response.status === 200) {
-        setPlatforms(response.data.response);
-      }
+      if (response.status === 200) setPlatforms(response.data.response);
     } catch (error) {
-      console.log("Error occur while getting user added platforms", error);
+      console.error("Error fetching platforms:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    if (!loading && user?.user.user_id) {
-      fetchUserPlatforms();
-    }
+    if (!loading && user?.user.user_id) fetchUserPlatforms();
   }, [loading, user]);
 
-  ////////////////////////////////
-  // Delete Single PLatform
-  ///////////////////////////////
-  const handleDeletePlatform = async (platformId: string) => {
-    if (confirm("Are you sure you to want to delete this platform?")) {
-      try {
-        const response = await axiosInstance.delete(
-          `/user_integration/delete/${platformId}`
-        );
-        if (response.status === 200) {
-          toast.success("Platform deleted successfully!");
-          setPlatforms((prev) =>
-            prev.filter((platform) => platform.uuid !== platformId)
-          );
-        }
-      } catch (error) {
-        console.log("Error occur while deleting platform", error);
-      }
-    }
-  };
-
-  ///////////////////////////
-  // Handle Update Platform
-  /////////////////////////////
-  const handleUpdatePlatform = async () => {
+  // ─────────────────────────────────────────
+  // API: POST /user_integration/create
+  // Body: { user_id, platform, access_token, metadata }
+  // ─────────────────────────────────────────
+  const handleConnectPlatform = async () => {
     try {
-      // Firstly filtered credentials to get only entries that are filled
       const filteredCredentials = Object.fromEntries(
-        Object.entries(credentials).filter(([_, value]) => value?.trim() !== "")
+        Object.entries(credentials).filter(([_, v]) => v?.trim() !== "")
       );
-
-      // Make payload to pass to api endpoint
       const payload = {
         user_id: user?.user.user_id,
         platform: selectedPlatform,
         access_token: filteredCredentials.access_token,
         metadata: filteredCredentials,
       };
+      const response = await axiosInstance.post(`/user_integration/create`, payload);
+      if (response.status === 201) {
+        toast.success("Platform connected successfully!");
+        setPlatforms((prev) => [...prev, response.data.response]);
+      }
+    } catch (error) {
+      console.error("Error connecting platform:", error);
+    } finally {
+      setShowConnectModal(false);
+    }
+  };
 
+  // ─────────────────────────────────────────
+  // API: PATCH /user_integration/update/:uuid
+  // Body: { user_id, platform, access_token, metadata }
+  // ─────────────────────────────────────────
+  const handleUpdatePlatform = async () => {
+    try {
+      const filteredCredentials = Object.fromEntries(
+        Object.entries(credentials).filter(([_, v]) => v?.trim() !== "")
+      );
+      const payload = {
+        user_id: user?.user.user_id,
+        platform: selectedPlatform,
+        access_token: filteredCredentials.access_token,
+        metadata: filteredCredentials,
+      };
       const response = await axiosInstance.patch(
         `/user_integration/update/${editingPlatform?.uuid}`,
         payload
@@ -198,24 +167,41 @@ const IntegrationsTab: React.FC = () => {
         );
       }
     } catch (error) {
-      console.log("Error occur while updating platform", error);
+      console.error("Error updating platform:", error);
     } finally {
       setShowConnectModal(false);
     }
   };
 
-  ///////////////////////////
-  // Handle Toggle Status (Connected or Disconnected)
-  /////////////////////////////
+  // ─────────────────────────────────────────
+  // API: DELETE /user_integration/delete/:uuid
+  // ─────────────────────────────────────────
+  const handleDeletePlatform = async (platformId: string) => {
+    if (!confirm("Are you sure you want to delete this platform?")) return;
+    try {
+      const response = await axiosInstance.delete(
+        `/user_integration/delete/${platformId}`
+      );
+      if (response.status === 200) {
+        toast.success("Platform deleted successfully!");
+        setPlatforms((prev) => prev.filter((p) => p.uuid !== platformId));
+      }
+    } catch (error) {
+      console.error("Error deleting platform:", error);
+    }
+  };
+
+  // ─────────────────────────────────────────
+  // API: PATCH /user_integration/update_status/:uuid
+  // Body: { status: "connected" | "disconnected" }
+  // ─────────────────────────────────────────
   const handleToggleStatus = async (platform: Platforms) => {
     try {
-      const status =
-        platform.status === "connected" ? "disconnected" : "connected";
+      const status = platform.status === "connected" ? "disconnected" : "connected";
       const response = await axiosInstance.patch(
         `/user_integration/update_status/${platform.uuid}`,
         { status }
       );
-
       if (response.status === 200) {
         toast.success(`Platform ${status} successfully!`);
         setPlatforms((prev) =>
@@ -223,13 +209,14 @@ const IntegrationsTab: React.FC = () => {
         );
       }
     } catch (error) {
-      console.log("Error occur while updating status", error);
+      console.error("Error toggling platform status:", error);
     }
   };
 
-  ///////////////////////////
-  // Handle Update Sync (Retrive latest data from connected platforms)
-  /////////////////////////////
+  // ─────────────────────────────────────────
+  // API: PATCH /user_integration/update_sync/:uuid
+  // Retrieves latest data from connected platform
+  // ─────────────────────────────────────────
   const handleUpdateSync = async (platformId: string) => {
     try {
       const response = await axiosInstance.patch(
@@ -244,93 +231,41 @@ const IntegrationsTab: React.FC = () => {
         );
       }
     } catch (error) {
-      console.log("Error occur while updating sync status", error);
+      console.error("Error syncing platform:", error);
     }
   };
 
-  ///////////////////////////
-  // Handle Input Change
-  /////////////////////////////
+  // ── Input handlers ──
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setCredentials({ ...credentials, [e.target.name]: e.target.value });
-    console.log(credentials);
+    setCredentials((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  ///////////////////////////
-  // Handle Platform Change
-  /////////////////////////////
   const handlePlatformChange = (platform: string) => {
     setSelectedPlatform(platform);
-    // Reset form when platform changes
-    if (!editingPlatform) {
-      setCredentials({
-        phone_number_id: "",
-        business_account_id: "",
-        access_token: "",
-        instagram_user_id: "",
-        app_id: "",
-        app_secret: "",
-        smtp_host: "",
-        smtp_port: "",
-        smtp_username: "",
-        smtp_password: "",
-        from_email: "",
-      });
-    }
+    if (!editingPlatform) setCredentials(EMPTY_CREDENTIALS);
   };
 
-  ///////////////////////////
-  // Handle Add Modal Open
-  /////////////////////////////
   const handleAddModalOpen = () => {
     setShowConnectModal(true);
     setSelectedPlatform("whatsapp");
     setEditingPlatform(null);
-    setCredentials({
-      phone_number_id: "",
-      business_account_id: "",
-      access_token: "",
-      instagram_user_id: "",
-      app_id: "",
-      app_secret: "",
-      smtp_host: "",
-      smtp_port: "",
-      smtp_username: "",
-      smtp_password: "",
-      from_email: "",
-    });
+    setCredentials(EMPTY_CREDENTIALS);
   };
 
-  ///////////////////////////
-  // Handle Update Modal Open
-  /////////////////////////////
   const handleUpdateModalOpen = (platform: Platforms) => {
     setEditingPlatform(platform);
     setShowConnectModal(true);
     setSelectedPlatform(platform.platform);
-    setCredentials({
-      ...{
-        phone_number_id: "",
-        business_account_id: "",
-        access_token: "",
-        instagram_user_id: "",
-        app_id: "",
-        app_secret: "",
-        smtp_host: "",
-        smtp_port: "",
-        smtp_username: "",
-        smtp_password: "",
-        from_email: "",
-      },
-      ...platform.metadata,
-    });
+    setCredentials({ ...EMPTY_CREDENTIALS, ...platform.metadata });
   };
 
+  // ================= RENDER =================
   return (
     <div className="space-y-6">
       <SectionCard title="Business Platforms" icon={Plug}>
+
         <div className="flex items-center justify-start mb-6">
           <Button
             onClick={handleAddModalOpen}
@@ -340,15 +275,17 @@ const IntegrationsTab: React.FC = () => {
             Connect Platform
           </Button>
         </div>
+
         {isLoading ? (
           <div className="p-20 flex items-center justify-center">
             <LoadingSpinner size="w-8 h-8" />
           </div>
         ) : platforms.length === 0 ? (
-          <div className="text-center py-12 bg-[#F4F7FA] rounded-lg">
-            <Plug className="w-12 h-12 text-[#cacbcc] mx-auto mb-3" />
-            <p className="text-[#344767] mb-4">No platforms connected yet</p>
-          </div>
+          <EmptyState
+            icon={Plug}
+            title="No platforms connected yet"
+            description="Connect WhatsApp, Instagram or Email to get started"
+          />
         ) : (
           <div className="space-y-3">
             {platforms.map((platform) => (
@@ -366,31 +303,29 @@ const IntegrationsTab: React.FC = () => {
         )}
       </SectionCard>
 
-      {/* Payment Methods Component */}
+      {/* Payment Methods */}
       <PaymentMethods />
 
-      {/* Connect Platforms Modal */}
+      {/* Connect / Edit Platform Modal */}
       <Modal
         isOpen={showConnectModal}
         onClose={() => setShowConnectModal(false)}
-        title={
-          !editingPlatform ? "Connect Your Platforms" : "Edit your Platform"
-        }
+        title={!editingPlatform ? "Connect Your Platforms" : "Edit your Platform"}
         titleIcon={<Shield className="w-5 h-5 text-white" />}
         showCloseButton={true}
         closeOnOverlayClick={true}
         size="lg"
       >
         <div className="p-6">
-          <p className="text-sm text-[#344767] mb-6">
+          <p className="text-sm text-text-primary mb-6">
             Integrate your accounts with WhatsApp, Instagram, Email, and more to
             streamline your communication.
           </p>
 
-          {/* Gateway Selection */}
+          {/* Platform selector */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-[#1B2A49] mb-3">
-              Select Platform <span className="text-red-500">*</span>
+            <label className="block text-sm font-medium text-text-heading mb-3">
+              Select Platform <span className="text-status-error">*</span>
             </label>
             <div className="grid grid-cols-3 gap-3">
               {platformOptions.map((platform) => {
@@ -401,25 +336,22 @@ const IntegrationsTab: React.FC = () => {
                     key={platform.value}
                     disabled={isDisabled}
                     onClick={() => handlePlatformChange(platform.value)}
-                    className={`p-4 border-2 rounded-lg transition-all hover:shadow-md ${
-                      selectedPlatform === platform.value
-                        ? `${platform.color} bg-gradient-to-br from-[#2E69A4]/5 to-[#1B2A49]/5 shadow-md`
-                        : "border-[#E1E8F5] hover:border-[#2E69A4]/30"
-                    }   ${
-                      isDisabled
+                    className={`p-4 border-2 rounded-lg transition-all hover:shadow-raised ${selectedPlatform === platform.value
+                      ? `${platform.color} bg-brand-light shadow-card`
+                      : "border-border hover:border-secondary-light"
+                      } ${isDisabled
                         ? "opacity-40 cursor-not-allowed grayscale hover:shadow-none"
                         : ""
-                    }`}
+                      }`}
                   >
                     <div className="flex flex-col items-center gap-2">
                       {platform.icon}
-                      <div
-                        className={`font-medium text-sm ${
-                          isDisabled ? "text-gray-400" : "text-[#1B2A49]"
-                        }`}
+                      <span
+                        className={`font-medium text-sm ${isDisabled ? "text-text-muted" : "text-text-heading"
+                          }`}
                       >
                         {platform.label}
-                      </div>
+                      </span>
                     </div>
                   </button>
                 );
@@ -427,10 +359,10 @@ const IntegrationsTab: React.FC = () => {
             </div>
           </div>
 
-          {/* Info Alert */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex gap-3">
-            <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-900">
+          {/* Security notice */}
+          <div className="bg-status-info-bg border border-status-info-border rounded-lg p-4 mb-6 flex gap-3">
+            <AlertCircle className="w-5 h-5 text-status-info flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-status-info-text">
               <p className="font-medium mb-1">Security Notice</p>
               <p>
                 Your platform credentials are encrypted and stored securely. We
@@ -439,7 +371,7 @@ const IntegrationsTab: React.FC = () => {
             </div>
           </div>
 
-          {/* Gateway-specific Form */}
+          {/* Platform-specific credential form */}
           <div className="space-y-4 mb-6">
             <IntegrationForm
               credentials={credentials}
@@ -448,26 +380,25 @@ const IntegrationsTab: React.FC = () => {
             />
           </div>
 
-          {/* Helper Text */}
-          <div className="p-4 bg-[#F4F7FA] rounded-lg mb-6">
-            <p className="text-sm text-[#344767]">
-              <strong>Need help?</strong> Visit your{" "}
-              {selectedPlatform === "whatsapp" && "Whatsapp"}
+          {/* Helper text */}
+          <div className="p-4 bg-bg-base rounded-lg border border-border mb-6">
+            <p className="text-sm text-text-primary">
+              <strong className="text-text-heading">Need help?</strong> Visit your{" "}
+              {selectedPlatform === "whatsapp" && "WhatsApp"}
               {selectedPlatform === "instagram" && "Instagram"}
               {selectedPlatform === "email" && "Email"} dashboard to find your
               API credentials.
             </p>
           </div>
 
-          {/* Modal Footer Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#E1E8F5]">
+          {/* Footer actions */}
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
             <Button
               onClick={() => setShowConnectModal(false)}
-              className="bg-transparent border-[#dfdfdf] border-1  text-[#344767] rounded-lg hover:bg-[#F4F7FA]"
+              className="bg-transparent border border-border text-text-primary rounded-lg hover:bg-bg-subtle"
             >
               Cancel
             </Button>
-
             <Button
               onClick={() =>
                 !editingPlatform
@@ -475,11 +406,9 @@ const IntegrationsTab: React.FC = () => {
                   : handleUpdatePlatform()
               }
               startIcon={
-                editingPlatform ? (
-                  <Edit2 className="w-4 h-4" />
-                ) : (
-                  <CheckCircle className="w-4 h-4" />
-                )
+                editingPlatform
+                  ? <Edit2 className="w-4 h-4" />
+                  : <CheckCircle className="w-4 h-4" />
               }
             >
               {editingPlatform ? "Edit Platform" : "Add Platform"}

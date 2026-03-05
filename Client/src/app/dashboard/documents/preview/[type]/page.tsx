@@ -18,13 +18,23 @@ import {
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import PageHeader from "@/components/page-header/PageHeader";
 import Button from "@/components/ui/Button";
+import axiosInstance from "@/utils/axiosInstance";
+import toast from "react-hot-toast";
+import SendInvoiceModal from "@/components/invoice/SendInvoiceModal";
+
+interface EmailFormData {
+  to: string;
+  cc: string;
+  subject: string;
+  message: string;
+}
 
 export default function DocumentPreviewPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
   const documentType = params?.type as string;
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [isDownloading, setIsDownloading] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
@@ -34,6 +44,12 @@ export default function DocumentPreviewPage() {
   const [emailAddress, setEmailAddress] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
   const previewRef = useRef<HTMLDivElement>(null);
+  const [emailFormData, setEmailFormData] = useState<EmailFormData>({
+    to: "",
+    cc: "",
+    subject: "",
+    message: "",
+  });
 
   useEffect(() => {
     const dataParam = searchParams?.get("data");
@@ -56,24 +72,74 @@ export default function DocumentPreviewPage() {
     "termination-letter": "Employment Termination Letter",
   };
 
+  ///////////////////////////////////
+  // Download Document PDF
+  ///////////////////////////////////
   const handleDownload = async () => {
-    setIsDownloading(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsDownloading(false);
-    alert("PDF downloaded successfully!");
+    try {
+      // Currently we are no passing any id in api request ,  because backend to accept yet , need to update bacakend api
+      const response = await axiosInstance(`/templates/preview`);
+
+      if (response.status === 200 && response.data?.url) {
+        const fileUrl = `${process.env.NEXT_PUBLIC_ASSET_URL}${response.data.url}`;
+
+        const link = document.createElement("a");
+        link.href = fileUrl;
+        link.download = `document`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch (error) {
+      console.log("Error occur while downloading the document.", error);
+      toast.error("Error occur while downloading the document.");
+    }
   };
 
-  const handleSendEmail = async () => {
-    if (!emailAddress) return;
-
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+  ////////////////////////////////
+  // Send Document To Customer/Client
+  /////////////////////////////////
+  const handleSendEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
     setEmailSent(true);
-    setTimeout(() => {
-      setShowEmailModal(false);
+
+    try {
+      const response = await axiosInstance.post("/templates/send_to_email", {
+        // documentId: documentId,  // For this we pass document Id later
+        ...emailFormData,
+      });
+
+      // toast.success(
+      //   `Invoice ${currentInvoice?.invoice_number} sent successfully to ${emailFormData.to}`,
+      // );
+      closeSendEmailModal();
+    } catch (error) {
+      console.log("Error sending email:", error);
+      toast.error("Failed to send document email. Please try again.");
+    } finally {
       setEmailSent(false);
-      setEmailAddress("");
-      setEmailMessage("");
-    }, 2000);
+    }
+  };
+
+  ///////////////////////////////////
+  // Handle Email Form Changing
+  ////////////////////////////////////
+  const handleEmailFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target;
+    setEmailFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const openSendEmailModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeSendEmailModal = () => {
+    setIsModalOpen(false);
   };
 
   const handleCopyLink = () => {
@@ -86,6 +152,9 @@ export default function DocumentPreviewPage() {
     window.print();
   };
 
+  // NOTE: renderDocumentContent intentionally keeps gray-* / white colors
+  // inside the document body — these are printable legal documents that must
+  // match paper/print styling and should not use platform design tokens.
   const renderDocumentContent = () => {
     switch (documentType) {
       case "nda":
@@ -102,8 +171,9 @@ export default function DocumentPreviewPage() {
 
             <div className="space-y-4">
               <p className="text-gray-700 leading-relaxed">
-                This Non-Disclosure Agreement (the &qout;Agreement&qout;) is entered into
-                on <strong>{formData.effectiveDate || "[Date]"}</strong> by and
+                This Non-Disclosure Agreement (the &qout;Agreement&qout;) is
+                entered into on{" "}
+                <strong>{formData.effectiveDate || "[Date]"}</strong> by and
                 between:
               </p>
 
@@ -146,10 +216,10 @@ export default function DocumentPreviewPage() {
                   2. DEFINITION OF CONFIDENTIAL INFORMATION
                 </h2>
                 <p className="text-gray-700 leading-relaxed">
-                  &qout;Confidential Information&qout; means any and all information
-                  disclosed by the Disclosing Party to the Receiving Party,
-                  whether orally, in writing, or in any other form, including
-                  but not limited to:
+                  &qout;Confidential Information&qout; means any and all
+                  information disclosed by the Disclosing Party to the Receiving
+                  Party, whether orally, in writing, or in any other form,
+                  including but not limited to:
                 </p>
                 <ul className="list-disc list-inside text-gray-700 mt-2 space-y-1 ml-4">
                   <li>Technical data, trade secrets, and know-how</li>
@@ -497,7 +567,8 @@ export default function DocumentPreviewPage() {
                 <p className="text-gray-700 leading-relaxed">
                   The Employee shall receive a monthly salary of{" "}
                   <strong>AED {formData.salary || "[Amount]"}</strong>, payable
-                  in accordance with the Employer&apos;s standard payroll schedule.
+                  in accordance with the Employer&apos;s standard payroll
+                  schedule.
                 </p>
                 {formData.benefits && (
                   <div className="mt-3 bg-white p-3 rounded border border-gray-200">
@@ -579,8 +650,8 @@ export default function DocumentPreviewPage() {
       default:
         return (
           <div className="text-center py-12">
-            <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">
+            <FileText className="w-16 h-16 text-text-muted/40 mx-auto mb-4" />
+            <p className="text-text-muted">
               Document preview is being generated...
             </p>
           </div>
@@ -590,7 +661,7 @@ export default function DocumentPreviewPage() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-gray-50 p-6 mb-4">
+      <div className="min-h-screen p-4 mb-6">
         {/* Header */}
         <PageHeader
           title="Document Preview"
@@ -607,21 +678,23 @@ export default function DocumentPreviewPage() {
         />
 
         {/* Action Bar */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="bg-surface rounded-lg shadow-card border border-border p-6 mb-6">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <FileText className="w-5 h-5 text-gray-900" />
+                <div className="p-2 bg-brand-light rounded-lg">
+                  <FileText className="w-5 h-5 text-secondary" />
                 </div>
                 <div>
-                  <h2 className="font-bold text-gray-900 text-lg">
+                  <h2 className="font-bold text-text-heading text-lg">
                     {documentTitles[documentType]}
                   </h2>
-                  <p className="text-gray-600 text-sm">AI-Generated Document</p>
+                  <p className="text-text-muted text-sm">
+                    AI-Generated Document
+                  </p>
                 </div>
               </div>
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-status-success-bg text-status-success border border-status-success-border">
                 <CheckCircle className="w-3 h-3" />
                 Verified
               </span>
@@ -630,7 +703,7 @@ export default function DocumentPreviewPage() {
             <div className="flex flex-wrap gap-3">
               <Button
                 onClick={handlePrint}
-                className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                className="bg-surface border border-border text-text-secondary hover:bg-bg-base"
                 startIcon={<Printer className="w-4 h-4" />}
               >
                 Print
@@ -638,7 +711,7 @@ export default function DocumentPreviewPage() {
               <Button
                 onClick={handleDownload}
                 disabled={isDownloading}
-                className="bg-[#f6a821] hover:bg-[#d18d18]"
+                className="bg-status-warning text-on-brand hover:bg-status-warning/90"
                 startIcon={
                   isDownloading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -650,7 +723,7 @@ export default function DocumentPreviewPage() {
                 {isDownloading ? "Generating PDF..." : "Download PDF"}
               </Button>
               <Button
-                onClick={() => setShowEmailModal(true)}
+                onClick={() => openSendEmailModal()}
                 startIcon={<Send className="w-4 h-4" />}
               >
                 Send to Customer
@@ -660,11 +733,11 @@ export default function DocumentPreviewPage() {
         </div>
 
         {/* Document Preview */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-surface rounded-lg shadow-card border border-border overflow-hidden">
           <div className="p-8">
             <div
               ref={previewRef}
-              className="max-w-4xl mx-auto bg-white p-8 border border-gray-200 rounded-lg print-area"
+              className="max-w-4xl mx-auto p-8 border border-border rounded-lg print-area"
               style={{ fontFamily: "Georgia, serif" }}
             >
               {renderDocumentContent()}
@@ -673,7 +746,7 @@ export default function DocumentPreviewPage() {
         </div>
 
         {/* AI Verification Section */}
-        <div className="mt-6">
+        {/* <div className="mt-6">
           <div className="bg-gradient-to-r from-blue-50 to-gray-50 border border-blue-200 rounded-lg p-6 flex items-start gap-4">
             <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
               <Sparkles className="w-6 h-6 text-white" />
@@ -689,23 +762,23 @@ export default function DocumentPreviewPage() {
               </p>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Quick Actions */}
         <div className="mt-8 text-center">
-          <div className="inline-flex items-center gap-6 bg-white border border-gray-300 rounded-lg px-6 py-4">
-            <div className="text-sm text-gray-600">
+          <div className="inline-flex items-center gap-6 bg-surface border border-border rounded-lg px-6 py-4 shadow-card">
+            <div className="text-sm text-text-secondary">
               Need to make changes to this document?
             </div>
             <div className="flex gap-3">
               <Button
                 onClick={() => router.back()}
-                className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm"
+                className="bg-surface border border-border text-text-secondary hover:bg-bg-base text-sm"
               >
                 Edit Document
               </Button>
               <Button
-                onClick={() => setShowEmailModal(true)}
+                onClick={() => openSendEmailModal()}
                 className="text-sm"
                 startIcon={<Send className="w-4 h-4" />}
               >
@@ -715,19 +788,30 @@ export default function DocumentPreviewPage() {
           </div>
         </div>
 
+        {/* Send Invoice Modal Component */}
+        <SendInvoiceModal
+          isOpen={isModalOpen}
+          onClose={closeSendEmailModal}
+          invoiceNumber={"198"}
+          emailFormData={emailFormData}
+          onEmailFormChange={handleEmailFormChange}
+          onSubmit={handleSendEmail}
+          isSending={emailSent}
+        />
+
         {/* Email Modal */}
         {showEmailModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-xl">
+            <div className="bg-surface rounded-xl p-6 max-w-md w-full shadow-raised border border-border">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-gray-900 font-bold text-xl">
+                <h3 className="text-text-heading font-bold text-xl">
                   Send via Email
                 </h3>
                 <button
                   onClick={() => setShowEmailModal(false)}
-                  className="p-1 hover:bg-gray-100 rounded transition-colors"
+                  className="p-1 hover:bg-bg-base rounded transition-colors"
                 >
-                  <X className="w-5 h-5 text-gray-600" />
+                  <X className="w-5 h-5 text-text-muted" />
                 </button>
               </div>
 
@@ -735,7 +819,7 @@ export default function DocumentPreviewPage() {
                 <>
                   <div className="space-y-4 mb-6">
                     <div>
-                      <label className="block text-gray-900 font-semibold text-sm mb-2">
+                      <label className="block text-text-heading font-semibold text-sm mb-2">
                         Recipient Email *
                       </label>
                       <input
@@ -743,11 +827,11 @@ export default function DocumentPreviewPage() {
                         value={emailAddress}
                         onChange={(e) => setEmailAddress(e.target.value)}
                         placeholder="client@example.com"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+                        className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary text-text-secondary bg-bg-base"
                       />
                     </div>
                     <div>
-                      <label className="block text-gray-900 font-semibold text-sm mb-2">
+                      <label className="block text-text-heading font-semibold text-sm mb-2">
                         Message (Optional)
                       </label>
                       <textarea
@@ -755,7 +839,7 @@ export default function DocumentPreviewPage() {
                         onChange={(e) => setEmailMessage(e.target.value)}
                         placeholder="Add a message..."
                         rows={3}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 resize-none"
+                        className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary text-text-secondary bg-bg-base resize-none"
                       />
                     </div>
                   </div>
@@ -763,14 +847,14 @@ export default function DocumentPreviewPage() {
                   <div className="flex gap-3">
                     <button
                       onClick={() => setShowEmailModal(false)}
-                      className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
+                      className="flex-1 px-4 py-3 border border-border text-text-secondary rounded-lg hover:bg-bg-base transition-colors font-semibold"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleSendEmail}
                       disabled={!emailAddress}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-semibold disabled:opacity-50"
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-brand hover:bg-brand-hover text-on-brand rounded-lg hover:shadow-raised transition-all font-semibold disabled:opacity-50"
                     >
                       <Send className="w-5 h-5" />
                       Send Email
@@ -779,13 +863,13 @@ export default function DocumentPreviewPage() {
                 </>
               ) : (
                 <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle className="w-8 h-8 text-green-600" />
+                  <div className="w-16 h-16 bg-status-success-bg rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="w-8 h-8 text-status-success" />
                   </div>
-                  <h4 className="text-gray-900 font-bold text-lg mb-2">
+                  <h4 className="text-text-heading font-bold text-lg mb-2">
                     Email Sent!
                   </h4>
-                  <p className="text-gray-600">
+                  <p className="text-text-secondary">
                     Document sent to {emailAddress}
                   </p>
                 </div>
@@ -797,22 +881,22 @@ export default function DocumentPreviewPage() {
         {/* Share Modal */}
         {showShareModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-xl">
+            <div className="bg-surface rounded-xl p-6 max-w-md w-full shadow-raised border border-border">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-gray-900 font-bold text-xl">
+                <h3 className="text-text-heading font-bold text-xl">
                   Share Document
                 </h3>
                 <button
                   onClick={() => setShowShareModal(false)}
-                  className="p-1 hover:bg-gray-100 rounded transition-colors"
+                  className="p-1 hover:bg-bg-base rounded transition-colors"
                 >
-                  <X className="w-5 h-5 text-gray-600" />
+                  <X className="w-5 h-5 text-text-muted" />
                 </button>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-gray-900 font-semibold text-sm mb-2">
+                  <label className="block text-text-heading font-semibold text-sm mb-2">
                     Shareable Link
                   </label>
                   <div className="flex gap-2">
@@ -820,11 +904,11 @@ export default function DocumentPreviewPage() {
                       type="text"
                       value={window.location.href}
                       readOnly
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 text-sm"
+                      className="flex-1 px-4 py-3 border border-border rounded-lg bg-bg-base text-text-muted text-sm"
                     />
                     <button
                       onClick={handleCopyLink}
-                      className="px-4 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
+                      className="px-4 py-3 bg-brand hover:bg-brand-hover text-on-brand rounded-lg hover:shadow-raised transition-all"
                     >
                       {copied ? (
                         <Check className="w-5 h-5" />
@@ -834,15 +918,15 @@ export default function DocumentPreviewPage() {
                     </button>
                   </div>
                   {copied && (
-                    <p className="text-green-600 text-sm mt-2 flex items-center gap-1">
+                    <p className="text-status-success text-sm mt-2 flex items-center gap-1">
                       <CheckCircle className="w-4 h-4" />
                       Link copied to clipboard!
                     </p>
                   )}
                 </div>
 
-                <div className="pt-4 border-t border-gray-200">
-                  <p className="text-gray-600 text-sm text-center">
+                <div className="pt-4 border-t border-border">
+                  <p className="text-text-muted text-sm text-center">
                     Anyone with this link can view the document
                   </p>
                 </div>

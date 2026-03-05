@@ -14,11 +14,11 @@ const SectionCard: React.FC<CardProps> = ({
   className = "",
 }) => (
   <div
-    className={`bg-white rounded-xl shadow-sm border border-[#E1E8F5] p-6 hover:shadow-md transition-all duration-300 ${className}`}
+    className={`bg-surface rounded-xl shadow-card border border-border p-6 hover:shadow-raised transition-all duration-300 ${className}`}
   >
     <div className="flex items-center justify-between mb-6">
-      <h2 className="text-lg font-semibold text-[#1B2A49]">{title}</h2>
-      <Icon className="w-5 h-5 text-[#2E69A4]" />
+      <h2 className="text-lg font-semibold text-text-heading">{title}</h2>
+      <Icon className="w-5 h-5 text-secondary" />
     </div>
     {children}
   </div>

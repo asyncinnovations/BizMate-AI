@@ -16,7 +16,7 @@ interface SelectInputProps {
   value?: string;
   onChange?: (value: string) => void;
   className?: string;
-  groupLabel?: string; 
+  groupLabel?: string;
 }
 
 const Select: React.FC<SelectInputProps> = ({
@@ -39,23 +39,23 @@ const Select: React.FC<SelectInputProps> = ({
     setIsOpen(false);
   };
 
-  // 🟦 Auto detect dropdown direction
+  // Auto detect dropdown direction
   useEffect(() => {
     if (isOpen && containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
       const spaceBelow = window.innerHeight - rect.bottom;
       const spaceAbove = rect.top;
-
       setOpenUp(spaceBelow < 200 && spaceAbove > spaceBelow);
     }
   }, [isOpen]);
 
   return (
     <div ref={containerRef} className={cn("relative w-64 text-sm", className)}>
+
       {/* Select Box */}
       <button
         type="button"
-        className="w-full flex justify-between items-center px-4 py-3 border border-gray-300 rounded-lg bg-white text-[#344767] focus:outline-none focus:ring-2 focus:ring-[#2E69A4]"
+        className="w-full flex justify-between items-center px-4 py-3 border border-border rounded-lg bg-bg-base text-text-secondary focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary hover:border-border-strong transition-colors"
         onClick={() => setIsOpen(!isOpen)}
       >
         <span>
@@ -65,7 +65,7 @@ const Select: React.FC<SelectInputProps> = ({
         </span>
         <ChevronDown
           className={cn(
-            "w-4 h-4 text-gray-400 transition-transform",
+            "w-4 h-4 text-text-muted transition-transform",
             isOpen ? "rotate-180" : ""
           )}
         />
@@ -75,12 +75,12 @@ const Select: React.FC<SelectInputProps> = ({
       {isOpen && (
         <ul
           className={cn(
-            "absolute z-10 w-full bg-white border border-[#E1E8F5] rounded-lg shadow-lg max-h-60 overflow-y-auto transition-all",
+            "absolute z-10 w-full bg-surface border border-border rounded-lg shadow-raised max-h-60 overflow-y-auto transition-all",
             openUp ? "bottom-full mb-1" : "top-full mt-1"
           )}
         >
           {groupLabel && (
-            <li className="px-4 py-2 font-semibold text-gray-500">
+            <li className="px-4 py-2 font-semibold text-text-muted text-xs uppercase tracking-wide border-b border-border">
               {groupLabel}
             </li>
           )}
@@ -90,8 +90,10 @@ const Select: React.FC<SelectInputProps> = ({
               key={option.value}
               onClick={() => handleSelect(option)}
               className={cn(
-                "px-4 py-2 cursor-pointer hover:bg-gray-100",
-                selected === option.value ? "bg-gray-100" : ""
+                "px-4 py-2 cursor-pointer text-text-secondary hover:bg-brand-light hover:text-secondary transition-colors",
+                selected === option.value
+                  ? "bg-brand-light text-secondary font-medium"
+                  : ""
               )}
             >
               {option.label}
@@ -99,6 +101,7 @@ const Select: React.FC<SelectInputProps> = ({
           ))}
         </ul>
       )}
+
     </div>
   );
 };

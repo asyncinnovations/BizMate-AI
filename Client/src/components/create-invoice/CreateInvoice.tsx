@@ -28,6 +28,7 @@ import { useAuth } from "@/context/AuthContext";
 import axiosInstance from "@/utils/axiosInstance";
 import toast from "react-hot-toast";
 import LoadingSpinner from "@/components/loading-spinner/LoadingSpinner";
+import InputField from "@/components/ui/InputField";
 
 // TypeScript interfaces
 interface InvoiceItem {
@@ -80,7 +81,7 @@ interface PaymentMethod {
 type FieldChangeHandler = (
   e: React.ChangeEvent<
     HTMLSelectElement | HTMLTextAreaElement | HTMLInputElement
-  >
+  >,
 ) => void;
 
 const CreateInvoicePage: React.FC = () => {
@@ -158,11 +159,11 @@ const CreateInvoicePage: React.FC = () => {
 
     try {
       const response = await axiosInstance.get(
-        `/user_payment_gateway/user/${user.user.user_id}`
+        `/user_payment_gateway/user/${user.user.user_id}`,
       );
       if (response.status === 200) {
         const activeMethods = response.data.response.filter(
-          (method: PaymentMethod) => method.is_active
+          (method: PaymentMethod) => method.is_active,
         );
         setPaymentMethods(activeMethods);
       }
@@ -184,7 +185,7 @@ const CreateInvoicePage: React.FC = () => {
     try {
       setIsLoading(true);
       const response = await axiosInstance.get(
-        `/invoices/single/${invoice_id}`
+        `/invoices/single/${invoice_id}`,
       );
       if (response.status === 200) {
         const normalizedInvoice = {
@@ -201,7 +202,7 @@ const CreateInvoicePage: React.FC = () => {
               quantity: Number(item.quantity) || 0,
               price: Number(item.price) || 0,
               amount: Number(item.amount) || 0,
-            })
+            }),
           ),
           vat: Number(response.data.vat) || 0,
           total: Number(response.data.total) || 0,
@@ -297,7 +298,7 @@ const CreateInvoicePage: React.FC = () => {
       prev.map((field) => ({
         ...field,
         value: (currentInvoice[field.name as keyof Invoice] as string) || "",
-      }))
+      })),
     );
   }, [currentInvoice]);
 
@@ -328,7 +329,7 @@ const CreateInvoicePage: React.FC = () => {
   useEffect(() => {
     const subtotal = currentInvoice.invoice_items?.reduce(
       (sum, item) => (sum = sum + item.amount),
-      0
+      0,
     );
     const vatRate = 5; //5% VAT for uae
 
@@ -379,21 +380,21 @@ const CreateInvoicePage: React.FC = () => {
   // Apply AI Suggestion to item
   const applyItemSuggestion = (suggestion: string) => {
     const firstEmptyItem = currentInvoice.invoice_items.find(
-      (item) => !item.name
+      (item) => !item.name,
     );
     if (firstEmptyItem) {
       handleItemChange(firstEmptyItem.id, "name", suggestion);
 
       // Also apply suggested pricing if available
       const pricingSuggestion = aiSuggestions.pricing.find(
-        (p) => p.item === suggestion
+        (p) => p.item === suggestion,
       );
 
       if (pricingSuggestion) {
         handleItemChange(
           firstEmptyItem.id,
           "price",
-          pricingSuggestion.suggestedPrice
+          pricingSuggestion.suggestedPrice,
         );
         handleItemChange(firstEmptyItem.id, "quantity", 1);
       }
@@ -442,7 +443,7 @@ const CreateInvoicePage: React.FC = () => {
   const handleItemChange = (
     id: string,
     field: keyof InvoiceItem,
-    value: number | string
+    value: number | string,
   ) => {
     setCurrentInvoice((prev) => ({
       ...prev,
@@ -583,7 +584,7 @@ const CreateInvoicePage: React.FC = () => {
           {
             ...currentInvoice,
             items: currentInvoice.invoice_items,
-          }
+          },
         );
         // Backend returns status 201
         if (response.status === 200) {
@@ -612,30 +613,38 @@ const CreateInvoicePage: React.FC = () => {
   };
 
   // Render input field based on type
+  // Uses InputField for text / email / date / number / textarea types.
+  // Native <select> and <textarea> kept where custom onChange or special props needed.
   const renderInputField = (
-    field: FormField & { onChange?: FieldChangeHandler }
+    field: FormField & { onChange?: FieldChangeHandler },
   ) => {
-    const commonProps = {
-      className: `w-full px-4 py-3 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] bg-white`,
-      value: field.value,
-      onChange:
-        field.onChange ||
-        ((e) => handleInputChange(field.name as keyof Invoice, e.target.value)),
-      placeholder: field.placeholder,
-    };
+    const onChange =
+      field.onChange ||
+      ((
+        e: React.ChangeEvent<
+          HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+        >,
+      ) => handleInputChange(field.name as keyof Invoice, e.target.value));
 
     switch (field.type) {
       case "textarea":
         return (
           <textarea
-            {...commonProps}
             rows={4}
-            className={commonProps.className + " resize-none"}
+            className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary text-text-secondary bg-bg-base resize-none"
+            value={field.value}
+            onChange={onChange}
+            placeholder={field.placeholder}
           />
         );
       case "select":
         return (
-          <select {...commonProps}>
+          <select
+            className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary text-text-secondary bg-bg-base"
+            value={field.value}
+            onChange={onChange}
+            // placeholder={field.placeholder}
+          >
             {field.options?.map((option, index) => (
               <option key={index} value={option}>
                 {option}
@@ -649,14 +658,18 @@ const CreateInvoicePage: React.FC = () => {
       case "text":
       default:
         return (
-          <input
+          <InputField
+            name={String(field.name)}
             type={field.type}
-            {...commonProps}
-            readOnly={field.name === "invoice_number"}
-            className={
-              commonProps.className +
-              (field.name === "invoice_number" ? " bg-gray-50" : "")
+            value={field.value}
+            onChange={
+              onChange as React.ChangeEventHandler<
+                HTMLInputElement | HTMLTextAreaElement
+              >
             }
+            placeholder={field.placeholder}
+            required={field.required}
+            readOnly={field.name === "invoice_number"}
           />
         );
     }
@@ -687,7 +700,7 @@ const CreateInvoicePage: React.FC = () => {
           />
 
           {/* AI Assistant Banner */}
-          <Card className="bg-gradient-to-r from-[#1B2A49] to-[#2D4A7C] text-white mb-8">
+          <Card className="bg-brand text-on-brand mb-8">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm mt-1">
@@ -697,7 +710,7 @@ const CreateInvoicePage: React.FC = () => {
                   <h3 className="text-xl font-bold mb-2">
                     AI Invoice Assistant
                   </h3>
-                  <p className="text-blue-100 max-w-2xl">
+                  <p className="text-white/80 max-w-2xl">
                     Get intelligent suggestions for items, pricing, and
                     professional notes. Our AI analyzes industry standards to
                     optimize your invoice.
@@ -707,7 +720,7 @@ const CreateInvoicePage: React.FC = () => {
               <Button
                 onClick={generateAiSuggestions}
                 disabled={isGenerating}
-                className="bg-white text-[#1B2A49] hover:bg-gray-100 shadow-lg"
+                className="bg-surface text-text-heading hover:bg-bg-base shadow-card"
                 startIcon={
                   isGenerating ? (
                     <Clock className="w-4 h-4 animate-pulse" />
@@ -724,21 +737,21 @@ const CreateInvoicePage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
             {/* Main Form */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-xl shadow-sm border border-[#E1E8F5] overflow-hidden">
-                <div className="p-6 border-b border-[#E1E8F5] bg-white flex items-center justify-between">
+              <div className="bg-surface rounded-xl shadow-card border border-border overflow-hidden">
+                <div className="p-6 border-b border-border bg-surface flex items-center justify-between">
                   <div>
-                    <h2 className="text-xl font-bold text-[#1B2A49] flex items-center gap-2">
-                      <FileText className="w-5 h-5 text-[#1B2A49]" />
+                    <h2 className="text-xl font-bold text-text-heading flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-text-heading" />
                       Invoice Details
                     </h2>
-                    <p className="text-[#344767] mt-1">
+                    <p className="text-text-secondary mt-1">
                       Fill in the basic information for your AI-powered invoice
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => setIsAddFieldModalOpen(true)}
-                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#1B2A49] to-[#2E69A4] text-white rounded-lg hover:shadow-lg transition-all duration-200 font-semibold text-sm"
+                      className="flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-hover text-on-brand rounded-lg hover:shadow-raised transition-all duration-200 font-semibold text-sm"
                     >
                       <Plus className="w-4 h-4" />
                       Add Field
@@ -750,15 +763,18 @@ const CreateInvoicePage: React.FC = () => {
                   {/* Customer & Basic Info */}
                   <div className="grid grid-cols-1 gap-6 mb-8">
                     {formFields.map((field) => (
-                      <div key={field.id} className="space-y-3 relative group">
+                      <div
+                        key={field.id}
+                        className="space-y-1.5 relative group"
+                      >
                         <div className="flex items-center justify-between">
-                          <label className="text-[#1B2A49] font-semibold text-sm flex items-center gap-2">
+                          <label className="block text-text-secondary text-sm font-medium flex items-center gap-2">
                             {field.label}
                             {field.name === "customer_name" && (
-                              <Lightbulb className="w-3 h-3 text-amber-500" />
+                              <Lightbulb className="w-3 h-3 text-status-warning" />
                             )}
                             {field.required && (
-                              <span className="text-red-500 ml-1">*</span>
+                              <span className="text-status-error ml-1">*</span>
                             )}
                           </label>
                         </div>
@@ -768,16 +784,18 @@ const CreateInvoicePage: React.FC = () => {
 
                     {Object.entries(currentInvoice.custom_fields).map(
                       ([key, field]) => (
-                        <div key={key} className="space-y-3 relative group">
+                        <div key={key} className="space-y-1.5 relative group">
                           <div className="flex items-center justify-between">
-                            <label className="text-[#1B2A49] font-semibold text-sm flex items-center gap-2">
+                            <label className="block text-text-secondary text-sm font-medium flex items-center gap-2">
                               {field.label}
                               {field.required && (
-                                <span className="text-red-500 ml-1">*</span>
+                                <span className="text-status-error ml-1">
+                                  *
+                                </span>
                               )}
                               {/* Custom Badge */}
-                              <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-[#665c00] bg-yellow-100 rounded-full">
-                                <Star className="w-3 h-3 text-[#f5b700]" />
+                              <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-status-warning bg-status-warning-bg border border-status-warning-border rounded-full">
+                                <Star className="w-3 h-3" />
                                 Custom Added
                               </span>
                             </label>
@@ -793,7 +811,7 @@ const CreateInvoicePage: React.FC = () => {
                               <button
                                 onClick={() => handleDeleteField(field.id)}
                                 type="button"
-                                className="p-1.5 bg-red-100 text-red-500 rounded hover:bg-red-200 transition-colors"
+                                className="p-1.5 bg-status-error-bg text-status-error rounded hover:bg-status-error hover:text-on-brand transition-colors"
                                 title="Remove field"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -808,7 +826,7 @@ const CreateInvoicePage: React.FC = () => {
                                 | HTMLInputElement
                                 | HTMLTextAreaElement
                                 | HTMLSelectElement
-                              >
+                              >,
                             ) => {
                               setCurrentInvoice((prev) => ({
                                 ...prev,
@@ -823,7 +841,7 @@ const CreateInvoicePage: React.FC = () => {
                             },
                           })}
                         </div>
-                      )
+                      ),
                     )}
 
                     {/* Payment Method Checkbox and Dropdown */}
@@ -836,11 +854,11 @@ const CreateInvoicePage: React.FC = () => {
                           onChange={(e) =>
                             setShowPaymentMethod(e.target.checked)
                           }
-                          className="w-4 h-4 text-[#2E69A4] border-[#E1E8F5] rounded focus:ring-[#2E69A4]"
+                          className="w-4 h-4 accent-secondary border-border rounded"
                         />
                         <label
                           htmlFor="addPaymentMethod"
-                          className="text-sm font-medium text-[#344767] cursor-pointer"
+                          className="text-sm font-medium text-text-secondary cursor-pointer"
                         >
                           Add Payment Method
                         </label>
@@ -850,7 +868,7 @@ const CreateInvoicePage: React.FC = () => {
                         <div className="space-y-3 relative group">
                           {paymentMethods.length === 0 ? (
                             // No active payment method
-                            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800 flex flex-col items-start gap-2">
+                            <div className="p-4 bg-status-warning-bg border border-status-warning-border rounded-lg text-sm text-status-warning flex flex-col items-start gap-2">
                               <p>No active payment method exists.</p>
                               <Button
                                 startIcon={<Plus className="w-4 h-4" />}
@@ -866,12 +884,12 @@ const CreateInvoicePage: React.FC = () => {
                             // Show dropdown with active gateways
                             <div className="space-y-3">
                               <div className="flex items-center justify-between">
-                                <label className="block text-[#1B2A49] font-semibold text-sm">
+                                <label className="block text-text-secondary text-sm font-medium">
                                   Payment Method
                                 </label>
                               </div>
                               <select
-                                className="w-full px-4 py-3 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] bg-white"
+                                className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary text-text-secondary bg-bg-base"
                                 value={selectedMethod}
                                 onChange={(e) =>
                                   setSelectedMethod(e.target.value)
@@ -898,36 +916,36 @@ const CreateInvoicePage: React.FC = () => {
                   {/* Items & Services */}
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-bold text-[#1B2A49] flex items-center gap-2">
-                        <TrendingUp className="w-5 h-5 text-[#1B2A49]" />
+                      <h3 className="text-lg font-bold text-text-heading flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5 text-text-heading" />
                         Items & Services
                       </h3>
-                      <div className="flex items-center gap-2 text-sm text-[#344767] bg-blue-50 px-3 py-1 rounded-full">
-                        <Sparkles className="w-3 h-3 text-blue-500" />
+                      <div className="flex items-center gap-2 text-sm text-text-secondary bg-status-info-bg border border-status-info-border px-3 py-1 rounded-full">
+                        <Sparkles className="w-3 h-3 text-status-info" />
                         AI Pricing Suggestions
                       </div>
                     </div>
 
-                    <div className="overflow-x-auto border border-[#E1E8F5] rounded-lg">
+                    <div className="overflow-x-auto border border-border rounded-lg">
                       <table className="w-full">
-                        <thead className="bg-gradient-to-r from-[#1B2A49] to-[#2D4A7C]">
+                        <thead className="bg-brand">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-on-brand uppercase tracking-wider">
                               Item/Service
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-on-brand uppercase tracking-wider">
                               Description
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-on-brand uppercase tracking-wider">
                               Qty
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-on-brand uppercase tracking-wider">
                               Price (AED)
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-on-brand uppercase tracking-wider">
                               Amount (AED)
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-on-brand uppercase tracking-wider">
                               Action
                             </th>
                           </tr>
@@ -936,18 +954,18 @@ const CreateInvoicePage: React.FC = () => {
                           {currentInvoice.invoice_items?.map((item) => (
                             <tr
                               key={item.id}
-                              className="border-b border-[#E1E8F5] hover:bg-blue-50/30 transition-colors duration-200"
+                              className="border-b border-border hover:bg-brand-light/30 transition-colors duration-200"
                             >
                               <td className="px-4 py-3">
                                 <input
                                   type="text"
-                                  className="w-full px-3 py-2 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] bg-white"
+                                  className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary text-text-secondary bg-bg-base text-sm"
                                   value={item.name}
                                   onChange={(e) =>
                                     handleItemChange(
                                       item.id,
                                       "name",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   placeholder="AI Service Name"
@@ -956,13 +974,13 @@ const CreateInvoicePage: React.FC = () => {
                               <td className="px-4 py-3">
                                 <input
                                   type="text"
-                                  className="w-full px-3 py-2 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] bg-white"
+                                  className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary text-text-secondary bg-bg-base text-sm"
                                   value={item.description}
                                   onChange={(e) =>
                                     handleItemChange(
                                       item.id,
                                       "description",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   placeholder="Service description"
@@ -972,13 +990,13 @@ const CreateInvoicePage: React.FC = () => {
                                 <input
                                   type="number"
                                   min="0"
-                                  className="w-20 px-3 py-2 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] bg-white"
+                                  className="w-20 px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary text-text-secondary bg-bg-base text-sm"
                                   value={item.quantity}
                                   onChange={(e) =>
                                     handleItemChange(
                                       item.id,
                                       "quantity",
-                                      e.target.value || 0
+                                      e.target.value || 0,
                                     )
                                   }
                                 />
@@ -987,25 +1005,25 @@ const CreateInvoicePage: React.FC = () => {
                                 <input
                                   type="number"
                                   step="0.01"
-                                  className="w-32 px-3 py-2 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] bg-white"
+                                  className="w-32 px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary text-text-secondary bg-bg-base text-sm"
                                   value={item.price}
                                   onChange={(e) =>
                                     handleItemChange(
                                       item.id,
                                       "price",
-                                      parseFloat(e.target.value) || 0
+                                      parseFloat(e.target.value) || 0,
                                     )
                                   }
                                   placeholder="0.00"
                                 />
                               </td>
-                              <td className="px-4 py-3 text-sm font-semibold text-[#1B2A49]">
+                              <td className="px-4 py-3 text-sm font-semibold text-text-heading">
                                 AED {item.amount.toFixed(2)}
                               </td>
                               <td className="px-4 py-3">
                                 <button
                                   onClick={() => handleRemoveItem(item.id)}
-                                  className="text-red-600 hover:text-red-800 text-sm font-medium transition-colors duration-200 disabled:text-gray-400 disabled:cursor-not-allowed px-3 py-1 rounded-lg hover:bg-red-50"
+                                  className="text-status-error hover:text-status-error/80 text-sm font-medium transition-colors duration-200 disabled:text-text-muted disabled:cursor-not-allowed px-3 py-1 rounded-lg hover:bg-status-error-bg"
                                   disabled={
                                     currentInvoice.invoice_items.length === 1
                                   }
@@ -1022,43 +1040,43 @@ const CreateInvoicePage: React.FC = () => {
 
                   <Button
                     onClick={handleAddItem}
-                    className="mb-8 bg-transparent shadow-none py-2 px-4 text-[#1B2A49] hover:bg-blue-50 border border-dashed border-[#E1E8F5] rounded-lg transition-all duration-200"
+                    className="mb-8 bg-transparent shadow-none py-2 px-4 text-text-heading hover:bg-brand-light border border-dashed border-border rounded-lg transition-all duration-200"
                     startIcon={<Plus className="w-4 h-4" />}
                   >
                     Add Another Item
                   </Button>
 
                   {/* Invoice Summary */}
-                  <div className="bg-white rounded-lg shadow-sm border border-[#E1E8F5] overflow-hidden mb-8">
-                    <div className="p-4 border-b border-[#E1E8F5] bg-gray-50">
-                      <h3 className="text-lg font-bold text-[#1B2A49] flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-[#1B2A49]" />
+                  <div className="bg-surface rounded-lg shadow-card border border-border overflow-hidden mb-8">
+                    <div className="p-4 border-b border-border bg-bg-base">
+                      <h3 className="text-lg font-bold text-text-heading flex items-center gap-2">
+                        <FileText className="w-5 h-5 text-text-heading" />
                         Invoice Summary
                       </h3>
                     </div>
                     <div className="p-6">
                       <div className="space-y-4">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-[#344767]">
+                          <span className="text-sm text-text-secondary">
                             Subtotal:
                           </span>
-                          <span className="text-sm font-semibold text-[#1B2A49]">
+                          <span className="text-sm font-semibold text-text-heading">
                             AED {Number(currentInvoice.subtotal).toFixed(2)}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-[#344767]">
+                          <span className="text-sm text-text-secondary">
                             VAT (5%):
                           </span>
-                          <span className="text-sm font-semibold text-[#1B2A49]">
+                          <span className="text-sm font-semibold text-text-heading">
                             AED {Number(currentInvoice.vat).toFixed(2)}
                           </span>
                         </div>
-                        <div className="border-t border-[#E1E8F5] pt-4 flex justify-between items-center">
-                          <span className="font-bold text-[#1B2A49]">
+                        <div className="border-t border-border pt-4 flex justify-between items-center">
+                          <span className="font-bold text-text-heading">
                             Total:
                           </span>
-                          <span className="font-bold text-xl text-[#1B2A49]">
+                          <span className="font-bold text-xl text-text-heading">
                             AED {Number(currentInvoice.total).toFixed(2)}
                           </span>
                         </div>
@@ -1068,16 +1086,16 @@ const CreateInvoicePage: React.FC = () => {
 
                   {/* Notes Section */}
                   <div className="mb-8">
-                    <div className="space-y-3 relative group">
+                    <div className="space-y-1.5 relative group">
                       <div className="flex items-center justify-between">
-                        <label className="text-[#1B2A49] font-semibold text-sm flex items-center gap-2">
+                        <label className="block text-text-secondary text-sm font-medium flex items-center gap-2">
                           Notes & AI Suggestions
-                          <Sparkles className="w-3 h-3 text-blue-500" />
+                          <Sparkles className="w-3 h-3 text-status-info" />
                         </label>
                       </div>
                       <textarea
                         rows={4}
-                        className="w-full px-4 py-3 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-[#344767] bg-white resize-none"
+                        className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary text-text-secondary bg-bg-base resize-none"
                         value={currentInvoice.notes}
                         onChange={(e) =>
                           handleInputChange("notes", e.target.value)
@@ -1088,10 +1106,10 @@ const CreateInvoicePage: React.FC = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex items-center space-x-4 pt-6 border-t border-[#E1E8F5]">
+                  <div className="flex items-center space-x-4 pt-6 border-t border-border">
                     <Button
                       onClick={() => router.push("/dashboard/invoicing")}
-                      className="border border-[#E1E8F5] text-[#344767] bg-white hover:bg-[#F4F7FA] shadow-sm"
+                      className="border border-border text-text-secondary bg-surface hover:bg-bg-base shadow-sm"
                     >
                       Cancel
                     </Button>
@@ -1115,8 +1133,8 @@ const CreateInvoicePage: React.FC = () => {
                     <div className="space-y-6">
                       {/* Item Suggestions */}
                       <div>
-                        <h4 className="font-semibold text-[#1B2A49] mb-3 flex items-center gap-2">
-                          <Lightbulb className="w-4 h-4 text-amber-500" />
+                        <h4 className="font-semibold text-text-heading mb-3 flex items-center gap-2">
+                          <Lightbulb className="w-4 h-4 text-status-warning" />
                           Popular AI Services
                         </h4>
                         <div className="space-y-2">
@@ -1124,12 +1142,12 @@ const CreateInvoicePage: React.FC = () => {
                             <button
                               key={index}
                               onClick={() => applyItemSuggestion(item)}
-                              className="w-full text-left p-3 border border-[#E1E8F5] rounded-lg hover:border-[#1B2A49] hover:bg-blue-50 transition-all duration-200 group"
+                              className="w-full text-left p-3 border border-border rounded-lg hover:border-border-strong hover:bg-brand-light transition-all duration-200 group"
                             >
-                              <div className="text-sm font-medium text-[#344767] group-hover:text-[#1B2A49]">
+                              <div className="text-sm font-medium text-text-secondary group-hover:text-text-heading">
                                 {item}
                               </div>
-                              <div className="text-xs text-gray-500 mt-1">
+                              <div className="text-xs text-text-muted mt-1">
                                 Click to add
                               </div>
                             </button>
@@ -1139,17 +1157,17 @@ const CreateInvoicePage: React.FC = () => {
 
                       {/* Notes Suggestion */}
                       <div>
-                        <h4 className="font-semibold text-[#1B2A49] mb-3 flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-blue-500" />
+                        <h4 className="font-semibold text-text-heading mb-3 flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-status-info" />
                           Professional Notes
                         </h4>
-                        <div className="p-3 border border-[#E1E8F5] rounded-lg bg-gray-50">
-                          <p className="text-sm text-gray-600 mb-3">
+                        <div className="p-3 border border-border rounded-lg bg-bg-base">
+                          <p className="text-sm text-text-secondary mb-3">
                             {aiSuggestions.notes}
                           </p>
                           <Button
                             onClick={applyNotesSuggestion}
-                            className="w-full bg-white border border-[#E1E8F5] text-[#344767] hover:bg-gray-50 text-sm py-2"
+                            className="w-full bg-surface border border-border text-text-secondary hover:bg-bg-base text-sm py-2"
                             startIcon={<CheckCircle className="w-3 h-3" />}
                           >
                             Use This Text
@@ -1158,14 +1176,14 @@ const CreateInvoicePage: React.FC = () => {
                       </div>
 
                       {/* AI Tips */}
-                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <div className="p-3 bg-status-warning-bg border border-status-warning-border rounded-lg">
                         <div className="flex items-start gap-2">
-                          <Zap className="w-4 h-4 text-amber-600 mt-0.5" />
+                          <Zap className="w-4 h-4 text-status-warning mt-0.5" />
                           <div>
-                            <h5 className="font-semibold text-amber-800 text-sm">
+                            <h5 className="font-semibold text-status-warning text-sm">
                               AI Tip
                             </h5>
-                            <p className="text-amber-700 text-xs mt-1">
+                            <p className="text-status-warning/80 text-xs mt-1">
                               Based on industry analysis, AI services typically
                               range from AED 800-3000 depending on complexity.
                             </p>
@@ -1175,8 +1193,8 @@ const CreateInvoicePage: React.FC = () => {
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <Brain className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                      <p className="text-gray-500 text-sm">
+                      <Brain className="w-12 h-12 text-text-muted/40 mx-auto mb-3" />
+                      <p className="text-text-muted text-sm">
                         {currentInvoice.customer_name
                           ? "Enter customer details to get AI suggestions"
                           : "Start typing customer name for AI-powered suggestions"}
@@ -1202,23 +1220,20 @@ const CreateInvoicePage: React.FC = () => {
       >
         <div className="p-6">
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-[#1B2A49] mb-2">
-                Field Label <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={newField.label}
-                onChange={(e) =>
-                  setNewField({ ...newField, label: e.target.value })
-                }
-                placeholder="e.g., Contract Value"
-                className="w-full px-4 py-2.5 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-sm text-[#344767]"
-              />
-            </div>
+            <InputField
+              label="Field Label"
+              name="add_field_label"
+              type="text"
+              value={newField.label}
+              onChange={(e) =>
+                setNewField({ ...newField, label: e.target.value })
+              }
+              placeholder="e.g., Contract Value"
+              required
+            />
 
             <div>
-              <label className="block text-sm font-semibold text-[#1B2A49] mb-2">
+              <label className="block mb-2 text-text-secondary text-sm font-medium">
                 Field Type
               </label>
               <select
@@ -1235,7 +1250,7 @@ const CreateInvoicePage: React.FC = () => {
                       | "select",
                   })
                 }
-                className="w-full px-4 py-2.5 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-sm text-[#344767] bg-white"
+                className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary text-sm text-text-secondary bg-bg-base"
               >
                 <option value="text">Text</option>
                 <option value="email">Email</option>
@@ -1247,35 +1262,27 @@ const CreateInvoicePage: React.FC = () => {
             </div>
 
             {newField.type === "select" ? (
-              <div>
-                <label className="block text-sm font-semibold text-[#1B2A49] mb-2">
-                  Options (comma-separated)
-                </label>
-                <input
-                  type="text"
-                  value={newField.placeholder}
-                  onChange={(e) =>
-                    setNewField({ ...newField, placeholder: e.target.value })
-                  }
-                  placeholder="e.g., Option 1, Option 2, Option 3"
-                  className="w-full px-4 py-2.5 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-sm text-[#344767]"
-                />
-              </div>
+              <InputField
+                label="Options (comma-separated)"
+                name="add_field_options"
+                type="text"
+                value={newField.placeholder}
+                onChange={(e) =>
+                  setNewField({ ...newField, placeholder: e.target.value })
+                }
+                placeholder="e.g., Option 1, Option 2, Option 3"
+              />
             ) : (
-              <div>
-                <label className="block text-sm font-semibold text-[#1B2A49] mb-2">
-                  Placeholder Text
-                </label>
-                <input
-                  type="text"
-                  value={newField.placeholder}
-                  onChange={(e) =>
-                    setNewField({ ...newField, placeholder: e.target.value })
-                  }
-                  placeholder="e.g., Enter contract value"
-                  className="w-full px-4 py-2.5 border border-[#E1E8F5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E69A4] text-sm text-[#344767]"
-                />
-              </div>
+              <InputField
+                label="Placeholder Text"
+                name="add_field_placeholder"
+                type="text"
+                value={newField.placeholder}
+                onChange={(e) =>
+                  setNewField({ ...newField, placeholder: e.target.value })
+                }
+                placeholder="e.g., Enter contract value"
+              />
             )}
 
             <div className="flex items-center gap-3">
@@ -1286,11 +1293,11 @@ const CreateInvoicePage: React.FC = () => {
                 onChange={(e) =>
                   setNewField({ ...newField, required: e.target.checked })
                 }
-                className="w-4 h-4 text-[#2E69A4] border-[#E1E8F5] rounded focus:ring-[#2E69A4]"
+                className="w-4 h-4 accent-secondary border-border rounded"
               />
               <label
                 htmlFor="newFieldRequired"
-                className="text-sm font-medium text-[#344767] cursor-pointer"
+                className="text-sm font-medium text-text-secondary cursor-pointer"
               >
                 Make this field required
               </label>
@@ -1300,14 +1307,14 @@ const CreateInvoicePage: React.FC = () => {
           <div className="flex items-center gap-3 mt-6">
             <button
               onClick={handleCloseAddFieldModal}
-              className="flex-1 px-4 py-2.5 border border-[#E1E8F5] text-[#344767] font-semibold text-sm rounded-lg hover:bg-[#F4F7FA] transition-colors"
+              className="flex-1 px-4 py-2.5 border border-border text-text-secondary font-semibold text-sm rounded-lg hover:bg-bg-base transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleAddField}
               disabled={!newField.label.trim()}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#1B2A49] to-[#2E69A4] text-white rounded-lg hover:shadow-lg transition-all duration-200 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-brand hover:bg-brand-hover text-on-brand rounded-lg hover:shadow-raised transition-all duration-200 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus className="w-4 h-4" />
               Add Field
