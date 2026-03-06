@@ -56,11 +56,11 @@ version: '3.8'
 
 services:
   backend:
-    build: ./server
+    build: ./Server
     container_name: bizmate-backend
     restart: always
     env_file:
-      - ./server/.env
+      - ./Server/.env
     depends_on:
       database:
         condition: service_healthy
@@ -75,7 +75,7 @@ services:
         max-file: "3"
 
   frontend:
-    build: ./client
+    build: ./Client
     container_name: bizmate-frontend
     restart: always
     depends_on:
@@ -85,7 +85,7 @@ services:
     ports:
       - "3000:3000"   # Frontend access
     volumes:
-      - ./client/dist:/usr/share/nginx/html
+      - ./Client/dist:/usr/share/nginx/html
     image: nginx:alpine
     logging:
       driver: "json-file"
