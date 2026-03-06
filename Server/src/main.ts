@@ -7,7 +7,7 @@ async function bootstrap() {
   // Enable CORS if you plan to call API from frontend
   app.enableCors({ origin: "*" });
   app.setGlobalPrefix("api");
-  const PORT = process.env.PORT || 8080;
+  const PORT = process.env.PORT || 4040;
 
   await app.listen(PORT);
   console.log(`🚀 Server running on http://localhost:${PORT}`);
