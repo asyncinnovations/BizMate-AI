@@ -102,7 +102,7 @@ services:
       POSTGRES_PASSWORD: secure_password_2025
       POSTGRES_DB: bizmate_db
     volumes:
-      - ../server/public/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./Server/public/database/init.sql:/docker-entrypoint-initdb.d/init.sql
       - pgdata_bizmate:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin -d bizmate_db"]
