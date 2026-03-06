@@ -112,7 +112,7 @@ services:
     networks:
       - bizmate_net
     ports:
-      - "5434:5432"  # Only needed if you want host/PGAdmin access
+      - "5432:5432"  # Only needed if you want host/PGAdmin access
 
 volumes:
   pgdata_bizmate:
