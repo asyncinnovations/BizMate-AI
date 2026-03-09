@@ -16,7 +16,6 @@ import PricingSection from "@/components/home-sections/PricingSection";
 import FAQSection from "@/components/home-sections/FAQSection";
 import CTASection from "@/components/home-sections/CTASection";
 
-
 export const Stars = ({ n = 5 }: { n?: number }) => (
   <div className="flex gap-0.5">
     {Array.from({ length: n }).map((_, i) => (
@@ -44,26 +43,10 @@ export const Chip = ({
   </span>
 );
 
-// Font loader (can stay here or move to layout)
-function FontLoader() {
-  return (
-    <style>{`
-      @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-      
-      body { font-family: 'Plus Jakarta Sans', sans-serif; }
-      .font-serif { font-family: 'DM Serif Display', serif; }
-    `}</style>
-  );
-}
-
 export default function HomePage() {
   return (
     <PublicLayout>
-      <FontLoader />
-      <div
-        className="bg-white overflow-x-hidden"
-        style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-      >
+      <div className="bg-white overflow-x-hidden">
         <HeroSection />
         <IntegrationsStrip />
         <StatsSection />
@@ -73,8 +56,8 @@ export default function HomePage() {
         <InvoicingSection />
         <TestimonialsSection />
         <PricingSection />
-        <TrustBadgesSection/>
-        <FAQSection/>
+        <TrustBadgesSection />
+        <FAQSection />
         <CTASection />
 
         {/* Global animation styles */}

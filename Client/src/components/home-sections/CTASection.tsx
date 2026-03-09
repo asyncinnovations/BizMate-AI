@@ -11,7 +11,7 @@ export default function CTASection() {
   return (
     <section
       ref={ref}
-      className="py-32 px-6 relative mb-8 overflow-hidden"
+      className="py-32 px-6 relative overflow-hidden"
     >
       <div
         className="absolute inset-0"

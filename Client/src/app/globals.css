@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -92,9 +94,10 @@
   --color-status-info-border:       #bfdbfe;  /* Alert/chip border          → border-status-info-border */
   --color-status-info-text:         #1d4ed8;  /* Alert/chip text            → text-status-info-text */
 
-  /* ── Typography ── */
-  --font-sans:  ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;  /* → font-sans */
-  --font-mono:  ui-monospace, "SFMono-Regular", Consolas, "Courier New", monospace;       /* OTP, code → font-mono */
+ /* ── Typography – update these two lines ── */
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: "DM Serif Display", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Consolas, "Courier New", monospace;
 
   /* ── Border Radius ── */
   --radius-sm:    0.375rem;  /* 6px  — tags, tight chips        → rounded-sm */

@@ -22,7 +22,7 @@ const PublicFooter = () => {
   ];
 
   return (
-    <div className="w-full min-h-[200px] text-white bg-[#1b2a49]">
+    <div className="w-full min-h-[200px] mt-8 text-white bg-[#1b2a49]">
       <div className="w-full max-w-6xl mx-auto">
         <div className="flex items-center justify-between py-8">
           <div className="flex-3">
