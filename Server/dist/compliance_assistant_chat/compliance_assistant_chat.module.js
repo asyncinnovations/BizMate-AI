@@ -10,15 +10,16 @@ exports.ComplianceAssistantModule = void 0;
 const common_1 = require("@nestjs/common");
 const compliance_assistant_chat_service_1 = require("./compliance_assistant_chat.service");
 const compliance_assistant_chat_controller_1 = require("./compliance_assistant_chat.controller");
-const typeorm_1 = require("@nestjs/typeorm");
 const compliance_assistant_chat_entity_1 = require("./compliance_assistant_chat.entity");
+const GPTService_1 = require("../services/GPTService");
+const typeorm_1 = require("@nestjs/typeorm");
 let ComplianceAssistantModule = class ComplianceAssistantModule {
 };
 exports.ComplianceAssistantModule = ComplianceAssistantModule;
 exports.ComplianceAssistantModule = ComplianceAssistantModule = __decorate([
     (0, common_1.Module)({
         imports: [typeorm_1.TypeOrmModule.forFeature([compliance_assistant_chat_entity_1.ComplianceAssistantChat])],
-        providers: [compliance_assistant_chat_service_1.ComplianceAssistantChatService],
+        providers: [compliance_assistant_chat_service_1.ComplianceAssistantChatService, GPTService_1.GPTService],
         controllers: [compliance_assistant_chat_controller_1.ComplianceAssistantController],
     })
 ], ComplianceAssistantModule);

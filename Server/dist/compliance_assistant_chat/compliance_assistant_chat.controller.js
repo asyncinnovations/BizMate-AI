@@ -15,10 +15,22 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ComplianceAssistantController = void 0;
 const common_1 = require("@nestjs/common");
 const compliance_assistant_chat_service_1 = require("./compliance_assistant_chat.service");
+const GPTService_1 = require("../services/GPTService");
 let ComplianceAssistantController = class ComplianceAssistantController {
     AssistantChatService;
-    constructor(AssistantChatService) {
+    gpt_service;
+    constructor(AssistantChatService, gpt_service) {
         this.AssistantChatService = AssistantChatService;
+        this.gpt_service = gpt_service;
+    }
+    async chat_gpt(body) {
+        try {
+            const response = await this.gpt_service.GPTChat(body.prompt, "you are a compliance assistant you must answer to the related compliance.");
+            return { message: "success", response: response.data.content };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
     async askAI(body) {
         try {
@@ -73,6 +85,13 @@ let ComplianceAssistantController = class ComplianceAssistantController {
 };
 exports.ComplianceAssistantController = ComplianceAssistantController;
 __decorate([
+    (0, common_1.Post)("compliance_ai"),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], ComplianceAssistantController.prototype, "chat_gpt", null);
+__decorate([
     (0, common_1.Post)("ask-ai"),
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     __param(0, (0, common_1.Body)()),
@@ -116,6 +135,7 @@ __decorate([
 ], ComplianceAssistantController.prototype, "searchChat", null);
 exports.ComplianceAssistantController = ComplianceAssistantController = __decorate([
     (0, common_1.Controller)("compliance_assistant_chat"),
-    __metadata("design:paramtypes", [compliance_assistant_chat_service_1.ComplianceAssistantChatService])
+    __metadata("design:paramtypes", [compliance_assistant_chat_service_1.ComplianceAssistantChatService,
+        GPTService_1.GPTService])
 ], ComplianceAssistantController);
 //# sourceMappingURL=compliance_assistant_chat.controller.js.map

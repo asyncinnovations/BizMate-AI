@@ -44,7 +44,7 @@ export class ChatgptService {
       businessSnapshot?: any; // full business info JSON from DB
       temperature?: number;
       purpose?: "reply" | "faq" | "tone_examples";
-    }
+    },
   ): Promise<string> {
     try {
       const model = options?.model || "gpt-4o-mini";
@@ -52,7 +52,7 @@ export class ChatgptService {
 
       const systemContent = options?.businessSnapshot
         ? `You are a professional AI assistant trained on this business information: ${JSON.stringify(
-            options.businessSnapshot
+            options.businessSnapshot,
           )}. Respond appropriately to the client.`
         : "You are a helpful AI assistant for a business communication platform.";
 
@@ -82,7 +82,7 @@ export class ChatgptService {
   ///////////////////////////////////////////////////////////////////////////
   async generate_faq_service(businessSnapshot: any): Promise<any[]> {
     const prompt = `Create 5-10 FAQ questions and answers based on this business info: ${JSON.stringify(
-      businessSnapshot
+      businessSnapshot,
     )}. Return as a JSON array of objects [{question, answer}]`;
 
     const faqText = await this.generate_ai_reply_service(prompt, {
@@ -102,7 +102,7 @@ export class ChatgptService {
   ///////////////////////////////////////////////////////////////////////////
   async generate_exampletone_service(businessSnapshot: any): Promise<any[]> {
     const prompt = `Generate 3-5 tone examples for replying to clients for this business. Include situation and how AI should respond: ${JSON.stringify(
-      businessSnapshot
+      businessSnapshot,
     )}. Return as JSON array [{situation, ai_should_reply_like}]`;
 
     const toneText = await this.generate_ai_reply_service(prompt, {
