@@ -1,23 +1,16 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import {
-  BarChart2,
-  MessageSquare,
-  FolderOpen,
-  FileText,
-  Users,
-  HardDrive,
-  ShoppingBag,
-  Zap,
-} from "lucide-react";
+import { BarChart2, MessageSquare, FileText, Receipt } from "lucide-react";
 import SectionCard from "@/components/section-card/SectionCard";
 import EmptyState from "@/components/empty-state/EmptyState";
 import LoadingSpinner from "@/components/loading-spinner/LoadingSpinner";
 import axiosInstance from "@/utils/axiosInstance";
-import { useAuth } from "@/context/AuthContext";
+import { useSubscription } from "@/context/SubscriptionContext";
 
-// ================= TYPES =================
+// ─────────────────────────────────────────────────────────────────────────────
+// TYPES
+// ─────────────────────────────────────────────────────────────────────────────
 interface SubscriptionUsage {
   id: string;
   subscription_id: string;
@@ -27,78 +20,43 @@ interface SubscriptionUsage {
   updated_at: string;
 }
 
-interface SubscriptionFeatures {
-  ai_messages_per_month?: number | string;
-  projects_limit?: number | string;
-  proposal_limit?: number | string;
-  team_members?: number | string;
-  storage_gb?: number | string;
-  active_orders_limit?: number | string;
-  file_upload_limit_mb?: number | string;
-  [key: string]: number | string | boolean | undefined;
-}
-
-interface SubscriptionPlan {
-  uuid: string;
-  name: string;
-  features: SubscriptionFeatures;
-}
-
-// ================= USAGE KEY CONFIG =================
-// Maps usage_key from backend → display label + icon
-const usageConfig: Record<
-  string,
-  { label: string; icon: React.ElementType; limitKey: string; unit?: string }
-> = {
+// ─────────────────────────────────────────────────────────────────────────────
+// USAGE CONFIG
+// Only the 3 countable limit features have usage bars.
+// Boolean features are on/off — no bar needed.
+// team_members is a seat cap enforced at invite-time — not a usage counter.
+// ─────────────────────────────────────────────────────────────────────────────
+const USAGE_CONFIG = {
+  invoices: {
+    label: "Invoices",
+    icon: Receipt,
+    limitKey: "invoice_limit_per_month",
+  },
   ai_messages: {
-    label: "AI Messages",
+    label: "AI Chats / Questions",
     icon: MessageSquare,
     limitKey: "ai_messages_per_month",
   },
-  projects: {
-    label: "Projects",
-    icon: FolderOpen,
-    limitKey: "projects_limit",
-  },
-  proposals: {
-    label: "Proposals",
+  document_templates: {
+    label: "Document Templates",
     icon: FileText,
-    limitKey: "proposal_limit",
+    limitKey: "document_templates",
   },
-  team_members: {
-    label: "Team Members",
-    icon: Users,
-    limitKey: "team_members",
-  },
-  storage_gb: {
-    label: "Storage",
-    icon: HardDrive,
-    limitKey: "storage_gb",
-    unit: "GB",
-  },
-  active_orders: {
-    label: "Active Orders",
-    icon: ShoppingBag,
-    limitKey: "active_orders_limit",
-  },
-  file_uploads: {
-    label: "File Uploads",
-    icon: Zap,
-    limitKey: "file_upload_limit_mb",
-    unit: "MB",
-  },
-};
+} as const;
 
-// ================= PROGRESS BAR =================
-const getBarColor = (percent: number) => {
-  if (percent >= 90) return "bg-status-error";
-  if (percent >= 70) return "bg-status-warning";
+type UsageConfigKey = keyof typeof USAGE_CONFIG;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// USAGE BAR
+// ─────────────────────────────────────────────────────────────────────────────
+const getBarColor = (pct: number) => {
+  if (pct >= 90) return "bg-status-error";
+  if (pct >= 70) return "bg-status-warning";
   return "bg-secondary";
 };
-
-const getTrackColor = (percent: number) => {
-  if (percent >= 90) return "bg-status-error-bg";
-  if (percent >= 70) return "bg-status-warning-bg";
+const getTrackColor = (pct: number) => {
+  if (pct >= 90) return "bg-status-error-bg";
+  if (pct >= 70) return "bg-status-warning-bg";
   return "bg-bg-base";
 };
 
@@ -107,7 +65,6 @@ interface UsageBarProps {
   icon: React.ElementType;
   used: number;
   limit: number | string;
-  unit?: string;
 }
 
 const UsageBar: React.FC<UsageBarProps> = ({
@@ -115,10 +72,13 @@ const UsageBar: React.FC<UsageBarProps> = ({
   icon: Icon,
   used,
   limit,
-  unit,
 }) => {
+  // -1 from backend = unlimited
   const isUnlimited =
-    limit === "unlimited" || limit === -1 || limit === 0 || limit === undefined;
+    limit === -1 ||
+    limit === "-1" ||
+    String(limit).toLowerCase() === "unlimited";
+
   const limitNum = isUnlimited ? 0 : Number(limit);
   const percent = isUnlimited ? 0 : Math.min((used / limitNum) * 100, 100);
   const barColor = getBarColor(percent);
@@ -126,8 +86,8 @@ const UsageBar: React.FC<UsageBarProps> = ({
 
   return (
     <div className="flex flex-col gap-1.5">
+      {/* Label + count */}
       <div className="flex items-center justify-between">
-        {/* Label + icon */}
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 flex items-center justify-center rounded-lg bg-brand-light shrink-0">
             <Icon className="w-3.5 h-3.5 text-secondary" />
@@ -137,27 +97,19 @@ const UsageBar: React.FC<UsageBarProps> = ({
           </span>
         </div>
 
-        {/* Usage count */}
         <span className="text-xs">
           {isUnlimited ? (
             <span className="text-secondary font-semibold">Unlimited</span>
           ) : (
             <>
-              <span className="font-bold text-text-heading">
-                {used}
-                {unit ? ` ${unit}` : ""}
-              </span>
-              <span className="text-text-muted">
-                {" "}
-                / {limitNum}
-                {unit ? ` ${unit}` : ""}
-              </span>
+              <span className="font-bold text-text-heading">{used}</span>
+              <span className="text-text-muted"> / {limitNum}</span>
             </>
           )}
         </span>
       </div>
 
-      {/* Progress bar */}
+      {/* Progress track */}
       <div
         className={`w-full h-1.5 rounded-full overflow-hidden ${trackColor}`}
       >
@@ -171,7 +123,7 @@ const UsageBar: React.FC<UsageBarProps> = ({
         )}
       </div>
 
-      {/* Warning */}
+      {/* Limit warning */}
       {!isUnlimited && percent >= 90 && (
         <p className="text-xs text-status-error font-semibold">
           {percent >= 100 ? "Limit reached" : "Almost at limit"}
@@ -181,91 +133,86 @@ const UsageBar: React.FC<UsageBarProps> = ({
   );
 };
 
-// ================= MAIN COMPONENT =================
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN COMPONENT
+// ─────────────────────────────────────────────────────────────────────────────
 const SubscriptionUsageCard: React.FC = () => {
-  const { user } = useAuth();
-  const userId = user?.user?.user_id;
+  // ── Subscription + plan from context — no duplicate API calls ─────────────
+  const {
+    subscription,
+    currentPlan,
+    isLoading: subscriptionLoading,
+  } = useSubscription();
 
   const [usageList, setUsageList] = useState<SubscriptionUsage[]>([]);
-  const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [usageLoading, setUsageLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // ── Fetch usage records whenever subscription changes ─────────────────────
   useEffect(() => {
-    if (!userId) return;
-    fetchUsage();
-  }, [userId]);
+    if (!subscription?.uuid) {
+      setUsageList([]);
+      return;
+    }
+    fetchUsage(subscription.uuid);
+  }, [subscription?.uuid]);
 
-  const fetchUsage = async () => {
-    setLoading(true);
+  const fetchUsage = async (subscriptionUuid: string) => {
+    setUsageLoading(true);
     setError(null);
     try {
-      // Step 1: Get current subscription + plan details
-      const [subRes, plansRes] = await Promise.all([
-        axiosInstance.get(`/subscription_plan/user_current/${userId}`),
-        axiosInstance.get("/subscription_plan/all"),
-      ]);
-
-      const subscription = subRes.data?.subscription;
-      const plans: SubscriptionPlan[] = plansRes.data?.plans || [];
-
-      if (!subscription?.uuid) {
-        setUsageList([]);
-        setCurrentPlan(null);
-        return;
-      }
-
-      // Match plan to get feature limits
-      const plan = plans.find((p) => p.uuid === subscription.plan_id) || null;
-      setCurrentPlan(plan);
-
-      // Step 2: Get all usage for this subscription
-      const usageRes = await axiosInstance.get(
-        `/subscription-usage/all_subscription/${subscription.uuid}`,
+      const res = await axiosInstance.get(
+        `/subscription-usage/all_subscription/${subscriptionUuid}`,
       );
-      setUsageList(usageRes.data || []);
+      setUsageList(res.data || []);
     } catch (err) {
-      console.error("Failed to fetch usage", err);
+      console.error("[SubscriptionUsageCard] fetch usage failed:", err);
       setError("Failed to load usage data.");
     } finally {
-      setLoading(false);
+      setUsageLoading(false);
     }
   };
 
-  // Build a map of usage_key → usage_count for quick lookup
+  // usage_key → usage_count lookup map
   const usageMap = usageList.reduce<Record<string, number>>((acc, item) => {
     acc[item.usage_key] = item.usage_count;
     return acc;
   }, {});
 
-  // Only render usage rows that exist in our config
-  const usageRows = Object.entries(usageConfig).filter(([, config]) => {
-    const limitVal = currentPlan?.features?.[config.limitKey];
-    return limitVal !== undefined && limitVal !== false;
-  });
+  // Only show bars for features defined on this plan
+  // 0 = not available → hide, -1 = unlimited → show, >0 = capped → show
+  const visibleRows = (Object.keys(USAGE_CONFIG) as UsageConfigKey[]).filter(
+    (key) => {
+      const limitVal =
+        currentPlan?.features?.[
+          USAGE_CONFIG[key].limitKey as keyof typeof currentPlan.features
+        ];
+      return limitVal !== undefined && limitVal !== false && limitVal !== 0;
+    },
+  );
 
+  const isLoading = subscriptionLoading || usageLoading;
+
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <SectionCard title="Subscription Usage" icon={BarChart2}>
-      {/* Loading */}
-      {loading && (
+      {isLoading && (
         <div className="p-20 flex items-center justify-center">
           <LoadingSpinner size="w-8 h-8" />
         </div>
       )}
 
-      {/* Error */}
-      {!loading && error && (
+      {!isLoading && error && (
         <EmptyState
           icon={BarChart2}
           title="Failed to load usage"
           description={error}
           ctaLabel="Retry"
-          onCTAClick={fetchUsage}
+          onCTAClick={() => subscription?.uuid && fetchUsage(subscription.uuid)}
         />
       )}
 
-      {/* No subscription */}
-      {!loading && !error && !currentPlan && (
+      {!isLoading && !error && !currentPlan && (
         <EmptyState
           icon={BarChart2}
           title="No active subscription yet"
@@ -273,10 +220,9 @@ const SubscriptionUsageCard: React.FC = () => {
         />
       )}
 
-      {/* Usage rows */}
-      {!loading && !error && currentPlan && usageRows.length > 0 && (
+      {!isLoading && !error && currentPlan && visibleRows.length > 0 && (
         <div className="space-y-5">
-          {/* Plan label */}
+          {/* Plan header */}
           <div className="flex items-center justify-between pb-3 border-b border-border">
             <p className="text-sm text-text-secondary">
               Plan:{" "}
@@ -290,17 +236,19 @@ const SubscriptionUsageCard: React.FC = () => {
           </div>
 
           {/* Usage bars */}
-          {usageRows.map(([key, config]) => {
-            const limit = currentPlan.features?.[config.limitKey];
-            const used = usageMap[key] ?? 0;
+          {visibleRows.map((key) => {
+            const config = USAGE_CONFIG[key];
+            const limit = currentPlan.features?.[
+              config.limitKey as keyof typeof currentPlan.features
+            ] as number | string;
+
             return (
               <UsageBar
                 key={key}
                 label={config.label}
                 icon={config.icon}
-                used={used}
-                limit={limit as number | string}
-                unit={config.unit}
+                used={usageMap[key] ?? 0}
+                limit={limit}
               />
             );
           })}

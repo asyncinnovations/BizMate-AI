@@ -28,6 +28,9 @@ import axiosInstance from "@/utils/axiosInstance";
 import { useAuth } from "@/context/AuthContext";
 import Button from "../ui/Button";
 import InputField from "@/components/ui/InputField";
+import { useSubscription } from "@/context/SubscriptionContext";
+import { useSubscriptionGuard } from "@/hooks/useSubscriptionGuard";
+import UpgradeLimitModal from "../upgrade_limit_modal/UpgradeLimitModal";
 
 interface FieldConfig {
   id: string;
@@ -166,6 +169,10 @@ export default function DocumentForm() {
   const params = useParams();
   const searchParams = useSearchParams();
   const { user, loading } = useAuth();
+
+  const { currentPlan } = useSubscription();
+  const { enforceAndIncrement } = useSubscriptionGuard();
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   const template_id = params?.template_id;
   const promptFromUrl = searchParams?.get("prompt") || "";
@@ -535,15 +542,29 @@ export default function DocumentForm() {
       }));
 
       if (isCustomTemplate) {
-        // Create a new template
-        const createRes = await axiosInstance.post(`/templates/create`, {
-          template_name: templateName,
-          description: templateDescription,
-          fields_schema: formData,
-          user_id: !loading ? user?.user.user_id : null,
-        });
+        // Create a new template — gated by document_templates subscription limit.
+        // enforceAndIncrement: hard-gates the save, runs POST /templates/create,
+        // then records +1 usage — all in one call.
+        const {
+          allowed,
+          reason,
+          data: createRes,
+        } = await enforceAndIncrement("document_templates", () =>
+          axiosInstance.post(`/templates/create`, {
+            template_name: templateName,
+            description: templateDescription,
+            fields_schema: formData,
+            user_id: !loading ? user?.user.user_id : null,
+          }),
+        );
 
-        const newId = createRes.data.data.uuid;
+        if (!allowed) {
+          // Limit exceeded or feature not on plan — show upgrade modal
+          setIsUpgradeModalOpen(true);
+          return { success: false };
+        }
+
+        const newId = createRes?.data.data.uuid;
 
         // Bulk insert AI fields to template_field table
         await axiosInstance.post(
@@ -1455,6 +1476,14 @@ export default function DocumentForm() {
             </div>
           </div>
         </Modal>
+
+        {/* Upgrade Limit Modal — shown when document_templates limit is hit at save time */}
+        <UpgradeLimitModal
+          isOpen={isUpgradeModalOpen}
+          onClose={() => setIsUpgradeModalOpen(false)}
+          featureLabel="Custom Templates"
+          planName={currentPlan?.name}
+        />
       </DashboardLayout>
     </ProtectedRoute>
   );

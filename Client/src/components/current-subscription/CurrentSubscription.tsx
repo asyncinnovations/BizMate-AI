@@ -1,107 +1,138 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { CreditCard, Check, Loader2 } from "lucide-react";
 import SectionCard from "@/components/section-card/SectionCard";
 import axiosInstance from "@/utils/axiosInstance";
 import { useAuth } from "@/context/AuthContext";
+import { useSubscription } from "@/context/SubscriptionContext";
+import type { SubscriptionFeatures } from "@/context/SubscriptionContext";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import EmptyState from "../empty-state/EmptyState";
 import Button from "../ui/Button";
 import LoadingSpinner from "../loading-spinner/LoadingSpinner";
 
-// ================= TYPES =================
-interface SubscriptionFeatures {
-  analytics: boolean;
-  api_access: boolean;
-  storage_gb: number;
-  auto_reports: boolean;
-  chat_support: boolean;
-  team_members: number;
-  email_support: boolean;
-  notifications: boolean;
-  projects_limit: number;
-  proposal_limit: number;
-  custom_branding: boolean;
-  dashboard_access: boolean;
-  priority_support: boolean;
-  integration_access: boolean;
-  invoice_generation: boolean;
-  active_orders_limit: number;
-  file_upload_limit_mb: number;
-  ai_messages_per_month: number;
+// ─────────────────────────────────────────────────────────────────────────────
+// FEATURE DISPLAY CONFIG
+// ─────────────────────────────────────────────────────────────────────────────
+type FeatureType = "boolean" | "limit";
+interface FeatureConfig {
+  label: string;
+  type: FeatureType;
 }
 
-interface SubscriptionPlan {
-  id: number;
-  uuid: string;
-  name: string;
-  description: string;
-  features: SubscriptionFeatures;
-  price: string | number;
-  duration_days: number;
-  is_active: boolean;
+const FEATURE_ORDER: (keyof SubscriptionFeatures)[] = [
+  "invoice_limit_per_month",
+  "ai_messages_per_month",
+  "whatsapp_ai",
+  "instagram_auto_reply",
+  "custom_ai_training",
+  "priority_ai_compute",
+  "document_templates",
+  "document_generator",
+  "pdf_export",
+  "dashboard_access",
+  "notifications",
+  "analytics",
+  "vat_reminder",
+  "vat_auto_calculation",
+  "smart_reminders",
+  "payroll_reminders",
+  "expense_tracking",
+  "payment_integrations",
+  "team_members",
+  "employee_contract_generator",
+  "integration_access",
+  "api_access",
+  "email_support",
+  "priority_support",
+  "dedicated_support",
+];
+
+const FEATURE_CONFIG: Record<keyof SubscriptionFeatures, FeatureConfig> = {
+  invoice_limit_per_month: { label: "Invoices per Month", type: "limit" },
+  ai_messages_per_month: { label: "AI Chats / Questions", type: "limit" },
+  whatsapp_ai: { label: "WhatsApp Automation", type: "boolean" },
+  instagram_auto_reply: { label: "Instagram Auto Reply", type: "boolean" },
+  custom_ai_training: { label: "Custom AI Training", type: "boolean" },
+  priority_ai_compute: { label: "Priority AI Compute", type: "boolean" },
+  document_templates: { label: "Document Templates", type: "limit" },
+  document_generator: { label: "Document Generator", type: "boolean" },
+  pdf_export: { label: "PDF Export", type: "boolean" },
+  dashboard_access: { label: "Dashboard Access", type: "boolean" },
+  notifications: { label: "Email Notifications", type: "boolean" },
+  analytics: { label: "Analytics Dashboard", type: "boolean" },
+  vat_reminder: { label: "VAT Reminder", type: "boolean" },
+  vat_auto_calculation: { label: "VAT Auto Calculation", type: "boolean" },
+  smart_reminders: { label: "Smart Reminders", type: "boolean" },
+  payroll_reminders: { label: "Payroll Reminders", type: "boolean" },
+  expense_tracking: { label: "Expense Tracking", type: "boolean" },
+  payment_integrations: { label: "Payment Integrations", type: "boolean" },
+  team_members: { label: "Team Members", type: "limit" },
+  employee_contract_generator: { label: "Employee Contracts", type: "boolean" },
+  integration_access: { label: "Integrations", type: "boolean" },
+  api_access: { label: "API Access", type: "boolean" },
+  email_support: { label: "Email Support", type: "boolean" },
+  priority_support: { label: "Priority Support", type: "boolean" },
+  dedicated_support: { label: "Dedicated Support", type: "boolean" },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+function formatLimit(value: number | string): string {
+  if (value === -1 || value === "-1") return "Unlimited";
+  if (typeof value === "string") {
+    const lower = value.toLowerCase().trim();
+    if (lower === "unlimited" || lower === "∞") return "Unlimited";
+    return value.charAt(0).toUpperCase() + value.slice(1);
+  }
+  return value.toLocaleString();
 }
 
-interface UserSubscription {
-  plan_id: string;
-  user_id: string;
-  start_date: string;
-  end_date: string;
-  status: string;
+function isVisible(
+  value: SubscriptionFeatures[keyof SubscriptionFeatures],
+): boolean {
+  if (value === undefined || value === null) return false;
+  if (typeof value === "boolean") return value === true;
+  if (typeof value === "number") return value !== 0;
+  if (typeof value === "string") {
+    const v = value.trim();
+    return v !== "" && v !== "0";
+  }
+  return false;
 }
 
+function getRemainingDays(endDate: string): number {
+  const diff = Math.ceil(
+    (new Date(endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+  );
+  return diff > 0 ? diff : 0;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMPONENT
+// ─────────────────────────────────────────────────────────────────────────────
 const CurrentSubscription: React.FC = () => {
   const { user } = useAuth();
   const router = useRouter();
   const userId = user?.user?.user_id;
 
-  const [allPlans, setAllPlans] = useState<SubscriptionPlan[]>([]);
-  const [userSubscription, setUserSubscription] =
-    useState<UserSubscription | null>(null);
-  const [loading, setLoading] = useState(false);
+  // ── All subscription data from context — no API calls needed here ─────────
+  const { subscription, currentPlan, isLoading, refresh } = useSubscription();
+
   const [cancelLoading, setCancelLoading] = useState(false);
 
-  //////////////////////////////////
-  // Fetch User Subscription Details
-  ///////////////////////////////////
-  const fetchData = async () => {
-    if (!userId) return;
-    setLoading(true);
-    try {
-      const [plansRes, subRes] = await Promise.all([
-        axiosInstance.get<{ plans: SubscriptionPlan[] }>(
-          "/subscription_plan/all",
-        ),
-        axiosInstance.get<{ subscription: UserSubscription | null }>(
-          `/subscription_plan/user_current/${userId}`,
-        ),
-      ]);
-      setAllPlans(plansRes.data.plans || []);
-      setUserSubscription(subRes.data.subscription || null);
-    } catch (error) {
-      console.error("Failed to fetch subscription data", error);
-      setUserSubscription(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, [userId]);
-
-  /////////////////////////////////////
-  // Cancel subscription
-  /////////////////////////////////////
+  // ── Cancel ────────────────────────────────────────────────────────────────
   const handleCancelSubscription = async () => {
     if (!userId) return;
     setCancelLoading(true);
     try {
       await axiosInstance.post(`/subscription_plan/cancel_user/${userId}`);
       toast.success("Subscription cancelled successfully");
-      fetchData();
+      // Refresh context so all components update immediately
+      await refresh();
     } catch {
       toast.error("Failed to cancel subscription");
     } finally {
@@ -109,45 +140,48 @@ const CurrentSubscription: React.FC = () => {
     }
   };
 
-  // Change plan
   const handleChangePlan = () => router.push("/dashboard/pricing");
 
-  // Find plan details for current subscription
-  const currentPlan = userSubscription
-    ? allPlans.find((plan) => plan.uuid === userSubscription.plan_id)
-    : null;
+  // ── Feature rows ──────────────────────────────────────────────────────────
+  const renderFeatures = (features: SubscriptionFeatures) => {
+    const visible = FEATURE_ORDER.filter((key) => isVisible(features?.[key]));
+    if (visible.length === 0) return null;
 
-  // Countdown
-  const getRemainingDays = (endDate: string) => {
-    const today = new Date();
-    const end = new Date(endDate);
-    const diff = Math.ceil(
-      (end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2.5 pt-4 border-t border-on-brand/20">
+        {visible.map((key) => {
+          const value = features[key]!;
+          const config = FEATURE_CONFIG[key];
+          return (
+            <div key={key} className="flex items-center gap-2">
+              <Check className="w-4 h-4 text-on-brand/80 shrink-0" />
+              <span className="text-sm text-on-brand/90">
+                {config.type === "limit" ? (
+                  <>
+                    <span className="font-semibold">
+                      {formatLimit(value as number | string)}
+                    </span>{" "}
+                    {config.label}
+                  </>
+                ) : (
+                  config.label
+                )}
+              </span>
+            </div>
+          );
+        })}
+      </div>
     );
-    return diff > 0 ? diff : 0;
   };
 
-  // Render features dynamically
-  const renderFeatures = (features: SubscriptionFeatures) =>
-    Object.entries(features)
-      .filter(([, value]) => value && value !== 0)
-      .map(([key, value]) => (
-        <div key={key} className="flex items-center gap-2">
-          <Check className="w-4 h-4 text-on-brand/80 shrink-0" />
-          <span className="text-sm text-on-brand/90">
-            {key.replace(/_/g, " ")}:{" "}
-            {typeof value === "boolean" ? "Yes" : value}
-          </span>
-        </div>
-      ));
-
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <SectionCard title="Current Plan" icon={CreditCard}>
-      {loading ? (
+      {isLoading ? (
         <div className="p-20 flex items-center justify-center">
           <LoadingSpinner size="w-8 h-8" />
         </div>
-      ) : !currentPlan || !userSubscription ? (
+      ) : !currentPlan || !subscription ? (
         <EmptyState
           icon={CreditCard}
           title="No active subscription yet"
@@ -174,14 +208,11 @@ const CurrentSubscription: React.FC = () => {
                   {currentPlan.price}
                 </p>
                 <p className="text-sm text-on-brand/70 mt-0.5">
-                  Remaining: {getRemainingDays(userSubscription.end_date)} days
+                  {getRemainingDays(subscription.end_date)} days remaining
                 </p>
               </div>
             </div>
-
-            <div className="space-y-2 pt-4 border-t border-on-brand/20">
-              {renderFeatures(currentPlan.features)}
-            </div>
+            {renderFeatures(currentPlan.features)}
           </div>
 
           {/* Actions */}

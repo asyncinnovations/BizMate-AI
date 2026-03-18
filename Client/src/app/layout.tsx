@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, DM_Serif_Display } from "next/font/google";
+import { Inter, DM_Serif_Display } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "react-hot-toast";
+import { SubscriptionProvider } from "@/context/SubscriptionContext";
 
 /* ─────────────────────────────────────────────
    Load Fonts with Next.js Font System
    ───────────────────────────────────────────── */
 
-const plusJakarta = Plus_Jakarta_Sans({
+const plusJakarta = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
@@ -34,10 +35,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      className={`${plusJakarta.variable} ${dmSerif.variable}`}
-    >
+    <html lang="en" className={`${plusJakarta.variable} ${dmSerif.variable}`}>
       <head>
         {/* Theme script */}
         <script
@@ -59,7 +57,9 @@ export default function RootLayout({
       </head>
 
       <body className="antialiased">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <SubscriptionProvider>{children}</SubscriptionProvider>{" "}
+        </AuthProvider>
 
         <Toaster position="top-right" reverseOrder={false} />
       </body>
