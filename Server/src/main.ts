@@ -1,5 +1,6 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
+import { connectDB } from "./config/db";
 // import "./jobs/reminderNotifier.js"; // starts cron when server starts
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -10,6 +11,7 @@ async function bootstrap() {
   const PORT = process.env.PORT || 8080;
 
   await app.listen(PORT);
+  connectDB();
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 }
 bootstrap();

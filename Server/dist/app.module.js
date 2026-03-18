@@ -108,7 +108,7 @@ exports.AppModule = AppModule = __decorate([
                     user_subscription_entity_1.UserSubscription,
                     subscription_payments_entity_1.SubscriptionPayment,
                     user_sessions_entity_1.UserSession,
-                    subscription_usage_entity_1.SubscriptionUsage
+                    subscription_usage_entity_1.SubscriptionUsage,
                 ],
             }),
             auth_module_1.AuthModule,
