@@ -65,6 +65,7 @@ export default function PricingSection() {
   return (
     <section
       ref={ref}
+      id="pricing"
       className="py-28 px-6"
       style={{ background: "#F8FAFF" }}
     >

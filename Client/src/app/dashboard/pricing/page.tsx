@@ -2,7 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import { Sparkles, Building2, Rocket, LucideIcon } from "lucide-react";
-import PlanCard, { SubscriptionFeatures } from "@/components/plan-card/PlanCard";
+import PlanCard, {
+  SubscriptionFeatures,
+} from "@/components/plan-card/PlanCard";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import axiosInstance from "@/utils/axiosInstance";
 import toast from "react-hot-toast";
@@ -41,7 +43,9 @@ export default function PricingPage() {
   const router = useRouter();
 
   const [allPlans, setAllPlans] = useState<PlanFromAPI[]>([]);
-  const [currentPlan, setCurrentPlan] = useState<CurrentSubscription | null>(null);
+  const [currentPlan, setCurrentPlan] = useState<CurrentSubscription | null>(
+    null,
+  );
   const [loading, setLoading] = useState(false);
 
   // ─────────────────────────────────────────
@@ -65,7 +69,9 @@ export default function PricingPage() {
   const fetchCurrentPlan = async () => {
     if (!userId) return;
     try {
-      const res = await axiosInstance.get(`/subscription_plan/user_current/${userId}`);
+      const res = await axiosInstance.get(
+        `/subscription_plan/user_current/${userId}`,
+      );
       const sub = res.data?.subscription;
       if (sub) setCurrentPlan({ planId: sub.plan_id, price: 0 });
     } catch (error) {
@@ -77,7 +83,7 @@ export default function PricingPage() {
     if (!userId) return;
     setLoading(true);
     Promise.all([fetchAllPlans(), fetchCurrentPlan()]).finally(() =>
-      setLoading(false)
+      setLoading(false),
     );
   }, [userId]);
 
@@ -99,9 +105,19 @@ export default function PricingPage() {
 
     if (!currentPlan) {
       if (isPlanStarter) {
-        return { label: "Current Plan", action: null, disabled: true, isCurrent: false };
+        return {
+          label: "Current Plan",
+          action: null,
+          disabled: true,
+          isCurrent: false,
+        };
       }
-      return { label: "Buy Now", action: "subscribe", disabled: false, isCurrent: false };
+      return {
+        label: "Buy Now",
+        action: "subscribe",
+        disabled: false,
+        isCurrent: false,
+      };
     }
 
     const currentPlanObj = allPlans.find((p) => p.uuid === currentPlan.planId);
@@ -109,37 +125,63 @@ export default function PricingPage() {
     const planPrice = Number(plan.price);
 
     if (isPlanStarter && hasActivePaidSub) {
-      return { label: "Not Available", action: null, disabled: true, isCurrent: false };
+      return {
+        label: "Not Available",
+        action: null,
+        disabled: true,
+        isCurrent: false,
+      };
     }
 
     if (plan.uuid === currentPlan.planId) {
-      return { label: "Current Plan", action: null, disabled: true, isCurrent: true };
+      return {
+        label: "Current Plan",
+        action: null,
+        disabled: true,
+        isCurrent: true,
+      };
     }
 
     if (planPrice > currentPrice) {
-      return { label: "Upgrade", action: "upgrade", disabled: false, isCurrent: false };
+      return {
+        label: "Upgrade",
+        action: "upgrade",
+        disabled: false,
+        isCurrent: false,
+      };
     }
 
     if (planPrice < currentPrice) {
-      return { label: "Downgrade", action: "downgrade", disabled: false, isCurrent: false };
+      return {
+        label: "Downgrade",
+        action: "downgrade",
+        disabled: false,
+        isCurrent: false,
+      };
     }
 
-    return { label: "Buy Now", action: "subscribe", disabled: false, isCurrent: false };
+    return {
+      label: "Buy Now",
+      action: "subscribe",
+      disabled: false,
+      isCurrent: false,
+    };
   };
 
   // ── Navigate to checkout ──
   const handlePlanClick = (plan: PlanFromAPI) => {
     const state = getPlanState(plan);
     if (!state.action || !userId) return;
-    router.push(`/dashboard/pricing/checkout/${plan.uuid}?action=${state.action}`);
+    router.push(
+      `/dashboard/pricing/checkout/${plan.uuid}?action=${state.action}`,
+    );
   };
 
   // ================= RENDER =================
   return (
     <DashboardLayout>
       <div className="min-h-[90vh] pb-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
+        <div className="px-4">
           {/* Header */}
           <div className="text-center my-10">
             <h1 className="text-3xl font-semibold text-text-heading">
@@ -147,7 +189,8 @@ export default function PricingPage() {
             </h1>
             {hasActivePaidSub && (
               <p className="text-text-primary mt-2 text-sm">
-                You have an active subscription. Upgrade or manage your plan below.
+                You have an active subscription. Upgrade or manage your plan
+                below.
               </p>
             )}
           </div>
@@ -170,14 +213,15 @@ export default function PricingPage() {
 
           {/* Plans grid */}
           {!loading && allPlans.length > 0 && (
-            <div className="grid md:grid-cols-3 gap-8 mb-16">
+            <div className="grid md:grid-cols-4 gap-4 mb-16">
               {allPlans.map((plan) => {
                 const Icon = planIcons[plan.name] || Sparkles;
                 const state = getPlanState(plan);
                 const isPlanStarter = Number(plan.price) === 0;
                 const priceLabel = isPlanStarter ? "Free" : String(plan.price);
                 const periodLabel = `/ ${plan.duration_days} days`;
-                const showPopular = plan.name === "Standard" && isOnStarterOrNoSub;
+                const showPopular =
+                  plan.name === "Standard" && isOnStarterOrNoSub;
 
                 return (
                   <PlanCard
@@ -207,7 +251,6 @@ export default function PricingPage() {
               All plans include secure data storage and updates
             </p>
           </div>
-
         </div>
       </div>
     </DashboardLayout>

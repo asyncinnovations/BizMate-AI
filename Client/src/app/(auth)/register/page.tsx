@@ -73,7 +73,7 @@ const RegisterPage: React.FC = () => {
   });
 
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ): void => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -121,7 +121,7 @@ const RegisterPage: React.FC = () => {
     try {
       const response = await axios.post<AuthResponse>(
         `${process.env.NEXT_PUBLIC_API_URL}/auth/signup`,
-        formData
+        formData,
       );
 
       console.log("SignUp Successfully!", response);
@@ -156,14 +156,14 @@ const RegisterPage: React.FC = () => {
       description: "Perfect for individual professionals and consultants",
     },
     {
-      label: "SME",
-      icon: <Building2 className="w-4 h-4" />,
-      description: "Ideal for small to medium-sized businesses",
-    },
-    {
       label: "Startup",
       icon: <Rocket className="w-4 h-4" />,
       description: "Built for fast-growing startup companies",
+    },
+    {
+      label: "SME",
+      icon: <Building2 className="w-4 h-4" />,
+      description: "Ideal for small to medium-sized businesses",
     },
   ];
 
@@ -178,6 +178,13 @@ const RegisterPage: React.FC = () => {
 
   const handleBack = (): void => {
     setShowSelectBusiness(true);
+    setFormData({
+      ...formData,
+      company_name: "",
+      license_number: "",
+      vat_id: "",
+      idustry: "",
+    });
     setBusinessType("Freelancer");
   };
 

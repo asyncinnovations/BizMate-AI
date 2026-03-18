@@ -24,10 +24,13 @@ import StatCard from "@/components/stat-card/StatCard";
 import PageHeader from "@/components/page-header/PageHeader";
 import Modal from "@/components/ui/Modal";
 import { useAuth } from "@/context/AuthContext";
+import { useSubscription } from "@/context/SubscriptionContext";
+import { useSubscriptionGuard } from "@/hooks/useSubscriptionGuard";
 import axiosInstance from "@/utils/axiosInstance";
 import toast from "react-hot-toast";
 import LoadingSpinner from "@/components/loading-spinner/LoadingSpinner";
 import EmptyState from "@/components/empty-state/EmptyState";
+import UpgradeLimitModal from "@/components/upgrade_limit_modal/UpgradeLimitModal";
 
 interface DocumentTemplate {
   uuid: string;
@@ -74,6 +77,20 @@ export default function DocumentGeneratorMain() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { user, loading } = useAuth();
+
+  // ── Subscription guard — custom template creation limit ──────────────────
+  // We only gate "Create Custom Template". Prebuilt templates are not counted.
+  // checkLimit reads subscription + features from SubscriptionContext internally.
+  // The actual increment is done on the create-custom-template page after the
+  // template is successfully saved — not here.
+  const { subscription, currentPlan } = useSubscription();
+  const { checkLimit } = useSubscriptionGuard();
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [templateUsage, setTemplateUsage] = useState<{
+    used: number;
+    limit: number;
+  }>({ used: 0, limit: 0 });
+  // ─────────────────────────────────────────────────────────────────────────
 
   const fetchTemplates = async () => {
     try {
@@ -219,7 +236,24 @@ export default function DocumentGeneratorMain() {
     router.push(`/dashboard/documents/new/${templateId}`);
   };
 
-  const handleCreateCustomTemplate = () => {
+  // ── Create Custom Template — gated by document_templates subscription limit
+  const handleCreateCustomTemplate = async () => {
+    // Only run the limit check if the user has an active subscription.
+    // If no subscription exists, fall through — the backend will reject if needed.
+    if (subscription?.uuid) {
+      const { exceeded, used, limit } = await checkLimit("document_templates");
+
+      console.log(exceeded, used, limit);
+
+      if (exceeded) {
+        // Store used/limit values so the modal can display them accurately
+        setTemplateUsage({ used, limit });
+        setIsUpgradeModalOpen(true);
+        return;
+      }
+    }
+
+    // Limit not exceeded (or unlimited / no subscription to check) → open prompt modal
     setIsModalOpen(true);
   };
 
@@ -483,7 +517,7 @@ export default function DocumentGeneratorMain() {
         </div>
       </div>
 
-      {/* Custom Template Modal */}
+      {/* Custom Template Prompt Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
@@ -558,6 +592,20 @@ export default function DocumentGeneratorMain() {
           </div>
         </div>
       </Modal>
+
+      {/* ── Upgrade Limit Modal ──────────────────────────────────────────────
+          Shown when the user hits their document_templates subscription limit.
+          Reuse this pattern on invoice page (featureLabel="Invoices") and
+          AI chat page (featureLabel="AI Messages") with the same component.
+      ─────────────────────────────────────────────────────────────────────── */}
+      <UpgradeLimitModal
+        isOpen={isUpgradeModalOpen}
+        onClose={() => setIsUpgradeModalOpen(false)}
+        featureLabel="Custom Templates"
+        usedCount={templateUsage.used}
+        limitCount={templateUsage.limit}
+        planName={currentPlan?.name}
+      />
     </DashboardLayout>
   );
 }
