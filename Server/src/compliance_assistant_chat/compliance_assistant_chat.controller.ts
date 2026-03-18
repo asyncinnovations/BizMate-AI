@@ -12,12 +12,29 @@ import {
   HttpStatus,
 } from "@nestjs/common";
 import { ComplianceAssistantChatService } from "./compliance_assistant_chat.service";
+import { GPTService } from "src/services/GPTService";
 
 @Controller("compliance_assistant_chat")
 export class ComplianceAssistantController {
   constructor(
-    private readonly AssistantChatService: ComplianceAssistantChatService
+    private readonly AssistantChatService: ComplianceAssistantChatService,
+    private readonly gpt_service: GPTService,
   ) {}
+  ///////////////////////////////////////////////
+  // ASK QUESTION AI
+  ///////////////////////////////////////////////
+  @Post("compliance_ai")
+  async chat_gpt(@Body() body: any) {
+    try {
+      const response = await this.gpt_service.GPTChat(
+        body.prompt,
+        "you are a compliance assistant you must answer to the related compliance.",
+      );
+      return { message: "success", response: response.data.content };
+    } catch (error: any) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
+  }
   ///////////////////////////////////////////////
   // ASK QUESTION AI
   ///////////////////////////////////////////////
@@ -33,7 +50,7 @@ export class ComplianceAssistantController {
       };
       const response = await this.AssistantChatService.askAI(data);
       return { message: "ai response", response };
-    } catch (error) {
+    } catch (error: any) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
@@ -48,7 +65,7 @@ export class ComplianceAssistantController {
       const response =
         await this.AssistantChatService.user_chat_history_service(user_id);
       return { message: "user history retrived", response };
-    } catch (error) {
+    } catch (error: any) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
@@ -60,15 +77,15 @@ export class ComplianceAssistantController {
   @HttpCode(HttpStatus.OK)
   async deleteChat(
     @Param("chat_id") chat_id: string,
-    @Param("user_id") user_id: string
+    @Param("user_id") user_id: string,
   ) {
     try {
       const response = await this.AssistantChatService.delete_chat_service(
         chat_id,
-        user_id
+        user_id,
       );
       return { message: "chat deleted", response };
-    } catch (error) {
+    } catch (error: any) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
@@ -83,7 +100,7 @@ export class ComplianceAssistantController {
       const result =
         await this.AssistantChatService.clear_chat_history_service(user_id);
       return result;
-    } catch (error) {
+    } catch (error: any) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
@@ -95,15 +112,15 @@ export class ComplianceAssistantController {
   @HttpCode(HttpStatus.OK)
   async searchChat(
     @Param("user_id") userId: string,
-    @Query("keyword") keyword: string
+    @Query("keyword") keyword: string,
   ) {
     try {
       const response = await this.AssistantChatService.searchChat(
         userId,
-        keyword
+        keyword,
       );
       return { message: "search result", response };
-    } catch (error) {
+    } catch (error: any) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }

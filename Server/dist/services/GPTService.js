@@ -1,0 +1,37 @@
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.GPTService = void 0;
+const common_1 = require("@nestjs/common");
+const gpt_config_1 = require("../config/gpt_config");
+let GPTService = class GPTService {
+    async GPTChat(user_prompt, system_prompt) {
+        const response = await gpt_config_1.gtp_config.chat.completions.create({
+            model: "Qwen/Qwen2.5-7B-Instruct",
+            messages: [
+                {
+                    role: "system",
+                    content: system_prompt,
+                },
+                {
+                    role: "user",
+                    content: user_prompt,
+                },
+            ],
+        });
+        return {
+            message: "welcome to GPT-OSS",
+            data: response.choices[0].message,
+        };
+    }
+};
+exports.GPTService = GPTService;
+exports.GPTService = GPTService = __decorate([
+    (0, common_1.Injectable)()
+], GPTService);
+//# sourceMappingURL=GPTService.js.map

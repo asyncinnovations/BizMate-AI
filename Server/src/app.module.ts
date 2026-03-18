@@ -97,7 +97,7 @@ import { SubscriptionUsage } from "./subscription_usage/subscription_usage.entit
         UserSubscription,
         SubscriptionPayment,
         UserSession,
-        SubscriptionUsage
+        SubscriptionUsage,
       ],
     }),
     AuthModule,
