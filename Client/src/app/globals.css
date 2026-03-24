@@ -101,10 +101,10 @@
 
   /* ── Border Radius ── */
   --radius-sm:    0.375rem;  /* 6px  — tags, tight chips        → rounded-sm */
-  --radius-md:    0.5rem;    /* 8px  — inputs, small buttons    → rounded-md */
-  --radius-lg:    0.75rem;   /* 12px — cards, panels            → rounded-lg */
-  --radius-xl:    1rem;      /* 16px — large cards, modals      → rounded-xl */
-  --radius-2xl:   1.5rem;    /* 24px — hero sections            → rounded-2xl */
+  --radius-md:    0.375rem;    /* 8px  — inputs, small buttons    → rounded-md */
+  --radius-lg:    0.375rem;   /* 12px — cards, panels            → rounded-lg */
+  --radius-xl:    0.7rem;      /* 16px — large cards, modals      → rounded-xl */
+  --radius-2xl:   0.7rem;    /* 24px — hero sections            → rounded-2xl */
   --radius-full:  9999px;    /* Pills, avatars, toggles         → rounded-full */
 }
 
