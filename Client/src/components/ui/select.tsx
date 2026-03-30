@@ -49,6 +49,10 @@ const Select: React.FC<SelectInputProps> = ({
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    setSelected(value || "");
+  }, [value]);
+
   return (
     <div ref={containerRef} className={cn("relative w-64 text-sm", className)}>
 
