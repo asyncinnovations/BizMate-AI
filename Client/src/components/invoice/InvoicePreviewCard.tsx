@@ -1,5 +1,4 @@
 import React from "react";
-import { FileText } from "lucide-react";
 
 interface InvoiceItem {
   id: string;
@@ -27,9 +26,16 @@ interface Invoice {
 
 interface InvoicePreviewCardProps {
   invoice: Invoice;
+  /** Optional payment URL shown inside the Payment Instructions section.
+   *  Built as /pay/[invoiceId]?method=stripe — visible on screen and in PDF.
+   *  Customer clicks it to pay without logging in. */
+  paymentLink?: string;
 }
 
-const InvoicePreviewCard: React.FC<InvoicePreviewCardProps> = ({ invoice }) => {
+const InvoicePreviewCard: React.FC<InvoicePreviewCardProps> = ({
+  invoice,
+  paymentLink,
+}) => {
   return (
     <div className="bg-surface rounded-lg shadow-card border border-border overflow-hidden">
       <div className="p-8">
@@ -224,6 +230,27 @@ const InvoicePreviewCard: React.FC<InvoicePreviewCardProps> = ({ invoice }) => {
                 Please include invoice number {invoice.invoice_number} with your
                 payment.
               </p>
+
+              {/* ── Pay Online — only shown when paymentLink is passed ── */}
+              {paymentLink && (
+                <div className="mt-4 pt-4 border-t border-border">
+                  <p className="mb-1.5">
+                    <strong>Pay Online:</strong>
+                  </p>
+                  <p className="text-text-secondary mb-2">
+                    You can also pay this invoice securely online. Click the
+                    link below or copy it into your browser:
+                  </p>
+                  <a
+                    href={paymentLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-secondary font-medium underline underline-offset-2 break-all text-sm hover:text-brand-hover transition-colors"
+                  >
+                    {paymentLink}
+                  </a>
+                </div>
+              )}
             </div>
           </div>
 

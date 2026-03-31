@@ -65,6 +65,14 @@ interface EmailFormData {
   message: string;
 }
 
+// ─── Payment link helper ──────────────────────────────────────────────────────
+// Generates: /pay/[invoiceId]?method=stripe
+// method is always stripe — customer cannot change it from the PDF link
+const buildPaymentLink = (invoiceId: string): string => {
+  const base = typeof window !== "undefined" ? window.location.origin : "";
+  return `${base}/pay/${invoiceId}?method=stripe`;
+};
+
 const InvoicePreviewPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
@@ -87,7 +95,8 @@ const InvoicePreviewPage: React.FC = () => {
       const response = await axiosInstance.get(`/invoices/single/${invoiceId}`);
       if (response.status === 200) {
         setCurrentInvoice(response.data);
-        // Pre-fill email form data
+        // Pre-fill email — include the payment link in the message body
+        const payLink = buildPaymentLink(invoiceId);
         setEmailFormData({
           to: response.data.customer_email || "",
           cc: "",
@@ -97,6 +106,8 @@ const InvoicePreviewPage: React.FC = () => {
 Please find attached invoice ${response.data.invoice_number} for the amount of AED ${response.data.total.toLocaleString()}.
 
 Payment is due by ${new Date(response.data.due_date).toLocaleDateString()}.
+
+Pay online: ${payLink}
 
 If you have any questions regarding this invoice, please don't hesitate to contact us.
 
@@ -271,11 +282,21 @@ Business Solutions Inc.`,
           </div>
 
           {/* Invoice Preview Card Component */}
-          <InvoicePreviewCard invoice={currentInvoice} />
+          {/*
+            The InvoicePreviewCard renders the paper-style invoice.
+            The payment link is embedded inside InvoicePreviewCard via the
+            paymentLink prop — it appears in the "Payment Instructions" section
+            of the invoice itself, so it is visible in both the screen view
+            and the downloaded PDF.
+          */}
+          <InvoicePreviewCard
+            invoice={currentInvoice}
+            paymentLink={buildPaymentLink(invoiceId)}
+          />
 
           {/* Quick Actions */}
           <div className="mt-8 text-center">
-            <div className="inline-flex items-center gap-6 bg-surface border border-border rounded-xl shadow-card px-6 py-4">
+            <div className="inline-flex items-center gap-6 bg-surface border border-border rounded-lg px-6 py-4 shadow-card">
               <div className="text-sm text-text-secondary">
                 Ready to send this invoice to your customer?
               </div>
