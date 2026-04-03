@@ -62,6 +62,8 @@ const user_sessions_entity_1 = require("./user_sessions/user_sessions.entity");
 const subscription_usage_module_1 = require("./subscription_usage/subscription_usage.module");
 const import_service_1 = require("./import/import.service");
 const subscription_usage_entity_1 = require("./subscription_usage/subscription_usage.entity");
+const employee_payroll_module_1 = require("./employee_payroll/employee_payroll.module");
+const employee_payroll_entity_1 = require("./employee_payroll/employee_payroll.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -87,6 +89,7 @@ exports.AppModule = AppModule = __decorate([
                 entities: [
                     user_entity_1.AuthUsers,
                     templates_entity_1.TemplateEntity,
+                    employee_payroll_entity_1.EmployeePayroll,
                     template_field_entity_1.TemplateFieldEntity,
                     invoices_entity_1.InvoiceEntity,
                     user_payment_gateway_entity_1.UserPaymentGatewayEntity,
@@ -137,6 +140,7 @@ exports.AppModule = AppModule = __decorate([
             wallet_transaction_module_1.WalletTransactionModule,
             user_sessions_module_1.UserSessionsModule,
             subscription_usage_module_1.SubscriptionUsageModule,
+            employee_payroll_module_1.EmployeePayrollModule,
         ],
     })
 ], AppModule);

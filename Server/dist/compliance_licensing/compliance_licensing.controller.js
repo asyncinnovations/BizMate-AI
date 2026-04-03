@@ -21,35 +21,95 @@ let ComplianceLicensingController = class ComplianceLicensingController {
         this.licensingService = licensingService;
     }
     async create_license(body) {
-        const { user_id, company_id, license_type, license_number, issue_date, expiry_date, document_id, } = body;
-        return await this.licensingService.create_license_service(user_id, company_id, license_type, license_number, issue_date, expiry_date, document_id);
+        try {
+            const { user_id, company_id, license_type, license_number, issue_date, expiry_date, document_id, } = body;
+            const response = await this.licensingService.create_license_service(user_id, company_id, license_type, license_number, issue_date, expiry_date, document_id);
+            return { message: "license created successfully", response };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error.message || error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
     async get_user_licences(user_id, company_id) {
-        return await this.licensingService.get_user_licences_service(user_id, company_id);
+        try {
+            const response = await this.licensingService.get_user_licences_service(user_id, company_id);
+            return { message: "user licenses retrieved", response };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error.message || error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
     async get_single_licences(license_id) {
-        return await this.licensingService.single_licences_service(license_id);
+        try {
+            const response = await this.licensingService.single_licences_service(license_id);
+            return { message: "single license retrieved", response };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error.message || error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
     async update_licences(license_id, updates) {
-        return await this.licensingService.update_licences_service(license_id, updates);
+        try {
+            const response = await this.licensingService.update_licences_service(license_id, updates);
+            return { message: "license updated successfully", response };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error.message || error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
     async delete_licences(license_id) {
-        return await this.licensingService.delete_licences_service(license_id);
+        try {
+            const response = await this.licensingService.delete_licences_service(license_id);
+            return { message: "license deleted successfully", response };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error.message || error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
     async verify_licences(license_id) {
-        return await this.licensingService.verify_licences_service(license_id);
+        try {
+            const response = await this.licensingService.verify_licences_service(license_id);
+            return { message: "license verified successfully", response };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error.message || error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
     async mark_expire_licences(license_id) {
-        return await this.licensingService.mark_expire_licences_service(license_id);
+        try {
+            const response = await this.licensingService.mark_expire_licences_service(license_id);
+            return { message: "license marked as expired", response };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error.message || error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
     async suspend_licences(license_id) {
-        return await this.licensingService.suspend_licences_service(license_id);
+        try {
+            const response = await this.licensingService.suspend_licences_service(license_id);
+            return { message: "license suspended", response };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error.message || error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
     async attach_licences_document(license_id, document_id) {
-        return await this.licensingService.attach_licences_document_service(license_id, document_id);
+        try {
+            const response = await this.licensingService.attach_licences_document_service(license_id, document_id);
+            return { message: "document attached to license", response };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error.message || error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
     async get_expired_licences(user_id, daysBefore) {
-        return await this.licensingService.get_expired_licences_service(user_id, daysBefore);
+        try {
+            const response = await this.licensingService.get_expired_licences_service(user_id, daysBefore);
+            return { message: "expiring licenses retrieved", response };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error.message || error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
 };
 exports.ComplianceLicensingController = ComplianceLicensingController;
@@ -63,6 +123,7 @@ __decorate([
 ], ComplianceLicensingController.prototype, "create_license", null);
 __decorate([
     (0, common_1.Get)("user/:user_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("user_id")),
     __param(1, (0, common_1.Query)("company_id")),
     __metadata("design:type", Function),
@@ -71,6 +132,7 @@ __decorate([
 ], ComplianceLicensingController.prototype, "get_user_licences", null);
 __decorate([
     (0, common_1.Get)("single/:license_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("license_id")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -78,6 +140,7 @@ __decorate([
 ], ComplianceLicensingController.prototype, "get_single_licences", null);
 __decorate([
     (0, common_1.Put)("update/:license_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("license_id")),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -86,6 +149,7 @@ __decorate([
 ], ComplianceLicensingController.prototype, "update_licences", null);
 __decorate([
     (0, common_1.Delete)("delete/:license_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("license_id")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -93,6 +157,7 @@ __decorate([
 ], ComplianceLicensingController.prototype, "delete_licences", null);
 __decorate([
     (0, common_1.Put)("verify/:license_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("license_id")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -100,6 +165,7 @@ __decorate([
 ], ComplianceLicensingController.prototype, "verify_licences", null);
 __decorate([
     (0, common_1.Put)("expire/:license_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("license_id")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -107,6 +173,7 @@ __decorate([
 ], ComplianceLicensingController.prototype, "mark_expire_licences", null);
 __decorate([
     (0, common_1.Put)(":license_id/suspend"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("license_id")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -114,6 +181,7 @@ __decorate([
 ], ComplianceLicensingController.prototype, "suspend_licences", null);
 __decorate([
     (0, common_1.Put)(":license_id/attach-document/:document_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("license_id")),
     __param(1, (0, common_1.Param)("document_id")),
     __metadata("design:type", Function),
@@ -122,6 +190,7 @@ __decorate([
 ], ComplianceLicensingController.prototype, "attach_licences_document", null);
 __decorate([
     (0, common_1.Get)("user/:user_id/expiring"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("user_id")),
     __param(1, (0, common_1.Query)("daysBefore")),
     __metadata("design:type", Function),
