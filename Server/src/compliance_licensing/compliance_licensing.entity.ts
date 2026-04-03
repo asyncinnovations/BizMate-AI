@@ -15,46 +15,46 @@ export enum LicenseStatus {
 @Entity("compliance_licenses")
 export class ComplianceLicense {
   @Column({ type: "integer", generated: "increment" })
-  id: number;
+  id!: number;
 
   @PrimaryColumn({
     type: "uuid",
     default: () => "gen_random_uuid()",
     unique: true,
   })
-  uuid: string;
+  uuid!: string;
 
   @Column({ type: "uuid" })
-  user_id: string;
+  user_id!: string;
 
   @Column({ type: "uuid", nullable: true })
-  company_id: string;
+  company_id!: string;
 
   @Column({ type: "varchar", length: 100 })
-  license_type: string;
+  license_type!: string;
 
   @Column({ type: "varchar", length: 100, nullable: true })
-  license_number: string;
+  license_number!: string;
 
   @Column({ type: "date", nullable: true })
-  issue_date: string;
+  issue_date!: string;
 
   @Column({ type: "date", nullable: true })
-  expiry_date: string;
+  expiry_date!: string;
 
   @Column({
     type: "enum",
     enum: LicenseStatus,
     default: LicenseStatus.ACTIVE,
   })
-  status: LicenseStatus;
+  status!: LicenseStatus;
 
   @Column({ type: "uuid", nullable: true })
-  document_id: string;
+  document_id!: string;
 
   @CreateDateColumn({ type: "timestamp" })
-  created_at: Date;
+  created_at!: Date;
 
   @UpdateDateColumn({ type: "timestamp" })
-  updated_at: Date;
+  updated_at!: Date;
 }

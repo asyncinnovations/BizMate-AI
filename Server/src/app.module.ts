@@ -54,6 +54,8 @@ import { UserSession } from "./user_sessions/user_sessions.entity";
 import { SubscriptionUsageModule } from "./subscription_usage/subscription_usage.module";
 import { ImportService } from "./import/import.service";
 import { SubscriptionUsage } from "./subscription_usage/subscription_usage.entity";
+import { EmployeePayrollModule } from "./employee_payroll/employee_payroll.module";
+import { EmployeePayroll } from "./employee_payroll/employee_payroll.entity";
 
 @Module({
   controllers: [],
@@ -76,6 +78,7 @@ import { SubscriptionUsage } from "./subscription_usage/subscription_usage.entit
       entities: [
         AuthUsers,
         TemplateEntity,
+        EmployeePayroll,
         TemplateFieldEntity,
         InvoiceEntity,
         UserPaymentGatewayEntity,
@@ -126,6 +129,7 @@ import { SubscriptionUsage } from "./subscription_usage/subscription_usage.entit
     WalletTransactionModule,
     UserSessionsModule,
     SubscriptionUsageModule,
+    EmployeePayrollModule,
   ],
 })
 export class AppModule {}
