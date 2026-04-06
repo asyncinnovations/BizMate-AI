@@ -11,6 +11,9 @@ const common_1 = require("@nestjs/common");
 const compliance_assistant_chat_service_1 = require("./compliance_assistant_chat.service");
 const compliance_assistant_chat_controller_1 = require("./compliance_assistant_chat.controller");
 const compliance_assistant_chat_entity_1 = require("./compliance_assistant_chat.entity");
+const ai_reminder_service_1 = require("../ai_reminder/ai_reminder.service");
+const ai_reminder_entity_1 = require("../ai_reminder/ai_reminder.entity");
+const PromptService_1 = require("../services/PromptService");
 const GPTService_1 = require("../services/GPTService");
 const typeorm_1 = require("@nestjs/typeorm");
 let ComplianceAssistantModule = class ComplianceAssistantModule {
@@ -18,8 +21,13 @@ let ComplianceAssistantModule = class ComplianceAssistantModule {
 exports.ComplianceAssistantModule = ComplianceAssistantModule;
 exports.ComplianceAssistantModule = ComplianceAssistantModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([compliance_assistant_chat_entity_1.ComplianceAssistantChat])],
-        providers: [compliance_assistant_chat_service_1.ComplianceAssistantChatService, GPTService_1.GPTService],
+        imports: [typeorm_1.TypeOrmModule.forFeature([compliance_assistant_chat_entity_1.ComplianceAssistantChat, ai_reminder_entity_1.AiReminder])],
+        providers: [
+            compliance_assistant_chat_service_1.ComplianceAssistantChatService,
+            GPTService_1.GPTService,
+            ai_reminder_service_1.AiReminderService,
+            PromptService_1.PromptService,
+        ],
         controllers: [compliance_assistant_chat_controller_1.ComplianceAssistantController],
     })
 ], ComplianceAssistantModule);

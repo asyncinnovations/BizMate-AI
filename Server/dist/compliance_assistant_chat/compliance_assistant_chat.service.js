@@ -11,41 +11,29 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ComplianceAssistantChatService = void 0;
 const common_1 = require("@nestjs/common");
-const openai_1 = __importDefault(require("openai"));
 const typeorm_1 = require("typeorm");
 const typeorm_2 = require("@nestjs/typeorm");
 const compliance_assistant_chat_entity_1 = require("./compliance_assistant_chat.entity");
+const GPTService_1 = require("../services/GPTService");
+const PromptService_1 = require("../services/PromptService");
 let ComplianceAssistantChatService = class ComplianceAssistantChatService {
     compliance_assistant;
-    openai;
-    constructor(compliance_assistant) {
+    gpt_service;
+    prompt_service;
+    constructor(compliance_assistant, gpt_service, prompt_service) {
         this.compliance_assistant = compliance_assistant;
-        this.openai = new openai_1.default({
-            apiKey: `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`,
-        });
+        this.gpt_service = gpt_service;
+        this.prompt_service = prompt_service;
     }
     async askAI(data) {
         try {
-            const systemPrompt = `
-        You are a UAE Compliance Assistant.
-        Provide step-by-step guidance for VAT, ESR, Trade License Renewal, and UAE government procedures.
-      `;
-            const response = await this.openai.chat.completions.create({
-                model: "gpt-4o-mini",
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: data.question },
-                ],
-            });
-            const answer = response.choices[0].message.content;
+            const systemPrompt = this.prompt_service.ComplianceAIPrompt();
+            const aiResponse = await this.gpt_service.GPTChat(data.question, systemPrompt.trim());
             const chat = this.compliance_assistant.create({
-                answer: answer,
+                answer: aiResponse?.data?.content,
                 question: data.question,
                 user_id: data.user_id,
             });
@@ -92,6 +80,8 @@ exports.ComplianceAssistantChatService = ComplianceAssistantChatService;
 exports.ComplianceAssistantChatService = ComplianceAssistantChatService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_2.InjectRepository)(compliance_assistant_chat_entity_1.ComplianceAssistantChat)),
-    __metadata("design:paramtypes", [typeorm_1.Repository])
+    __metadata("design:paramtypes", [typeorm_1.Repository,
+        GPTService_1.GPTService,
+        PromptService_1.PromptService])
 ], ComplianceAssistantChatService);
 //# sourceMappingURL=compliance_assistant_chat.service.js.map

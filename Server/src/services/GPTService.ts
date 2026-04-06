@@ -9,6 +9,7 @@ export class GPTService {
       //   model: "openai/gpt-oss-120b:cerebras",
       //   model: "Qwen/Qwen2.5-72B-Instruct",
       model: "Qwen/Qwen2.5-7B-Instruct",
+      max_completion_tokens: 300,
       messages: [
         {
           role: "system",
