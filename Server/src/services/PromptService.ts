@@ -3,7 +3,7 @@ import { Injectable } from "@nestjs/common";
 @Injectable()
 export class PromptService {
   // ==================================
-  // Prompts for BizMat-AI SaaS Platform
+  // Prompts for AI Assistent Chat
   // ==================================
   ComplianceAIPrompt() {
     return `
@@ -42,5 +42,23 @@ export class PromptService {
               "answer": "step-by-step answer"
             }
             `;
+  }
+  // ==================================
+  // Prompts for Field extraction
+  // ==================================
+  DocumentFieldExtractionPrompt() {
+    return `
+        Extract the following fields from this license text:
+        - License Number
+        - Expiry Date
+        - Company Name
+
+        Return JSON:
+        {
+        "license_no": "...",
+        "expiry_date": "YYYY-MM-DD",
+        "company_name": "..."
+        }
+        `;
   }
 }

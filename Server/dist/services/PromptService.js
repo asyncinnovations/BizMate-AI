@@ -47,6 +47,21 @@ let PromptService = class PromptService {
             }
             `;
     }
+    DocumentFieldExtractionPrompt() {
+        return `
+        Extract the following fields from this license text:
+        - License Number
+        - Expiry Date
+        - Company Name
+
+        Return JSON:
+        {
+        "license_no": "...",
+        "expiry_date": "YYYY-MM-DD",
+        "company_name": "..."
+        }
+        `;
+    }
 };
 exports.PromptService = PromptService;
 exports.PromptService = PromptService = __decorate([

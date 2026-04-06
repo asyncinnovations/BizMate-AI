@@ -1,7 +1,11 @@
 import { ComplianceDocumentsService } from "./compliance_documents.service";
+import { DocumentHistoryService } from "src/document_history/document_history.service";
+import { DocumentConverter } from "src/services/DocumentConverter";
 export declare class ComplianceDocumentsController {
     private readonly service;
-    constructor(service: ComplianceDocumentsService);
+    private readonly document_service;
+    private readonly document_converter;
+    constructor(service: ComplianceDocumentsService, document_service: DocumentHistoryService, document_converter: DocumentConverter);
     upload_document(body: any, file?: Express.Multer.File): Promise<{
         message: string;
         response: import("./compliance_documents.entity").ComplianceDocument;

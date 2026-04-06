@@ -64,6 +64,8 @@ const import_service_1 = require("./import/import.service");
 const subscription_usage_entity_1 = require("./subscription_usage/subscription_usage.entity");
 const employee_payroll_module_1 = require("./employee_payroll/employee_payroll.module");
 const employee_payroll_entity_1 = require("./employee_payroll/employee_payroll.entity");
+const document_history_module_1 = require("./document_history/document_history.module");
+const document_history_entity_1 = require("./document_history/document_history.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -92,6 +94,7 @@ exports.AppModule = AppModule = __decorate([
                     employee_payroll_entity_1.EmployeePayroll,
                     template_field_entity_1.TemplateFieldEntity,
                     invoices_entity_1.InvoiceEntity,
+                    document_history_entity_1.DocumentHistory,
                     user_payment_gateway_entity_1.UserPaymentGatewayEntity,
                     ai_reminder_entity_1.AiReminder,
                     client_lists_entity_1.ClientList,
@@ -141,6 +144,7 @@ exports.AppModule = AppModule = __decorate([
             user_sessions_module_1.UserSessionsModule,
             subscription_usage_module_1.SubscriptionUsageModule,
             employee_payroll_module_1.EmployeePayrollModule,
+            document_history_module_1.DocumentHistoryModule,
         ],
     })
 ], AppModule);
