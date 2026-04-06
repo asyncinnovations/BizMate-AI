@@ -16,6 +16,7 @@ import {
   Zap,
   Contact,
   ShieldBan,
+  Banknote,
 } from "lucide-react";
 import React, { useRef, useEffect } from "react";
 import { gsap } from "gsap";
@@ -62,6 +63,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     },
     {
       id: 5,
+      label: "Payroll Management",
+      icon: Banknote,
+      color: "text-emerald-400",
+      href: "/dashboard/payroll",
+    },
+    {
+      id: 6,
       label: "Compliance & Licensing",
       icon: ShieldBan,
       color: "text-indigo-500",
@@ -70,7 +78,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
 
     // ⭐ NEW ITEM — Client Management (Position 6)
     {
-      id: 6,
+      id: 7,
       label: "Client Management",
       icon: Contact, // or UserCircle / NotebookPen / FolderUser
       color: "text-teal-400",
@@ -79,28 +87,28 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
 
     // shifted below
     {
-      id: 7,
+      id: 8,
       label: "Auto-Reply Hub",
       icon: Mail,
       color: "text-pink-400",
       href: "/dashboard/communication",
     },
     {
-      id: 8,
+      id: 9,
       label: "Document Generator",
       icon: Zap,
       color: "text-yellow-400",
       href: "/dashboard/documents",
     },
     {
-      id: 9,
+      id: 10,
       label: "Business Analytics",
       icon: BarChart,
       color: "text-cyan-400",
       href: "/dashboard/analytics",
     },
     {
-      id: 10,
+      id: 11,
       label: "Team Management",
       icon: Users,
       color: "text-indigo-400",
@@ -116,19 +124,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       href: "/dashboard/notifications",
     },
     {
-      id: 12,
+      id: 13,
       label: "AI Help Center",
       icon: HelpCircle,
       href: "/dashboard/help",
     },
     {
-      id: 13,
+      id: 14,
       label: "Settings",
       icon: Settings,
       href: "/dashboard/settings",
     },
     {
-      id: 14,
+      id: 15,
       label: "Billing & Plans",
       icon: Wallet,
       href: "/dashboard/pricing",
@@ -213,7 +221,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
               key={item.id}
               href={item.href}
               className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 cursor-pointer group ${
-                pathname === item.href
+                (item.href === "/dashboard"
+                  ? pathname === item.href
+                  : pathname === item.href ||
+                    pathname.startsWith(`${item.href}/`))
                   ? "bg-gradient-to-r from-[#1f4c78] to-[#2c5a8a] shadow-lg"
                   : "hover:bg-[#1f4c78] hover:bg-opacity-50"
               }`}
