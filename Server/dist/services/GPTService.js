@@ -13,6 +13,7 @@ let GPTService = class GPTService {
     async GPTChat(user_prompt, system_prompt) {
         const response = await gpt_config_1.gtp_config.chat.completions.create({
             model: "Qwen/Qwen2.5-7B-Instruct",
+            max_completion_tokens: 300,
             messages: [
                 {
                     role: "system",

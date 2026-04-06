@@ -13,12 +13,14 @@ import {
 } from "@nestjs/common";
 import { ComplianceAssistantChatService } from "./compliance_assistant_chat.service";
 import { GPTService } from "src/services/GPTService";
+import { AiReminderService } from "src/ai_reminder/ai_reminder.service";
 
 @Controller("compliance_assistant_chat")
 export class ComplianceAssistantController {
   constructor(
     private readonly AssistantChatService: ComplianceAssistantChatService,
     private readonly gpt_service: GPTService,
+    private readonly reminderService: AiReminderService,
   ) {}
   ///////////////////////////////////////////////
   // ASK QUESTION AI
@@ -42,16 +44,38 @@ export class ComplianceAssistantController {
   @HttpCode(HttpStatus.CREATED)
   async askAI(@Body() body: any) {
     try {
-      const data = {
-        user_id: body.user_id,
-        question: body.question,
-        answer:
-          "To submit VAT for Q3 2024, follow these steps: 1) Login to FTA portal, 2) Upload VAT return spreadsheet, 3) Submit before 28/10/2024, 4) Keep the receipt for records.",
+      const response: any = await this.AssistantChatService.askAI(body);
+      const parsed: any = JSON.parse(response.answer);
+      // SET REMINDER IF EXIST
+      if (parsed.type === "reminder") {
+        const reminder_result = this.reminderService.create_reminder_service({
+          user_id: body.user_id,
+          title: parsed.title,
+          description: parsed.description,
+          type: parsed.reminder_type || "Custom",
+          reminder_date: new Date(parsed.reminder_date),
+          notify_before: parsed.notify_before || 3,
+          notify_channels: parsed.notify_channels,
+          recurrence_rule: parsed.recurrence_rule || "none",
+          status: "pending",
+        });
+        return {
+          message: "Reminder created successfully",
+          reminder: reminder_result,
+          response: response.answer,
+        };
+      }
+
+      // NORMAL RESPONSE
+      return {
+        message: "AI response",
+        answer: response.answer,
       };
-      const response = await this.AssistantChatService.askAI(data);
-      return { message: "ai response", response };
     } catch (error: any) {
-      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        error?.message || "AI request failed",
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 

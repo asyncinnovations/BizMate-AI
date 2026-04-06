@@ -17,10 +17,16 @@ const common_1 = require("@nestjs/common");
 const upload_decorator_1 = require("../common/decorators/upload.decorator");
 const compliance_documents_service_1 = require("./compliance_documents.service");
 const path_1 = require("path");
+const document_history_service_1 = require("../document_history/document_history.service");
+const DocumentConverter_1 = require("../services/DocumentConverter");
 let ComplianceDocumentsController = class ComplianceDocumentsController {
     service;
-    constructor(service) {
+    document_service;
+    document_converter;
+    constructor(service, document_service, document_converter) {
         this.service = service;
+        this.document_service = document_service;
+        this.document_converter = document_converter;
     }
     async upload_document(body, file) {
         try {
@@ -178,6 +184,8 @@ __decorate([
 ], ComplianceDocumentsController.prototype, "delete_document", null);
 exports.ComplianceDocumentsController = ComplianceDocumentsController = __decorate([
     (0, common_1.Controller)("compliance-documents"),
-    __metadata("design:paramtypes", [compliance_documents_service_1.ComplianceDocumentsService])
+    __metadata("design:paramtypes", [compliance_documents_service_1.ComplianceDocumentsService,
+        document_history_service_1.DocumentHistoryService,
+        DocumentConverter_1.DocumentConverter])
 ], ComplianceDocumentsController);
 //# sourceMappingURL=compliance_documents.controller.js.map

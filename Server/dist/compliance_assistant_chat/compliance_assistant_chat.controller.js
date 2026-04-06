@@ -16,12 +16,15 @@ exports.ComplianceAssistantController = void 0;
 const common_1 = require("@nestjs/common");
 const compliance_assistant_chat_service_1 = require("./compliance_assistant_chat.service");
 const GPTService_1 = require("../services/GPTService");
+const ai_reminder_service_1 = require("../ai_reminder/ai_reminder.service");
 let ComplianceAssistantController = class ComplianceAssistantController {
     AssistantChatService;
     gpt_service;
-    constructor(AssistantChatService, gpt_service) {
+    reminderService;
+    constructor(AssistantChatService, gpt_service, reminderService) {
         this.AssistantChatService = AssistantChatService;
         this.gpt_service = gpt_service;
+        this.reminderService = reminderService;
     }
     async chat_gpt(body) {
         try {
@@ -34,16 +37,33 @@ let ComplianceAssistantController = class ComplianceAssistantController {
     }
     async askAI(body) {
         try {
-            const data = {
-                user_id: body.user_id,
-                question: body.question,
-                answer: "To submit VAT for Q3 2024, follow these steps: 1) Login to FTA portal, 2) Upload VAT return spreadsheet, 3) Submit before 28/10/2024, 4) Keep the receipt for records.",
+            const response = await this.AssistantChatService.askAI(body);
+            const parsed = JSON.parse(response.answer);
+            if (parsed.type === "reminder") {
+                const reminder_result = this.reminderService.create_reminder_service({
+                    user_id: body.user_id,
+                    title: parsed.title,
+                    description: parsed.description,
+                    type: parsed.reminder_type || "Custom",
+                    reminder_date: new Date(parsed.reminder_date),
+                    notify_before: parsed.notify_before || 3,
+                    notify_channels: parsed.notify_channels,
+                    recurrence_rule: parsed.recurrence_rule || "none",
+                    status: "pending",
+                });
+                return {
+                    message: "Reminder created successfully",
+                    reminder: reminder_result,
+                    response: response.answer,
+                };
+            }
+            return {
+                message: "AI response",
+                answer: response.answer,
             };
-            const response = await this.AssistantChatService.askAI(data);
-            return { message: "ai response", response };
         }
         catch (error) {
-            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+            throw new common_1.HttpException(error?.message || "AI request failed", common_1.HttpStatus.BAD_REQUEST);
         }
     }
     async user_chat_history(user_id) {
@@ -136,6 +156,7 @@ __decorate([
 exports.ComplianceAssistantController = ComplianceAssistantController = __decorate([
     (0, common_1.Controller)("compliance_assistant_chat"),
     __metadata("design:paramtypes", [compliance_assistant_chat_service_1.ComplianceAssistantChatService,
-        GPTService_1.GPTService])
+        GPTService_1.GPTService,
+        ai_reminder_service_1.AiReminderService])
 ], ComplianceAssistantController);
 //# sourceMappingURL=compliance_assistant_chat.controller.js.map

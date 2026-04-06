@@ -14,19 +14,19 @@ export class AiReminder {
     default: () => "gen_random_uuid()",
     unique: true,
   })
-  uuid: string;
+  uuid!: string;
 
   @Column({
     type: "integer",
     generated: "increment",
   })
-  id: number;
+  id!: number;
 
   @Column({ type: "uuid" })
-  user_id: string;
+  user_id!: string;
 
   @Column({ type: "varchar", length: 255 })
-  title: string;
+  title!: string;
 
   @Column({ type: "text", nullable: true })
   description?: string;
@@ -35,23 +35,23 @@ export class AiReminder {
     type: "enum",
     enum: ["VAT", "License", "Payroll", "Custom"],
   })
-  type: "VAT" | "License" | "Payroll" | "Custom";
+  type!: "VAT" | "License" | "Payroll" | "Custom";
 
   @Column({ type: "timestamp" })
-  reminder_date: Date;
+  reminder_date!: Date;
 
   @Column({
     type: "integer",
     default: 3,
     comment: "Number of days before reminder_date to notify user",
   })
-  notify_before: number;
+  notify_before!: number;
 
   @Column({
     type: "jsonb",
     default: () => `'{"email": true, "whatsapp": false, "push": true}'`,
   })
-  notify_channels: {
+  notify_channels!: {
     email: boolean;
     whatsapp: boolean;
     push: boolean;
@@ -61,31 +61,31 @@ export class AiReminder {
     type: "boolean",
     default: false,
   })
-  notified: boolean;
+  notified!: boolean;
 
   @Column({
     type: "enum",
     enum: ["none", "monthly", "quarterly", "yearly"],
     default: "none",
   })
-  recurrence_rule: "none" | "monthly" | "quarterly" | "yearly";
+  recurrence_rule!: "none" | "monthly" | "quarterly" | "yearly";
 
   @Column({
     type: "enum",
     enum: ["pending", "sent", "completed", "missed"],
     default: "pending",
   })
-  status: "pending" | "sent" | "completed" | "missed";
+  status!: "pending" | "sent" | "completed" | "missed";
 
   @CreateDateColumn({
     type: "timestamp",
     default: () => "CURRENT_TIMESTAMP",
   })
-  created_at: Date;
+  created_at!: Date;
 
   @UpdateDateColumn({
     type: "timestamp",
     default: () => "CURRENT_TIMESTAMP",
   })
-  updated_at: Date;
+  updated_at!: Date;
 }

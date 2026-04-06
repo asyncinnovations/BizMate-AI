@@ -56,6 +56,8 @@ import { ImportService } from "./import/import.service";
 import { SubscriptionUsage } from "./subscription_usage/subscription_usage.entity";
 import { EmployeePayrollModule } from "./employee_payroll/employee_payroll.module";
 import { EmployeePayroll } from "./employee_payroll/employee_payroll.entity";
+import { DocumentHistoryModule } from "./document_history/document_history.module";
+import { DocumentHistory } from "./document_history/document_history.entity";
 
 @Module({
   controllers: [],
@@ -81,6 +83,7 @@ import { EmployeePayroll } from "./employee_payroll/employee_payroll.entity";
         EmployeePayroll,
         TemplateFieldEntity,
         InvoiceEntity,
+        DocumentHistory,
         UserPaymentGatewayEntity,
         AiReminder,
         ClientList,
@@ -130,6 +133,7 @@ import { EmployeePayroll } from "./employee_payroll/employee_payroll.entity";
     UserSessionsModule,
     SubscriptionUsageModule,
     EmployeePayrollModule,
+    DocumentHistoryModule,
   ],
 })
 export class AppModule {}

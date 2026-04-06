@@ -3,42 +3,36 @@ import OpenAI from "openai";
 import { Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ComplianceAssistantChat } from "./compliance_assistant_chat.entity";
+import { GPTService } from "src/services/GPTService";
+import { PromptService } from "src/services/PromptService";
 
 @Injectable()
 export class ComplianceAssistantChatService {
-  private openai: OpenAI;
+  // private openai: OpenAI;
 
   constructor(
     @InjectRepository(ComplianceAssistantChat)
-    private readonly compliance_assistant: Repository<ComplianceAssistantChat>
+    private readonly compliance_assistant: Repository<ComplianceAssistantChat>,
+    private readonly gpt_service: GPTService,
+    private readonly prompt_service: PromptService,
   ) {
-    this.openai = new OpenAI({
-      apiKey: `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`,
-    });
+    // this.openai = new OpenAI({
+    //   apiKey: `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`,
+    // });
   }
   //////////////////////////////////////
   // ASK QUESTION  TO AI
   //////////////////////////////////////
   public async askAI(data: any) {
     try {
-      const systemPrompt = `
-        You are a UAE Compliance Assistant.
-        Provide step-by-step guidance for VAT, ESR, Trade License Renewal, and UAE government procedures.
-      `;
-
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: data.question },
-        ],
-      });
-
-      const answer: any = response.choices[0].message.content;
-
+      const systemPrompt = this.prompt_service.ComplianceAIPrompt();
+      const aiResponse: any = await this.gpt_service.GPTChat(
+        data.question,
+        systemPrompt.trim(),
+      );
       // Save chat to DB
       const chat = this.compliance_assistant.create({
-        answer: answer,
+        answer: aiResponse?.data?.content,
         question: data.question,
         user_id: data.user_id,
       });
