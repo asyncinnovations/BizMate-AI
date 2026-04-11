@@ -49,9 +49,18 @@ export class ComplianceAssistantChatService {
   // GET CHAT HISTORY
   //////////////////////////////////////////////////
   public async user_chat_history_service(userId: string) {
-    const result = await this.compliance_assistant.find({
-      where: { user_id: userId },
-    });
+    const result = await this.compliance_assistant.query(
+      `
+      SELECT cac.*, ar.title as reminder_title, ar.description as reminder_description, 
+      ar.type as reminder_type, ar.reminder_date, ar.notify_before as reminder_notify_before, 
+      ar.notify_channels as reminder_notify_channels, ar.notified as reminder_notified, ar.recurrence_rule as reminder_recurrence_rule,
+      ar.status as reminder_status, ar.created_at
+      FROM compliance_assistant_chat as cac 
+      LEFT JOIN ai_reminders as ar ON cac.user_id=ar.user_id
+      WHERE cac.user_id=$1 
+      `,
+      [userId],
+    );
     return result;
   }
 

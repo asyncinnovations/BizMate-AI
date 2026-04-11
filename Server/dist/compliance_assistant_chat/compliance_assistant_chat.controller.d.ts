@@ -23,7 +23,7 @@ export declare class ComplianceAssistantController {
     }>;
     user_chat_history(user_id: string): Promise<{
         message: string;
-        response: import("./compliance_assistant_chat.entity").ComplianceAssistantChat[];
+        response: any;
     }>;
     deleteChat(chat_id: string, user_id: string): Promise<{
         message: string;
