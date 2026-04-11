@@ -8,7 +8,7 @@ export declare class ComplianceAssistantChatService {
     private readonly prompt_service;
     constructor(compliance_assistant: Repository<ComplianceAssistantChat>, gpt_service: GPTService, prompt_service: PromptService);
     askAI(data: any): Promise<ComplianceAssistantChat>;
-    user_chat_history_service(userId: string): Promise<ComplianceAssistantChat[]>;
+    user_chat_history_service(userId: string): Promise<any>;
     delete_chat_service(chatId: string, userId: string): Promise<ComplianceAssistantChat>;
     clear_chat_history_service(userId: string): Promise<{
         message: string;

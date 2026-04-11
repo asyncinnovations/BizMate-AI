@@ -10,33 +10,33 @@ import {
 @Entity("compliance_assistant_chat")
 export class ComplianceAssistantChat {
   @Column({ type: "integer", generated: "increment" })
-  id: number;
+  id!: number;
 
   @PrimaryColumn({
     type: "uuid",
     default: () => "gen_random_uuid()",
     unique: true,
   })
-  uuid: string;
+  uuid!: string;
 
   @Column({ type: "uuid" })
-  user_id: string;
+  user_id!: string;
 
   @Column({ type: "uuid", nullable: true })
-  company: string;
+  company!: string;
 
   @Column({ type: "uuid", nullable: true })
-  reminder_id: string;
+  reminder_id!: string;
 
   @Column({ type: "text" })
-  question: string; // User's question
+  question!: string; // User's question
 
   @Column({ type: "text" })
-  answer: string; // AI response
+  answer!: string; // AI response
 
   @CreateDateColumn({ type: "timestamp" })
-  timestamp: Date;
+  timestamp!: Date;
 
   @UpdateDateColumn({ type: "timestamp" })
-  updatedAt: Date;
+  updatedAt!: Date;
 }
