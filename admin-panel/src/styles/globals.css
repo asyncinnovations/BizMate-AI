@@ -1,0 +1,143 @@
+@import url("https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Outfit:wght@300;400;500;600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Design Tokens ──────────────────────────────────────────────────── */
+:root {
+  --font-display: "Syne", sans-serif;
+  --font-body: "Outfit", sans-serif;
+
+  /* Backgrounds */
+  --bg-canvas:  #040912;
+  --bg-panel:   #070d1b;
+  --bg-surface: #0c1426;
+  --bg-raised:  #111d30;
+
+  /* Accent system */
+  --accent:        #1a6fff;
+  --accent-mid:    #1458cc;
+  --accent-dim:    rgba(26, 111, 255, 0.12);
+  --accent-border: rgba(26, 111, 255, 0.25);
+  --cyan:          #00c8e8;
+  --cyan-dim:      rgba(0, 200, 232, 0.10);
+
+  /* Text */
+  --text-primary:   #eef4ff;
+  --text-secondary: #7898b8;
+  --text-muted:     #3d5478;
+
+  /* UI */
+  --border:       rgba(255, 255, 255, 0.065);
+  --border-focus: rgba(26, 111, 255, 0.55);
+  --error:        #ff4560;
+  --error-dim:    rgba(255, 69, 96, 0.12);
+  --success:      #00c97d;
+}
+
+/* ─── Base ───────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Keyframes ──────────────────────────────────────────────────────── */
+
+/* Subtle pulse for glowing nodes */
+@keyframes pulse-node {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.35); }
+}
+
+/* Orbit ring rotation */
+@keyframes orbit-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Counter-orbit */
+@keyframes orbit-spin-reverse {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+
+/* Breathing glow for the central orb */
+@keyframes orb-breathe {
+  0%, 100% { transform: scale(1);    filter: blur(60px); opacity: 0.20; }
+  50%       { transform: scale(1.15); filter: blur(72px); opacity: 0.32; }
+}
+
+/* Staggered slide-up for page entrance */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Horizontal shimmer on the input focus ring */
+@keyframes shimmer-line {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Floating dot drift */
+@keyframes drift {
+  0%,100% { transform: translateY(0px) translateX(0px); }
+  33%      { transform: translateY(-10px) translateX(5px); }
+  66%      { transform: translateY(5px) translateX(-8px); }
+}
+
+/* Grid fade-in */
+@keyframes grid-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ─── Utilities ──────────────────────────────────────────────────────── */
+.font-display { font-family: var(--font-display); }
+.font-body    { font-family: var(--font-body); }
+
+/* Dot-grid background pattern */
+.bg-dot-grid {
+  background-image: radial-gradient(
+    circle,
+    rgba(26, 111, 255, 0.18) 1px,
+    transparent 1px
+  );
+  background-size: 32px 32px;
+  animation: grid-fade 1.2s ease both;
+}
+
+/* Glassmorphism card */
+.glass-card {
+  background: rgba(12, 20, 38, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+}
+
+/* Entrance animation helpers */
+.animate-in {
+  animation: slide-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+.delay-600 { animation-delay: 600ms; }
+
+/* Scrollbar */
+::-webkit-scrollbar       { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-canvas); }
+::-webkit-scrollbar-thumb { background: var(--bg-raised); border-radius: 2px; }
