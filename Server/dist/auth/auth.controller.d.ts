@@ -1,8 +1,10 @@
 import { AuthService } from "./auth.service";
 import { UserRole } from "./user.entity";
+import { SubscriptionPlanService } from "src/subscription_plans/subscription_plans.service";
 export declare class AuthController {
     private authService;
-    constructor(authService: AuthService);
+    private planService;
+    constructor(authService: AuthService, planService: SubscriptionPlanService);
     private validateSignup;
     private validateLogin;
     signup(data: any, file?: Express.Multer.File): Promise<{

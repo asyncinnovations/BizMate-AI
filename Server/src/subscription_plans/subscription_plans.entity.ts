@@ -9,26 +9,26 @@ import {
 
 // Enum for plan names
 export enum PlanName {
-  TRIAL = "Trial",
+  STARTUP = "Startup",
   STARTER = "Starter",
-  STANDARD = "Standard",
-  PREMIUM = "Premium",
+  PRO = "Pro",
+  ENTERPRISE = "Enterprise",
 }
 
 @Entity({ name: "subscription_plans" })
 export class SubscriptionPlan {
   @Column({ generated: "increment", type: "integer" })
-  id: number;
+  id!: number;
 
   @PrimaryColumn({
     type: "uuid",
     default: () => "gen_random_uuid()",
     unique: true,
   })
-  uuid: string;
+  uuid!: string;
 
   @Column({ type: "enum", enum: PlanName })
-  name: PlanName;
+  name!: PlanName;
 
   @Column({ type: "text", nullable: true })
   description?: string;
@@ -37,23 +37,23 @@ export class SubscriptionPlan {
   features?: Record<string, any>; // store dynamic plan features as JSON
 
   @Column({ type: "numeric", precision: 10, scale: 2 })
-  price: number;
+  price!: number;
 
   @Column({ type: "int" })
-  duration_days: number;
+  duration_days!: number;
 
   @Column({ type: "boolean", default: true })
-  is_active: boolean;
+  is_active!: boolean;
 
   @CreateDateColumn({
     type: "timestamp with time zone",
     default: () => "NOW()",
   })
-  created_at: Date;
+  created_at!: Date;
 
   @UpdateDateColumn({
     type: "timestamp with time zone",
     default: () => "NOW()",
   })
-  updated_at: Date;
+  updated_at!: Date;
 }

@@ -1,8 +1,8 @@
 export declare enum PlanName {
-    TRIAL = "Trial",
+    STARTUP = "Startup",
     STARTER = "Starter",
-    STANDARD = "Standard",
-    PREMIUM = "Premium"
+    PRO = "Pro",
+    ENTERPRISE = "Enterprise"
 }
 export declare class SubscriptionPlan {
     id: number;

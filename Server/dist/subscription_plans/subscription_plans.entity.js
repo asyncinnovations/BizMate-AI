@@ -13,10 +13,10 @@ exports.SubscriptionPlan = exports.PlanName = void 0;
 const typeorm_1 = require("typeorm");
 var PlanName;
 (function (PlanName) {
-    PlanName["TRIAL"] = "Trial";
+    PlanName["STARTUP"] = "Startup";
     PlanName["STARTER"] = "Starter";
-    PlanName["STANDARD"] = "Standard";
-    PlanName["PREMIUM"] = "Premium";
+    PlanName["PRO"] = "Pro";
+    PlanName["ENTERPRISE"] = "Enterprise";
 })(PlanName || (exports.PlanName = PlanName = {}));
 let SubscriptionPlan = class SubscriptionPlan {
     id;
