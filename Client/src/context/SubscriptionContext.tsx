@@ -37,40 +37,50 @@ import { useAuth } from "@/context/AuthContext";
  *   >0  → Exact cap
  */
 export interface SubscriptionFeatures {
-  // Invoicing
-  invoice_limit_per_month?: number | string;
-  // AI
-  ai_messages_per_month?: number | string;
-  whatsapp_ai?: boolean;
-  instagram_auto_reply?: boolean;
-  custom_ai_training?: boolean;
-  priority_ai_compute?: boolean;
-  // Documents
-  document_templates?: number | string;
-  document_generator?: boolean;
-  pdf_export?: boolean;
-  // Platform
-  dashboard_access?: boolean;
-  notifications?: boolean;
-  analytics?: boolean;
-  // Compliance & Reminders
-  vat_reminder?: boolean;
-  vat_auto_calculation?: boolean;
-  smart_reminders?: boolean;
-  payroll_reminders?: boolean;
-  // Finance
-  expense_tracking?: boolean;
-  payment_integrations?: boolean;
-  // Team & HR
-  team_members?: number | string;
-  employee_contract_generator?: boolean;
-  // Integrations & Dev
-  integration_access?: boolean;
-  api_access?: boolean;
-  // Support
-  email_support?: boolean;
-  priority_support?: boolean;
-  dedicated_support?: boolean;
+  ai_advisory: boolean;
+  ai_assistant: number | boolean;
+  ai_invoicing: number | boolean;
+  analytics_reports: number | boolean;
+  auto_reply_hub: number | boolean;
+  compliance: number | boolean;
+  documents_limit: number | boolean;
+  invoicing_limit: number | boolean;
+  payroll: number | boolean;
+  reminders_limit: number | boolean;
+  // // Invoicing
+  // invoice_limit_per_month?: number | string;
+  // // AI
+  // ai_messages_per_month?: number | string;
+  // whatsapp_ai?: boolean;
+  // instagram_auto_reply?: boolean;
+  // custom_ai_training?: boolean;
+  // priority_ai_compute?: boolean;
+  // // Documents
+  // document_templates?: number | string;
+  // document_generator?: boolean;
+  // pdf_export?: boolean;
+  // // Platform
+  // dashboard_access?: boolean;
+  // notifications?: boolean;
+  // analytics?: boolean;
+  // // Compliance & Reminders
+  // vat_reminder?: boolean;
+  // vat_auto_calculation?: boolean;
+  // smart_reminders?: boolean;
+  // payroll_reminders?: boolean;
+  // // Finance
+  // expense_tracking?: boolean;
+  // payment_integrations?: boolean;
+  // // Team & HR
+  // team_members?: number | string;
+  // employee_contract_generator?: boolean;
+  // // Integrations & Dev
+  // integration_access?: boolean;
+  // api_access?: boolean;
+  // // Support
+  // email_support?: boolean;
+  // priority_support?: boolean;
+  // dedicated_support?: boolean;
 }
 
 export interface SubscriptionPlan {
