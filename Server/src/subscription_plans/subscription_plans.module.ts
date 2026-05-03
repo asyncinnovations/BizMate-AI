@@ -12,5 +12,6 @@ import { AuthUsers } from "src/auth/user.entity";
   ],
   providers: [SubscriptionPlanService],
   controllers: [SubscriptionPlanController],
+  exports: [SubscriptionPlanService],
 })
 export class SubscriptionModule {}

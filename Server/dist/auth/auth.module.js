@@ -13,6 +13,7 @@ const common_1 = require("@nestjs/common");
 const auth_service_1 = require("./auth.service");
 const user_entity_1 = require("./user.entity");
 const jwt_1 = require("@nestjs/jwt");
+const subscription_plans_module_1 = require("../subscription_plans/subscription_plans.module");
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
@@ -24,6 +25,7 @@ exports.AuthModule = AuthModule = __decorate([
                 secret: process.env.JWT_SECRET || "BizMateAI",
                 signOptions: { expiresIn: "1d" },
             }),
+            subscription_plans_module_1.SubscriptionModule,
         ],
         controllers: [auth_controller_1.AuthController],
         providers: [auth_service_1.AuthService],

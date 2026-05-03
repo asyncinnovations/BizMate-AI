@@ -52,10 +52,13 @@ const auth_service_1 = require("./auth.service");
 const user_entity_1 = require("./user.entity");
 const bcrypt = __importStar(require("bcrypt"));
 const path_1 = require("path");
+const subscription_plans_service_1 = require("../subscription_plans/subscription_plans.service");
 let AuthController = class AuthController {
     authService;
-    constructor(authService) {
+    planService;
+    constructor(authService, planService) {
         this.authService = authService;
+        this.planService = planService;
     }
     validateSignup(body) {
         const errors = [];
@@ -124,6 +127,10 @@ let AuthController = class AuthController {
         };
         this.validateSignup(data);
         const response = await this.authService.signup_service(post_data);
+        console.log(response);
+        if (response?.user_id) {
+            await this.planService.subscribe_subscription_plan_service(response?.user_id, "41932a31-619b-4e7d-b3f5-162abc5eb50e");
+        }
         return { message: "registration success", response };
     }
     async login(body) {
@@ -271,6 +278,7 @@ __decorate([
 ], AuthController.prototype, "reset_user_password", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)("/auth"),
-    __metadata("design:paramtypes", [auth_service_1.AuthService])
+    __metadata("design:paramtypes", [auth_service_1.AuthService,
+        subscription_plans_service_1.SubscriptionPlanService])
 ], AuthController);
 //# sourceMappingURL=auth.controller.js.map

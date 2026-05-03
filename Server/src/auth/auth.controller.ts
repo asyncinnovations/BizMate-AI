@@ -19,10 +19,15 @@ import { join } from "path";
 import { LicenceNumberChecker } from "src/common/LicenceNumberChecker";
 import { PDFParse } from "pdf-parse";
 import fs from "fs";
+import { SubscriptionPlan } from "src/subscription_plans/subscription_plans.entity";
+import { SubscriptionPlanService } from "src/subscription_plans/subscription_plans.service";
 
 @Controller("/auth")
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private planService: SubscriptionPlanService,
+  ) {}
 
   //////////////////////////////////////////////////////////////////////////////////////////
   // MANUAL VALIDATION FUNCTION FOR SIGNUP
@@ -141,6 +146,13 @@ export class AuthController {
     // CREATE ACCOUNT AFTER VALIDATION
     this.validateSignup(data);
     const response = await this.authService.signup_service(post_data);
+    console.log(response);
+    if (response?.user_id) {
+      await this.planService.subscribe_subscription_plan_service(
+        response?.user_id,
+        "41932a31-619b-4e7d-b3f5-162abc5eb50e",
+      );
+    }
     return { message: "registration success", response };
   }
 

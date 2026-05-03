@@ -11,7 +11,7 @@ module.exports = {
         defaultValue: Sequelize.literal("gen_random_uuid()"),
       },
       name: {
-        type: Sequelize.ENUM("Trial", "Starter", "Standard", "Premium"),
+        type: Sequelize.ENUM("Starter", "Startup", "Pro", "Enterprise"),
         allowNull: false,
       },
       description: {
@@ -48,7 +48,7 @@ module.exports = {
   down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable("subscription_plans");
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_subscription_plans_name";'
+      'DROP TYPE IF EXISTS "enum_subscription_plans_name";',
     );
   },
 };
