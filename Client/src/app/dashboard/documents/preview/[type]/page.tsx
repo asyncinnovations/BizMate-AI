@@ -5,7 +5,6 @@ import { useRouter, useParams, useSearchParams } from "next/navigation";
 import {
   Download,
   CheckCircle,
-  Sparkles,
   FileText,
   Loader2,
   X,
@@ -36,7 +35,7 @@ export default function DocumentPreviewPage() {
   const documentType = params?.type as string;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState<Record<string, string>>({});
-  const [isDownloading, setIsDownloading] = useState(false);
+  const [isDownloading] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [emailSent, setEmailSent] = useState(false);

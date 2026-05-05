@@ -347,7 +347,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       icon: FileText,
       color: "text-purple-400",
       href: "/dashboard/invoicing",
-      locked: !currentPlan?.features.invoicing_limit,
+      locked: !currentPlan?.features.ai_invoicing,
     },
     {
       id: 4,
@@ -355,7 +355,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       icon: Calendar,
       color: "text-orange-400",
       href: "/dashboard/reminders",
-      locked: !currentPlan?.features.reminders_limit,
+      locked: !currentPlan?.features.reminders,
     },
     {
       id: 5,
@@ -381,7 +381,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       href: "/dashboard/client-management",
       locked: false,
     },
-
     // --- LOCKED ITEMS ---
     {
       id: 8,
@@ -397,10 +396,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       icon: Zap,
       color: "text-yellow-400",
       href: "/dashboard/documents",
-      locked: !currentPlan?.features.documents_limit,
+      locked: !currentPlan?.features.documents,
     },
     // --- END LOCKED ITEMS ---
-
     {
       id: 10,
       label: "Business Analytics",
@@ -415,10 +413,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       icon: Users,
       color: "text-indigo-400",
       href: "/dashboard/team-management",
-      locked: false,
+      locked: true,
     },
     {
-      id: 11,
+      id: 12,
+      label: "Corporate Tax Management",
+      icon: Wallet,
+      color: "text-indigo-400",
+      href: "/dashboard/corporate-tax-management",
+      locked: !currentPlan?.features.corporate_tax,
+    },
+    {
+      id: 13,
       label: "Ai Advisory",
       icon: Users,
       color: "text-indigo-400",
@@ -488,7 +494,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       duration: 0.4,
       ease: "power2.inOut",
     });
-    console.log("subscription", currentPlan);
+    // console.log("subscription", currentPlan);
   }, [isOpen]);
   return (
     <>

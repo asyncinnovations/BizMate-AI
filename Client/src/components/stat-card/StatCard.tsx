@@ -12,6 +12,7 @@ interface StatCardProps {
   value: string | number;
   subtitle: string;
   className?: string;
+  style?: any;
 }
 
 const StatCard: React.FC<StatCardProps> = ({
@@ -25,13 +26,13 @@ const StatCard: React.FC<StatCardProps> = ({
   value,
   subtitle,
   className = "",
+  style,
 }) => {
   const baseClasses =
     "bg-surface rounded-xl p-5 shadow-card border border-border hover:shadow-raised transition-shadow duration-200";
 
   return (
-    <div className={twMerge(baseClasses, className)}>
-
+    <div style={style} className={twMerge(baseClasses, className)}>
       {/* Header — icon + badge */}
       <div className="flex items-center justify-between mb-3">
         <div className={twMerge("rounded-full p-2.5 shadow-card", iconBg)}>
@@ -41,7 +42,7 @@ const StatCard: React.FC<StatCardProps> = ({
           className={twMerge(
             "text-sm font-semibold px-2 py-1 rounded-full",
             badgeBg,
-            badgeColor
+            badgeColor,
           )}
         >
           {badgeText}

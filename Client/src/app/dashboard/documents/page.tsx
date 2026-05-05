@@ -27,10 +27,10 @@ import { useAuth } from "@/context/AuthContext";
 import { useSubscription } from "@/context/SubscriptionContext";
 import { useSubscriptionGuard } from "@/hooks/useSubscriptionGuard";
 import axiosInstance from "@/utils/axiosInstance";
-import toast from "react-hot-toast";
 import LoadingSpinner from "@/components/loading-spinner/LoadingSpinner";
 import EmptyState from "@/components/empty-state/EmptyState";
 import UpgradeLimitModal from "@/components/upgrade_limit_modal/UpgradeLimitModal";
+import OverlayTooltip from "@/components/overlay_tooltip/OverlayTooltip";
 
 interface DocumentTemplate {
   uuid: string;
@@ -41,27 +41,6 @@ interface DocumentTemplate {
   user_id: string | null;
   is_prebuilt: boolean;
 }
-
-const dummyTemplates = [
-  {
-    uuid: "6b71e1ca-c877-40c9-afd8-4f997b435ef1",
-    id: 1,
-    template_name: "Employment Contract",
-    description: "Standard employment agreement for companies.",
-    fields_schema: {
-      salary: "",
-      position: "",
-      start_date: "",
-      employee_name: "",
-    },
-    user_id: null,
-    is_prebuilt: true,
-    version: 1,
-    is_active: true,
-    created_at: "2025-11-03T05:38:48.886Z",
-    updated_at: "2025-11-03T05:38:48.886Z",
-  },
-];
 
 export default function DocumentGeneratorMain() {
   const router = useRouter();
@@ -287,9 +266,43 @@ export default function DocumentGeneratorMain() {
 
         {/* Stats Cards - Using Reusable StatCard Component */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {statsData.map((stat, index) => (
+          {/* {statsData.map((stat, index) => (
             <StatCard key={index} {...stat} />
-          ))}
+          ))} */}
+          {statsData.map((item, index) => {
+            const isLocked =
+              currentPlan?.name === "Starter" && item.title === "AI Accuracy";
+
+            const card = (
+              <StatCard
+                key={index}
+                className=""
+                title={item.title}
+                badgeBg={item.badgeBg}
+                badgeColor={item.badgeColor}
+                badgeText={item.badgeText}
+                icon={item.icon}
+                iconBg={item.iconBg}
+                iconColor={item.iconColor}
+                subtitle={item.subtitle}
+                value={isLocked ? 0 : item.value}
+                style={{
+                  filter: isLocked ? "grayscale(100%)" : "",
+                }}
+              />
+            );
+            return isLocked ? (
+              <OverlayTooltip
+                key={index}
+                id={`state-card-${index}`}
+                title="This feature is not included in your current plan."
+              >
+                <div>{card}</div>
+              </OverlayTooltip>
+            ) : (
+              <div key={index}>{card}</div>
+            );
+          })}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
@@ -306,7 +319,7 @@ export default function DocumentGeneratorMain() {
                   className="flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-hover text-on-brand rounded-lg hover:shadow-raised transition-all duration-200 font-semibold text-sm"
                 >
                   <Plus className="w-4 h-4" />
-                  Create Custom Template
+                  Create New Template
                 </button>
               </div>
 

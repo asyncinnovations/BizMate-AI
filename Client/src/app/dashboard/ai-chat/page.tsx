@@ -2,10 +2,24 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import {
-  Send, Plus, Bot, Sparkles, Shield, Trash2, Search,
-  MessageSquare, FileCheck, Building, Users, TrendingUp,
-  FileText, Bell, ChevronRight, Clock, Calendar, X,
-  Languages, CheckCircle2, BellPlus,
+  Send,
+  Plus,
+  Bot,
+  Sparkles,
+  Shield,
+  Trash2,
+  Search,
+  MessageSquare,
+  FileCheck,
+  Building,
+  Users,
+  TrendingUp,
+  FileText,
+  Bell,
+  ChevronRight,
+  Calendar,
+  Languages,
+  BellPlus,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import LoadingSpinner from "@/components/loading-spinner/LoadingSpinner";
@@ -60,7 +74,10 @@ export const relativeDate = (s: string) => {
   if (d === 0) return "Today";
   if (d === 1) return "Yesterday";
   if (d < 7) return `${d} days ago`;
-  return new Date(s).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return new Date(s).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
 };
 
 export const typeColor: Record<ReminderType, string> = {
@@ -71,16 +88,41 @@ export const typeColor: Record<ReminderType, string> = {
 };
 
 // Reads the AI message, detects type + deadline, builds reminder data
-export const extractReminderData = (content: string, msgId: string): SavedReminder => {
+export const extractReminderData = (
+  content: string,
+  msgId: string,
+): SavedReminder => {
   const lower = content.toLowerCase();
 
   let type: ReminderType = "Custom";
   let recurrence: RecurrenceRule = "none";
   let daysOut = 30;
 
-  if (lower.includes("vat") || lower.includes("fta") || lower.includes("tax return")) { type = "VAT"; recurrence = "quarterly"; daysOut = 28; }
-  else if (lower.includes("license") || lower.includes("licence") || lower.includes("ded")) { type = "License"; recurrence = "yearly"; daysOut = 90; }
-  else if (lower.includes("payroll") || lower.includes("wps") || lower.includes("salary")) { type = "Payroll"; recurrence = "monthly"; daysOut = 30; }
+  if (
+    lower.includes("vat") ||
+    lower.includes("fta") ||
+    lower.includes("tax return")
+  ) {
+    type = "VAT";
+    recurrence = "quarterly";
+    daysOut = 28;
+  } else if (
+    lower.includes("license") ||
+    lower.includes("licence") ||
+    lower.includes("ded")
+  ) {
+    type = "License";
+    recurrence = "yearly";
+    daysOut = 90;
+  } else if (
+    lower.includes("payroll") ||
+    lower.includes("wps") ||
+    lower.includes("salary")
+  ) {
+    type = "Payroll";
+    recurrence = "monthly";
+    daysOut = 30;
+  }
 
   // Try to find an explicit date like "28/10/2024" or "October 28"
   const datePatterns = [
@@ -98,14 +140,17 @@ export const extractReminderData = (content: string, msgId: string): SavedRemind
       }
     }
   }
-  const deadline = detectedDate || new Date(Date.now() + daysOut * 86400000).toISOString().split("T")[0];
+  const deadline =
+    detectedDate ||
+    new Date(Date.now() + daysOut * 86400000).toISOString().split("T")[0];
 
   const cleanLines = content
     .split("\n")
     .map((l) => l.replace(/[*•\d.]/g, "").trim())
     .filter((l) => l.length > 10);
   const rawTitle = cleanLines[0] || `${type} Compliance Reminder`;
-  const title = rawTitle.length > 55 ? rawTitle.substring(0, 52) + "..." : rawTitle;
+  const title =
+    rawTitle.length > 55 ? rawTitle.substring(0, 52) + "..." : rawTitle;
 
   return {
     id: `r-${msgId}`,
@@ -121,17 +166,42 @@ export const extractReminderData = (content: string, msgId: string): SavedRemind
 
 // ================= STATIC DATA =================
 const QUICK_PROMPTS = [
-  { icon: <FileCheck className="w-4 h-4" />, label: "VAT Filing", prompt: "What are the steps for VAT filing in UAE for Q3 2024?" },
-  { icon: <Building className="w-4 h-4" />, label: "License Renewal", prompt: "What documents are needed for trade license renewal?" },
-  { icon: <Users className="w-4 h-4" />, label: "Employee Visa", prompt: "Process for new employee visa sponsorship in UAE?" },
-  { icon: <TrendingUp className="w-4 h-4" />, label: "ESR Compliance", prompt: "What are the Economic Substance Regulations requirements?" },
-  { icon: <Shield className="w-4 h-4" />, label: "AML Requirements", prompt: "What are AML requirements for SMEs in UAE?" },
-  { icon: <FileText className="w-4 h-4" />, label: "Corporate Tax", prompt: "How does UAE Corporate Tax apply to my business?" },
+  {
+    icon: <FileCheck className="w-4 h-4" />,
+    label: "VAT Filing",
+    prompt: "What are the steps for VAT filing in UAE for Q3 2024?",
+  },
+  {
+    icon: <Building className="w-4 h-4" />,
+    label: "License Renewal",
+    prompt: "What documents are needed for trade license renewal?",
+  },
+  {
+    icon: <Users className="w-4 h-4" />,
+    label: "Employee Visa",
+    prompt: "Process for new employee visa sponsorship in UAE?",
+  },
+  {
+    icon: <TrendingUp className="w-4 h-4" />,
+    label: "ESR Compliance",
+    prompt: "What are the Economic Substance Regulations requirements?",
+  },
+  {
+    icon: <Shield className="w-4 h-4" />,
+    label: "AML Requirements",
+    prompt: "What are AML requirements for SMEs in UAE?",
+  },
+  {
+    icon: <FileText className="w-4 h-4" />,
+    label: "Corporate Tax",
+    prompt: "How does UAE Corporate Tax apply to my business?",
+  },
 ];
 
 const WELCOME: ChatMessage = {
   id: "welcome",
-  content: "Hello! I'm your UAE Compliance Assistant, powered by AI. I can help you navigate:\n\n• VAT filing and FTA regulations\n• Trade license renewals and DED procedures\n• Employment and visa compliance\n• ESR and AML requirements\n• Corporate tax guidance\n\nWhat would you like to know?",
+  content:
+    "Hello! I'm your UAE Compliance Assistant, powered by AI. I can help you navigate:\n\n• VAT filing and FTA regulations\n• Trade license renewals and DED procedures\n• Employment and visa compliance\n• ESR and AML requirements\n• Corporate tax guidance\n\nWhat would you like to know?",
   isUser: false,
   timestamp: new Date(),
   confidence: 100,
@@ -156,15 +226,18 @@ const ComplianceAssistancePage = () => {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
   useEffect(() => {
     const ta = textareaRef.current;
     if (!ta) return;
     ta.style.height = "auto";
     ta.style.height = `${Math.min(ta.scrollHeight, 160)}px`;
   }, [input]);
-  useEffect(() => { if (userId) fetchHistory(); }, [userId]);
-
+  useEffect(() => {
+    if (userId) fetchHistory();
+  }, [userId]);
 
   //////////////////////////////////////////
   // Fetch User Chat History
@@ -172,10 +245,15 @@ const ComplianceAssistancePage = () => {
   const fetchHistory = async () => {
     setHistoryLoading(true);
     try {
-      const res = await axiosInstance.get(`/compliance_assistant_chat/user/history/${userId}`);
+      const res = await axiosInstance.get(
+        `/compliance_assistant_chat/user/history/${userId}`,
+      );
       setHistory(res.data?.response || []);
-    } catch (e) { console.error("fetchHistory failed:", e); }
-    finally { setHistoryLoading(false); }
+    } catch (e) {
+      console.error("fetchHistory failed:", e);
+    } finally {
+      setHistoryLoading(false);
+    }
   };
 
   ///////////////////////////////////////////
@@ -183,13 +261,18 @@ const ComplianceAssistancePage = () => {
   ///////////////////////////////////////////
   const handleSearch = async (kw: string) => {
     setSearchKeyword(kw);
-    if (!kw.trim()) { fetchHistory(); return; }
+    if (!kw.trim()) {
+      fetchHistory();
+      return;
+    }
     try {
       const res = await axiosInstance.get(
-        `/compliance_assistant_chat/search/${userId}?keyword=${encodeURIComponent(kw)}`
+        `/compliance_assistant_chat/search/${userId}?keyword=${encodeURIComponent(kw)}`,
       );
       setHistory(res.data?.response || []);
-    } catch (e) { console.error("handleSearch failed:", e); }
+    } catch (e) {
+      console.error("handleSearch failed:", e);
+    }
   };
 
   /////////////////////////////////
@@ -197,9 +280,14 @@ const ComplianceAssistancePage = () => {
   ////////////////////////////////
   const handleDeleteHistory = async (chatId: string) => {
     try {
-      await axiosInstance.delete(`/compliance_assistant_chat/delete/${chatId}/${userId}`);
+      await axiosInstance.delete(
+        `/compliance_assistant_chat/delete/${chatId}/${userId}`,
+      );
       setHistory((p) => p.filter((h) => h.uuid !== chatId));
-    } catch (e) { console.error("handleDeleteHistory failed:", e); toast.error("Failed to delete"); }
+    } catch (e) {
+      console.error("handleDeleteHistory failed:", e);
+      toast.error("Failed to delete");
+    }
   };
 
   /////////////////////////////
@@ -211,16 +299,29 @@ const ComplianceAssistancePage = () => {
       await axiosInstance.delete(`/compliance_assistant_chat/clear/${userId}`);
       setHistory([]);
       toast.success("History cleared");
-    } catch (e) { console.error("handleClearHistory failed:", e); toast.error("Failed to clear"); }
+    } catch (e) {
+      console.error("handleClearHistory failed:", e);
+      toast.error("Failed to clear");
+    }
   };
 
   const handleLoadChat = (item: ChatHistoryItem) => {
     setMessages([
       WELCOME,
-      { id: `${item.uuid}-q`, content: item.question, isUser: true, timestamp: new Date(item.timestamp) },
       {
-        id: `${item.uuid}-a`, content: item.answer, isUser: false, timestamp: new Date(item.timestamp),
-        confidence: 95, sources: ["UAE FTA Guidelines"], reminderState: "idle"
+        id: `${item.uuid}-q`,
+        content: item.question,
+        isUser: true,
+        timestamp: new Date(item.timestamp),
+      },
+      {
+        id: `${item.uuid}-a`,
+        content: item.answer,
+        isUser: false,
+        timestamp: new Date(item.timestamp),
+        confidence: 95,
+        sources: ["UAE FTA Guidelines"],
+        reminderState: "idle",
       },
     ]);
     setIsNewChat(false);
@@ -232,7 +333,6 @@ const ComplianceAssistancePage = () => {
     setInput("");
   };
 
-
   /////////////////////////////
   // Ask Ai
   //////////////////////////////
@@ -240,25 +340,39 @@ const ComplianceAssistancePage = () => {
     const text = content || input;
     if (!text.trim() || isLoading) return;
 
-    setMessages((p) => [...p, { id: `u-${Date.now()}`, content: text, isUser: true, timestamp: new Date() }]);
+    setMessages((p) => [
+      ...p,
+      {
+        id: `u-${Date.now()}`,
+        content: text,
+        isUser: true,
+        timestamp: new Date(),
+      },
+    ]);
     setInput("");
     setIsLoading(true);
     setIsNewChat(false);
 
     try {
-      const res = await axiosInstance.post("/compliance_assistant_chat/ask-ai", { user_id: userId, question: text });
+      const res = await axiosInstance.post(
+        "/compliance_assistant_chat/ask-ai",
+        { user_id: userId, question: text },
+      );
       const data = res.data?.response;
       const id = data?.uuid || `a-${Date.now()}`;
 
-      setMessages((p) => [...p, {
-        id,
-        content: data?.answer || "No response received.",
-        isUser: false,
-        timestamp: new Date(data?.timestamp || Date.now()),
-        confidence: 95,
-        sources: ["UAE FTA Guidelines", "DED Portal"],
-        reminderState: "idle",
-      }]);
+      setMessages((p) => [
+        ...p,
+        {
+          id,
+          content: data?.answer || "No response received.",
+          isUser: false,
+          timestamp: new Date(data?.timestamp || Date.now()),
+          confidence: 95,
+          sources: ["UAE FTA Guidelines", "DED Portal"],
+          reminderState: "idle",
+        },
+      ]);
       fetchHistory();
     } catch (e) {
       console.error("handleSend failed:", e);
@@ -269,13 +383,16 @@ const ComplianceAssistancePage = () => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
   // ── One-click reminder save ──
   const handleSetReminder = async (msgId: string) => {
     setMessages((p) =>
-      p.map((m) => m.id === msgId ? { ...m, reminderState: "saving" } : m)
+      p.map((m) => (m.id === msgId ? { ...m, reminderState: "saving" } : m)),
     );
 
     const msg = messages.find((m) => m.id === msgId);
@@ -288,27 +405,36 @@ const ComplianceAssistancePage = () => {
     setSavedReminders((p) => [reminder, ...p]);
 
     setMessages((p) =>
-      p.map((m) => m.id === msgId ? { ...m, reminderState: "saved", savedReminder: reminder } : m)
+      p.map((m) =>
+        m.id === msgId
+          ? { ...m, reminderState: "saved", savedReminder: reminder }
+          : m,
+      ),
     );
 
-    toast.success(`Reminder set — ${reminder.type} · ${new Date(reminder.reminder_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`, {
-      duration: 2500,
-      position: "bottom-right",
-    });
+    toast.success(
+      `Reminder set — ${reminder.type} · ${new Date(reminder.reminder_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`,
+      {
+        duration: 2500,
+        position: "bottom-right",
+      },
+    );
   };
 
   const todayH = history.filter((h) => relativeDate(h.timestamp) === "Today");
-  const yesterdayH = history.filter((h) => relativeDate(h.timestamp) === "Yesterday");
-  const olderH = history.filter((h) => !["Today", "Yesterday"].includes(relativeDate(h.timestamp)));
+  const yesterdayH = history.filter(
+    (h) => relativeDate(h.timestamp) === "Yesterday",
+  );
+  const olderH = history.filter(
+    (h) => !["Today", "Yesterday"].includes(relativeDate(h.timestamp)),
+  );
   const isEmpty = messages.length === 1;
 
   return (
     <DashboardLayout>
       <div className="h-screen flex overflow-hidden bg-bg-base">
-
         {/* ═══════════ SIDEBAR ═══════════ */}
         <div className="w-72 flex flex-col bg-surface border-r border-border shrink-0">
-
           {/* Header */}
           <div className="p-4 border-b border-border">
             <div className="flex items-center gap-2 mb-4">
@@ -316,9 +442,12 @@ const ComplianceAssistancePage = () => {
                 <Bot className="w-4 h-4 text-on-brand" />
               </div>
               <div>
-                <p className="text-sm font-bold text-text-heading">AI Compliance</p>
+                <p className="text-sm font-bold text-text-heading">
+                  AI Compliance
+                </p>
                 <p className="text-[10px] text-text-muted flex items-center gap-0.5">
-                  <Shield className="w-2.5 h-2.5 text-status-success" /> UAE Regulations Expert
+                  <Shield className="w-2.5 h-2.5 text-status-success" /> UAE
+                  Regulations Expert
                 </p>
               </div>
             </div>
@@ -336,14 +465,18 @@ const ComplianceAssistancePage = () => {
               <button
                 key={tab}
                 onClick={() => setSidebarTab(tab)}
-                className={`flex-1 py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 border-b-2 transition-colors capitalize ${sidebarTab === tab
-                  ? "border-secondary text-secondary"
-                  : "border-transparent text-text-muted hover:text-text-primary"
-                  }`}
+                className={`flex-1 py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 border-b-2 transition-colors capitalize ${
+                  sidebarTab === tab
+                    ? "border-secondary text-secondary"
+                    : "border-transparent text-text-muted hover:text-text-primary"
+                }`}
               >
-                {tab === "chats"
-                  ? <><MessageSquare className="w-3.5 h-3.5" /> Chats</>
-                  : <>
+                {tab === "chats" ? (
+                  <>
+                    <MessageSquare className="w-3.5 h-3.5" /> Chats
+                  </>
+                ) : (
+                  <>
                     <Bell className="w-3.5 h-3.5" /> Reminders
                     {savedReminders.length > 0 && (
                       <span className="bg-status-warning text-on-brand text-[9px] font-bold px-1.5 py-0.5 rounded-full">
@@ -351,14 +484,13 @@ const ComplianceAssistancePage = () => {
                       </span>
                     )}
                   </>
-                }
+                )}
               </button>
             ))}
           </div>
 
           {/* Body */}
           <div className="flex-1 overflow-y-auto custom-scrollbar">
-
             {sidebarTab === "chats" && (
               <div className="p-3 space-y-1">
                 <div className="relative mb-3">
@@ -372,28 +504,66 @@ const ComplianceAssistancePage = () => {
                   />
                 </div>
 
-                {historyLoading
-                  ? <div className="flex justify-center py-8"><LoadingSpinner size="w-5 h-5" /></div>
-                  : history.length === 0
-                    ? <div className="text-center py-10">
-                      <MessageSquare className="w-8 h-8 text-border-strong mx-auto mb-2" />
-                      <p className="text-xs text-text-muted">No conversations yet</p>
-                    </div>
-                    : <>
-                      {todayH.length > 0 && <>
-                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-2 py-1">Today</p>
-                        {todayH.map((h) => <HistoryItem key={h.uuid} item={h} onLoad={handleLoadChat} onDelete={handleDeleteHistory} />)}
-                      </>}
-                      {yesterdayH.length > 0 && <>
-                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-2 py-1 mt-2">Yesterday</p>
-                        {yesterdayH.map((h) => <HistoryItem key={h.uuid} item={h} onLoad={handleLoadChat} onDelete={handleDeleteHistory} />)}
-                      </>}
-                      {olderH.length > 0 && <>
-                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-2 py-1 mt-2">Older</p>
-                        {olderH.map((h) => <HistoryItem key={h.uuid} item={h} onLoad={handleLoadChat} onDelete={handleDeleteHistory} />)}
-                      </>}
-                    </>
-                }
+                {historyLoading ? (
+                  <div className="flex justify-center py-8">
+                    <LoadingSpinner size="w-5 h-5" />
+                  </div>
+                ) : history.length === 0 ? (
+                  <div className="text-center py-10">
+                    <MessageSquare className="w-8 h-8 text-border-strong mx-auto mb-2" />
+                    <p className="text-xs text-text-muted">
+                      No conversations yet
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    {todayH.length > 0 && (
+                      <>
+                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-2 py-1">
+                          Today
+                        </p>
+                        {todayH.map((h) => (
+                          <HistoryItem
+                            key={h.uuid}
+                            item={h}
+                            onLoad={handleLoadChat}
+                            onDelete={handleDeleteHistory}
+                          />
+                        ))}
+                      </>
+                    )}
+                    {yesterdayH.length > 0 && (
+                      <>
+                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-2 py-1 mt-2">
+                          Yesterday
+                        </p>
+                        {yesterdayH.map((h) => (
+                          <HistoryItem
+                            key={h.uuid}
+                            item={h}
+                            onLoad={handleLoadChat}
+                            onDelete={handleDeleteHistory}
+                          />
+                        ))}
+                      </>
+                    )}
+                    {olderH.length > 0 && (
+                      <>
+                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-2 py-1 mt-2">
+                          Older
+                        </p>
+                        {olderH.map((h) => (
+                          <HistoryItem
+                            key={h.uuid}
+                            item={h}
+                            onLoad={handleLoadChat}
+                            onDelete={handleDeleteHistory}
+                          />
+                        ))}
+                      </>
+                    )}
+                  </>
+                )}
               </div>
             )}
 
@@ -401,35 +571,52 @@ const ComplianceAssistancePage = () => {
               <div className="p-3 space-y-2">
                 <div className="flex items-center gap-2 px-1 mb-2">
                   <Sparkles className="w-3.5 h-3.5 text-secondary" />
-                  <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Saved from chat</p>
+                  <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest">
+                    Saved from chat
+                  </p>
                 </div>
 
-                {savedReminders.length === 0
-                  ? <div className="text-center py-10">
+                {savedReminders.length === 0 ? (
+                  <div className="text-center py-10">
                     <Bell className="w-8 h-8 text-border-strong mx-auto mb-2" />
                     <p className="text-xs text-text-muted">No reminders yet</p>
-                    <p className="text-[10px] text-text-muted mt-0.5">Click &quot;Set Reminder&quot; on any AI message</p>
+                    <p className="text-[10px] text-text-muted mt-0.5">
+                      Click &quot;Set Reminder&quot; on any AI message
+                    </p>
                   </div>
-                  : savedReminders.map((r) => (
-                    <div key={r.id} className="p-3 bg-bg-base rounded-xl border border-border">
+                ) : (
+                  savedReminders.map((r) => (
+                    <div
+                      key={r.id}
+                      className="p-3 bg-bg-base rounded-xl border border-border"
+                    >
                       <div className="flex items-start justify-between gap-2 mb-2">
-                        <p className="text-xs font-semibold text-text-heading leading-snug flex-1">{r.title}</p>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${typeColor[r.type]}`}>
+                        <p className="text-xs font-semibold text-text-heading leading-snug flex-1">
+                          {r.title}
+                        </p>
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${typeColor[r.type]}`}
+                        >
                           {r.type}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1 text-[10px] text-text-muted">
                           <Calendar className="w-3 h-3" />
-                          {new Date(r.reminder_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                          {new Date(r.reminder_date).toLocaleDateString(
+                            "en-US",
+                            { month: "short", day: "numeric", year: "numeric" },
+                          )}
                         </div>
                         {r.recurrence_rule !== "none" && (
-                          <span className="text-[10px] text-text-muted capitalize">{r.recurrence_rule}</span>
+                          <span className="text-[10px] text-text-muted capitalize">
+                            {r.recurrence_rule}
+                          </span>
                         )}
                       </div>
                     </div>
                   ))
-                }
+                )}
               </div>
             )}
           </div>
@@ -448,7 +635,6 @@ const ComplianceAssistancePage = () => {
 
         {/* ═══════════ CHAT AREA ═══════════ */}
         <div className="flex-1 flex flex-col min-w-0">
-
           {/* Topbar */}
           <div className="h-14 flex items-center justify-between px-6 bg-surface border-b border-border shrink-0">
             <div className="flex items-center gap-3">
@@ -483,7 +669,9 @@ const ComplianceAssistancePage = () => {
                   <div className="w-16 h-16 bg-brand rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-raised">
                     <Bot className="w-8 h-8 text-on-brand" />
                   </div>
-                  <h2 className="text-2xl font-bold text-text-heading mb-2">UAE Compliance Assistant</h2>
+                  <h2 className="text-2xl font-bold text-text-heading mb-2">
+                    UAE Compliance Assistant
+                  </h2>
                   <p className="text-text-secondary text-sm max-w-md mx-auto leading-relaxed">
                     Ask anything about UAE regulations. Click{" "}
                     <span className="inline-flex items-center gap-1 text-secondary font-semibold">
@@ -498,14 +686,18 @@ const ComplianceAssistancePage = () => {
                     <div className="w-6 h-6 bg-brand rounded-md flex items-center justify-center">
                       <Bot className="w-3.5 h-3.5 text-on-brand" />
                     </div>
-                    <span className="text-xs font-semibold text-text-heading">Assistant</span>
+                    <span className="text-xs font-semibold text-text-heading">
+                      Assistant
+                    </span>
                   </div>
                   <div className="text-sm text-text-primary leading-relaxed">
                     {renderContent(WELCOME.content, false)}
                   </div>
                 </div>
 
-                <p className="text-xs font-semibold text-text-muted uppercase tracking-widest mb-3">Quick Start</p>
+                <p className="text-xs font-semibold text-text-muted uppercase tracking-widest mb-3">
+                  Quick Start
+                </p>
                 <div className="grid grid-cols-2 gap-3">
                   {QUICK_PROMPTS.map((p, i) => (
                     <button
@@ -517,8 +709,12 @@ const ComplianceAssistancePage = () => {
                         {p.icon}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-text-heading">{p.label}</p>
-                        <p className="text-[10px] text-text-muted mt-0.5 truncate">{p.prompt}</p>
+                        <p className="text-sm font-semibold text-text-heading">
+                          {p.label}
+                        </p>
+                        <p className="text-[10px] text-text-muted mt-0.5 truncate">
+                          {p.prompt}
+                        </p>
                       </div>
                       <ChevronRight className="w-4 h-4 text-text-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                     </button>
@@ -544,7 +740,11 @@ const ComplianceAssistancePage = () => {
                     <div className="bg-surface border border-border rounded-2xl rounded-tl-sm px-4 py-3 shadow-card">
                       <div className="flex items-center gap-1.5">
                         {[0, 150, 300].map((delay, i) => (
-                          <span key={i} className="w-2 h-2 bg-brand rounded-full animate-bounce" style={{ animationDelay: `${delay}ms` }} />
+                          <span
+                            key={i}
+                            className="w-2 h-2 bg-brand rounded-full animate-bounce"
+                            style={{ animationDelay: `${delay}ms` }}
+                          />
                         ))}
                       </div>
                     </div>
@@ -571,18 +771,22 @@ const ComplianceAssistancePage = () => {
                 <button
                   onClick={() => handleSend()}
                   disabled={isLoading || !input.trim()}
-                  className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all ${input.trim() && !isLoading
-                    ? "bg-brand hover:bg-brand-hover text-on-brand shadow-card hover:shadow-raised"
-                    : "bg-border text-text-muted cursor-not-allowed"
-                    }`}
+                  className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all ${
+                    input.trim() && !isLoading
+                      ? "bg-brand hover:bg-brand-hover text-on-brand shadow-card hover:shadow-raised"
+                      : "bg-border text-text-muted cursor-not-allowed"
+                  }`}
                 >
-                  {isLoading
-                    ? <LoadingSpinner size="w-4 h-4" color="border-text-muted" />
-                    : <Send className="w-3.5 h-3.5" />}
+                  {isLoading ? (
+                    <LoadingSpinner size="w-4 h-4" color="border-text-muted" />
+                  ) : (
+                    <Send className="w-3.5 h-3.5" />
+                  )}
                 </button>
               </div>
               <p className="text-center text-[10px] text-text-muted mt-2">
-                Enter to send · Shift+Enter for new line · Click &quot;Set Reminder&quot; on any response to save deadlines
+                Enter to send · Shift+Enter for new line · Click &quot;Set
+                Reminder&quot; on any response to save deadlines
               </p>
             </div>
           </div>
@@ -590,11 +794,25 @@ const ComplianceAssistancePage = () => {
       </div>
 
       <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar       { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--color-border-strong); border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
-        .line-clamp-1 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: var(--color-border-strong);
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: var(--color-text-muted);
+        }
+        .line-clamp-1 {
+          overflow: hidden;
+          display: -webkit-box;
+          -webkit-line-clamp: 1;
+          -webkit-box-orient: vertical;
+        }
       `}</style>
     </DashboardLayout>
   );

@@ -9,7 +9,6 @@ import {
   AlertCircle,
   Users,
   Minus,
-  Plus,
   Equal,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";

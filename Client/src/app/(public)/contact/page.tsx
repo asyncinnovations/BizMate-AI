@@ -17,7 +17,6 @@ import {
   ChevronDown,
   Award,
   Users,
-  Zap,
   Star,
 } from "lucide-react";
 import PublicLayout from "@/components/layout/PublicLayout";

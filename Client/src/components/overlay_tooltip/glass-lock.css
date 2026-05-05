@@ -1,0 +1,62 @@
+/* Container for the locked state */
+.glass-lock-container {
+  position: relative;
+  display: inline-block; /* CRITICAL: Fixes tooltip alignment jumping */
+  cursor: help;
+  vertical-align: middle;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.2s ease;
+}
+
+.glass-lock-container:hover {
+  transform: translateY(-1px);
+}
+
+/* Blurring the actual content */
+.glass-content-blur {
+  filter: blur(2px) grayscale(80%);
+  opacity: 0.6;
+  pointer-events: none; /* User can't click the inner button/link */
+  user-select: none;
+}
+
+/* The Glass Overlay */
+.glass-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  z-index: 2;
+}
+
+/* Professional PRO Badge */
+.glass-badge {
+  background: linear-gradient(135deg, #f57c00, #ff9800);
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Tooltip Customization (Matches your branding) */
+.glass-tooltip .tooltip-inner {
+  background-color: #111827 !important; /* Deep Navy */
+  color: #fff !important;
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.glass-tooltip .tooltip-arrow::before {
+  border-top-color: #111827 !important;
+}

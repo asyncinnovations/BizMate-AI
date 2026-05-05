@@ -7,7 +7,6 @@ import {
   Wallet,
   Landmark,
   AlertCircle,
-  Smartphone,
 } from "lucide-react";
 import CheckoutFormField from "../chekout-form-field/Checkoutformfield";
 

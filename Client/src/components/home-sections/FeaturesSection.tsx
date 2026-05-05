@@ -3,8 +3,14 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  FileText, Bell, MessageSquare, Users, BarChart3, Check, ArrowRight, Sparkles,
-  Receipt, Send, Clock, TrendingUp,
+  FileText,
+  Bell,
+  MessageSquare,
+  Users,
+  BarChart3,
+  Check,
+  ArrowRight,
+  Sparkles,
 } from "lucide-react";
 import { Chip } from "@/app/(public)/page";
 import { useInView } from "@/hooks/HomePage";
@@ -142,8 +148,8 @@ export default function FeaturesSection() {
             </em>
           </h2>
           <p className="text-lg text-[#344767] max-w-2xl mx-auto">
-            Six powerful modules designed to work together — built
-            specifically for UAE and GCC businesses.
+            Six powerful modules designed to work together — built specifically
+            for UAE and GCC businesses.
           </p>
         </div>
 

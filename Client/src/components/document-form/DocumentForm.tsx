@@ -180,12 +180,12 @@ export default function DocumentForm() {
   const isCustomTemplate = !!promptFromUrl;
 
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
-  const [aiProcessing, setAiProcessing] = useState<boolean>(false);
+  const [aiProcessing] = useState<boolean>(false);
   const [fields, setFields] = useState<FieldConfig[]>([]);
   const [originalFields, setOriginalFields] = useState<FieldConfig[]>([]); // Store original fields for comparison
   const [templateName, setTemplateName] = useState<string>("");
   const [templateDescription, setTemplateDescription] = useState<string>("");
-  const [hasAutoFilled, setHasAutoFilled] = useState<boolean>(false);
+  const [hasAutoFilled] = useState<boolean>(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string>("");
 

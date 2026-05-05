@@ -8,26 +8,18 @@ import {
   MoreVertical,
   Mail,
   Phone,
-  Calendar,
   Shield,
-  Edit3,
-  Trash2,
   CheckCircle,
   XCircle,
   Clock,
-  Sparkles,
-  Brain,
   BarChart3,
   MessageSquare,
   FileText,
-  Database,
-  Wand2,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import PageHeader from "@/components/page-header/PageHeader";
-import ProtectedRoute from "@/components/protected-route/ProtectedRoute";
 
 // Type definitions
 interface TeamMember {

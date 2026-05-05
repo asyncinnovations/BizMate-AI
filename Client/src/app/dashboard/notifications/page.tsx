@@ -21,7 +21,6 @@ import EmptyState from "@/components/empty-state/EmptyState";
 import toast from "react-hot-toast";
 import NotificationCard, {
   Notification,
-  NotificationType,
   NotificationStatus,
 } from "@/components/notification-card/NotificationCard";
 
@@ -43,14 +42,15 @@ const NotificationsPage = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [activeFilter, setActiveFilter] = useState("all");
   const [loading, setLoading] = useState(false);
-  const [markReadLoadingId, setMarkReadLoadingId] = useState<string | null>(null);
+  const [markReadLoadingId, setMarkReadLoadingId] = useState<string | null>(
+    null,
+  );
   const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!userId) return;
     fetchNotifications();
   }, [userId]);
-
 
   /////////////////////////////////////
   // Fetch All Notifications
@@ -68,7 +68,6 @@ const NotificationsPage = () => {
     }
   };
 
-
   ///////////////////////////////////////////
   // Mark Notification As Read
   /////////////////////////////////////////
@@ -78,8 +77,8 @@ const NotificationsPage = () => {
       await axiosInstance.put(`/notifications/mark-read/${uuid}`);
       setNotifications((prev) =>
         prev.map((n) =>
-          n.uuid === uuid ? { ...n, status: NotificationStatus.SENT } : n
-        )
+          n.uuid === uuid ? { ...n, status: NotificationStatus.SENT } : n,
+        ),
       );
     } catch (error) {
       console.error("handleMarkRead failed:", error);
@@ -112,19 +111,21 @@ const NotificationsPage = () => {
   //////////////////////////////////////////////////////
   const handleMarkAllRead = async () => {
     const unread = notifications.filter(
-      (n) => n.status === NotificationStatus.PENDING
+      (n) => n.status === NotificationStatus.PENDING,
     );
     if (!unread.length) return;
     try {
       await Promise.all(
-        unread.map((n) => axiosInstance.put(`/notifications/mark-read/${n.uuid}`))
+        unread.map((n) =>
+          axiosInstance.put(`/notifications/mark-read/${n.uuid}`),
+        ),
       );
       setNotifications((prev) =>
         prev.map((n) =>
           n.status === NotificationStatus.PENDING
             ? { ...n, status: NotificationStatus.SENT }
-            : n
-        )
+            : n,
+        ),
       );
       toast.success("All notifications marked as read");
     } catch (error) {
@@ -141,8 +142,8 @@ const NotificationsPage = () => {
     try {
       await Promise.all(
         notifications.map((n) =>
-          axiosInstance.delete(`/notifications/delete/${n.uuid}`)
-        )
+          axiosInstance.delete(`/notifications/delete/${n.uuid}`),
+        ),
       );
       setNotifications([]);
       toast.success("All notifications cleared");
@@ -154,7 +155,7 @@ const NotificationsPage = () => {
 
   // ── Derived state ──
   const unreadCount = notifications.filter(
-    (n) => n.status === NotificationStatus.PENDING
+    (n) => n.status === NotificationStatus.PENDING,
   ).length;
 
   const filteredNotifications =
@@ -167,11 +168,9 @@ const NotificationsPage = () => {
     <DashboardLayout>
       <div className="min-h-screen bg-bg-base p-4 mb-8">
         <div className="w-full">
-
           {/* Header */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
-
               {/* Title + unread badge */}
               <div className="flex items-center gap-3">
                 <h1 className="text-3xl font-bold text-text-heading">
@@ -218,26 +217,28 @@ const NotificationsPage = () => {
                   tab.id === "all"
                     ? notifications.length
                     : notifications.filter(
-                      (n) => n.notification_type === tab.id
-                    ).length;
+                        (n) => n.notification_type === tab.id,
+                      ).length;
 
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveFilter(tab.id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${activeFilter === tab.id
-                      ? "bg-brand text-on-brand"
-                      : "text-text-primary hover:bg-bg-base"
-                      }`}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
+                      activeFilter === tab.id
+                        ? "bg-brand text-on-brand"
+                        : "text-text-primary hover:bg-bg-base"
+                    }`}
                   >
                     <Icon className="w-4 h-4" />
                     <span className="text-sm font-medium">{tab.label}</span>
                     {count > 0 && (
                       <span
-                        className={`text-xs px-2 py-0.5 rounded-full ${activeFilter === tab.id
-                          ? "bg-white/20 text-on-brand"
-                          : "bg-bg-base border border-border text-text-secondary"
-                          }`}
+                        className={`text-xs px-2 py-0.5 rounded-full ${
+                          activeFilter === tab.id
+                            ? "bg-white/20 text-on-brand"
+                            : "bg-bg-base border border-border text-text-secondary"
+                        }`}
                       >
                         {count}
                       </span>
@@ -294,28 +295,39 @@ const NotificationsPage = () => {
                 <button className="flex items-center gap-3 p-4 bg-bg-base rounded-lg hover:bg-brand-light transition-colors text-left border border-border">
                   <Calendar className="w-5 h-5 text-secondary" />
                   <div>
-                    <p className="font-medium text-text-heading text-sm">View Calendar</p>
-                    <p className="text-xs text-text-secondary">Check all reminders</p>
+                    <p className="font-medium text-text-heading text-sm">
+                      View Calendar
+                    </p>
+                    <p className="text-xs text-text-secondary">
+                      Check all reminders
+                    </p>
                   </div>
                 </button>
                 <button className="flex items-center gap-3 p-4 bg-bg-base rounded-lg hover:bg-brand-light transition-colors text-left border border-border">
                   <SettingsIcon className="w-5 h-5 text-secondary" />
                   <div>
-                    <p className="font-medium text-text-heading text-sm">Notification Settings</p>
-                    <p className="text-xs text-text-secondary">Manage preferences</p>
+                    <p className="font-medium text-text-heading text-sm">
+                      Notification Settings
+                    </p>
+                    <p className="text-xs text-text-secondary">
+                      Manage preferences
+                    </p>
                   </div>
                 </button>
                 <button className="flex items-center gap-3 p-4 bg-bg-base rounded-lg hover:bg-brand-light transition-colors text-left border border-border">
                   <FileText className="w-5 h-5 text-secondary" />
                   <div>
-                    <p className="font-medium text-text-heading text-sm">View All Invoices</p>
-                    <p className="text-xs text-text-secondary">Check payment status</p>
+                    <p className="font-medium text-text-heading text-sm">
+                      View All Invoices
+                    </p>
+                    <p className="text-xs text-text-secondary">
+                      Check payment status
+                    </p>
                   </div>
                 </button>
               </div>
             </div>
           )}
-
         </div>
       </div>
     </DashboardLayout>

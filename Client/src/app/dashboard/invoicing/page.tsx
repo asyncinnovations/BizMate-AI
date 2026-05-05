@@ -24,7 +24,6 @@ import {
 import StatCard from "@/components/stat-card/StatCard";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Button from "@/components/ui/Button";
 import { getStatusBadge } from "@/lib/statusBadge";
 import PageHeader from "@/components/page-header/PageHeader";
 import axiosInstance from "@/utils/axiosInstance";
@@ -35,6 +34,8 @@ import LoadingSpinner from "@/components/loading-spinner/LoadingSpinner";
 import SendInvoiceModal from "@/components/invoice/SendInvoiceModal";
 import EmptyState from "@/components/empty-state/EmptyState";
 import Card from "@/components/ui/Card";
+import OverlayTooltip from "@/components/overlay_tooltip/OverlayTooltip";
+import { useSubscription } from "@/context/SubscriptionContext";
 
 interface FormField {
   id: string;
@@ -84,6 +85,7 @@ interface EmailFormData {
 }
 
 const InvoiceListPage: React.FC = () => {
+  const { currentPlan } = useSubscription();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "paid" | "unpaid">(
     "all",
@@ -369,12 +371,20 @@ Business Solutions Inc.`,
             showAIBadge={true}
             buttons={[
               {
-                text: "New AI Invoice",
+                text: "New Invoice",
                 onClick: () => router.push("/dashboard/invoicing/new"),
                 icon: <Plus size={20} />,
               },
               {
-                text: "AI Insights",
+                disabled: currentPlan?.name == "Starter",
+                text: (
+                  <OverlayTooltip
+                    id="btn-1"
+                    title="This feature is not included in your current plan."
+                  >
+                    <span>AI Insights</span>
+                  </OverlayTooltip>
+                ),
                 onClick: () => {},
                 icon: <Brain size={20} />,
                 className:

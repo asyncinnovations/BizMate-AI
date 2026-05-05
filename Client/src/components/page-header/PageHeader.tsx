@@ -9,10 +9,12 @@ interface HeaderProps {
   showAIBadge?: boolean;
   icon?: React.ReactNode;
   buttons?: {
-    text: string;
+    text: string | any;
     onClick: () => void;
     icon?: React.ReactNode;
     className?: string;
+    disabled?: boolean;
+    style?: any;
   }[];
 }
 
@@ -26,11 +28,9 @@ export default function PageHeader({
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between">
-
         {/* LEFT SECTION */}
         <div>
           <div className="flex items-center gap-3 mb-2">
-
             {/* Icon bubble */}
             {icon && (
               <span className="flex items-center justify-center w-12 h-12 rounded-full bg-brand-light border border-border shadow-card">
@@ -55,9 +55,7 @@ export default function PageHeader({
                 )}
               </div>
 
-              <p className="text-text-primary mt-1">
-                {description}
-              </p>
+              <p className="text-text-primary mt-1">{description}</p>
             </div>
           </div>
         </div>
@@ -71,13 +69,14 @@ export default function PageHeader({
                 onClick={button.onClick}
                 startIcon={button.icon}
                 className={button.className}
+                disabled={button.disabled}
+                style={button.style}
               >
                 {button.text}
               </Button>
             ))}
           </div>
         )}
-
       </div>
     </div>
   );

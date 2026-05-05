@@ -37,16 +37,17 @@ import { useAuth } from "@/context/AuthContext";
  *   >0  → Exact cap
  */
 export interface SubscriptionFeatures {
-  ai_advisory: boolean;
+  ai_advisory: number | boolean;
+  corporate_tax: number | boolean;
   ai_assistant: number | boolean;
   ai_invoicing: number | boolean;
   analytics_reports: number | boolean;
   auto_reply_hub: number | boolean;
   compliance: number | boolean;
-  documents_limit: number | boolean;
-  invoicing_limit: number | boolean;
+  documents: number | boolean;
+  invoicing: number | boolean;
   payroll: number | boolean;
-  reminders_limit: number | boolean;
+  reminders: number | boolean;
   // // Invoicing
   // invoice_limit_per_month?: number | string;
   // // AI
