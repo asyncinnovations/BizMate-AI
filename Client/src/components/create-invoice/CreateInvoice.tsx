@@ -29,6 +29,10 @@ import axiosInstance from "@/utils/axiosInstance";
 import toast from "react-hot-toast";
 import LoadingSpinner from "@/components/loading-spinner/LoadingSpinner";
 import InputField from "@/components/ui/InputField";
+import { useSubscription } from "@/context/SubscriptionContext";
+import GlassLockTooltip from "../overlay_tooltip/GlassLockTooltip";
+import OverlayTooltip from "../overlay_tooltip/OverlayTooltip";
+import { useSubscriptionUsage } from "@/hooks/useSubscriptionUsage";
 
 // TypeScript interfaces
 interface InvoiceItem {
@@ -85,6 +89,8 @@ type FieldChangeHandler = (
 ) => void;
 
 const CreateInvoicePage: React.FC = () => {
+  const { currentPlan } = useSubscription();
+  const { incrementUsage } = useSubscriptionUsage();
   const { user, loading } = useAuth();
   const searchParams = useSearchParams();
   const invoice_id = searchParams.get("id");
@@ -137,7 +143,7 @@ const CreateInvoicePage: React.FC = () => {
 
   // Modal states
   const [isAddFieldModalOpen, setIsAddFieldModalOpen] = useState(false);
-  const [isEditFieldModalOpen, setIsEditFieldModalOpen] = useState(false);
+  const [setIsEditFieldModalOpen] = useState(false);
   const [newField, setNewField] = useState<FormField>({
     id: `${new Date()}`,
     name: "",
@@ -602,6 +608,10 @@ const CreateInvoicePage: React.FC = () => {
         if (response.status === 201) {
           toast.success("Invoice saved successfully!");
           const invoice_id = response.data.invoice.uuid;
+          await incrementUsage({
+            usageKey: "invoice",
+            count: 1,
+          });
           // Navigate to preview
           router.push(`/dashboard/invoicing/preview/${invoice_id}`);
         }
@@ -719,7 +729,7 @@ const CreateInvoicePage: React.FC = () => {
               </div>
               <Button
                 onClick={generateAiSuggestions}
-                disabled={isGenerating}
+                disabled={currentPlan?.name == "Starter" || isGenerating}
                 className="bg-surface text-text-heading hover:bg-bg-base shadow-card"
                 startIcon={
                   isGenerating ? (
@@ -729,7 +739,16 @@ const CreateInvoicePage: React.FC = () => {
                   )
                 }
               >
-                {isGenerating ? "AI Thinking..." : "Get AI Suggestions"}
+                {isGenerating
+                  ? "AI Thinking..."
+                  : currentPlan?.name == "Starter" && (
+                      <OverlayTooltip
+                        id="suggestion"
+                        title="This feature is not included in your current plan."
+                      >
+                        <span>Get AI Suggestions</span>
+                      </OverlayTooltip>
+                    )}
               </Button>
             </div>
           </Card>
@@ -1126,84 +1145,99 @@ const CreateInvoicePage: React.FC = () => {
             </div>
 
             {/* AI Suggestions Sidebar */}
-            <div className="space-y-6 lg:col-span-1">
-              <SectionCard title="AI Suggestions" icon={Brain}>
-                <div>
-                  {showAiSuggestions ? (
-                    <div className="space-y-6">
-                      {/* Item Suggestions */}
-                      <div>
-                        <h4 className="font-semibold text-text-heading mb-3 flex items-center gap-2">
-                          <Lightbulb className="w-4 h-4 text-status-warning" />
-                          Popular AI Services
-                        </h4>
-                        <div className="space-y-2">
-                          {aiSuggestions.items.map((item, index) => (
-                            <button
-                              key={index}
-                              onClick={() => applyItemSuggestion(item)}
-                              className="w-full text-left p-3 border border-border rounded-lg hover:border-border-strong hover:bg-brand-light transition-all duration-200 group"
-                            >
-                              <div className="text-sm font-medium text-text-secondary group-hover:text-text-heading">
-                                {item}
-                              </div>
-                              <div className="text-xs text-text-muted mt-1">
-                                Click to add
-                              </div>
-                            </button>
-                          ))}
+            <OverlayTooltip
+              id="ai-suggestions-tooltip"
+              title="Upgrade your plan to access AI suggestions"
+            >
+              <div
+                className={`space-y-6 lg:col-span-1 ${
+                  currentPlan?.name == "Starter"
+                    ? "pointer-events-none opacity-60"
+                    : ""
+                }`}
+              >
+                <SectionCard title="AI Suggestions" icon={Brain}>
+                  <div>
+                    {showAiSuggestions ? (
+                      <div
+                        className="space-y-6"
+                        hidden={currentPlan?.name == "Starter"}
+                      >
+                        {/* Item Suggestions */}
+                        <div>
+                          <h4 className="font-semibold text-text-heading mb-3 flex items-center gap-2">
+                            <Lightbulb className="w-4 h-4 text-status-warning" />
+                            Popular AI Services
+                          </h4>
+                          <div className="space-y-2">
+                            {aiSuggestions.items.map((item, index) => (
+                              <button
+                                key={index}
+                                onClick={() => applyItemSuggestion(item)}
+                                className="w-full text-left p-3 border border-border rounded-lg hover:border-border-strong hover:bg-brand-light transition-all duration-200 group"
+                              >
+                                <div className="text-sm font-medium text-text-secondary group-hover:text-text-heading">
+                                  {item}
+                                </div>
+                                <div className="text-xs text-text-muted mt-1">
+                                  Click to add
+                                </div>
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Notes Suggestion */}
-                      <div>
-                        <h4 className="font-semibold text-text-heading mb-3 flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-status-info" />
-                          Professional Notes
-                        </h4>
-                        <div className="p-3 border border-border rounded-lg bg-bg-base">
-                          <p className="text-sm text-text-secondary mb-3">
-                            {aiSuggestions.notes}
-                          </p>
-                          <Button
-                            onClick={applyNotesSuggestion}
-                            className="w-full bg-surface border border-border text-text-secondary hover:bg-bg-base text-sm py-2"
-                            startIcon={<CheckCircle className="w-3 h-3" />}
-                          >
-                            Use This Text
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* AI Tips */}
-                      <div className="p-3 bg-status-warning-bg border border-status-warning-border rounded-lg">
-                        <div className="flex items-start gap-2">
-                          <Zap className="w-4 h-4 text-status-warning mt-0.5" />
-                          <div>
-                            <h5 className="font-semibold text-status-warning text-sm">
-                              AI Tip
-                            </h5>
-                            <p className="text-status-warning/80 text-xs mt-1">
-                              Based on industry analysis, AI services typically
-                              range from AED 800-3000 depending on complexity.
+                        {/* Notes Suggestion */}
+                        <div>
+                          <h4 className="font-semibold text-text-heading mb-3 flex items-center gap-2">
+                            <FileText className="w-4 h-4 text-status-info" />
+                            Professional Notes
+                          </h4>
+                          <div className="p-3 border border-border rounded-lg bg-bg-base">
+                            <p className="text-sm text-text-secondary mb-3">
+                              {aiSuggestions.notes}
                             </p>
+                            <Button
+                              onClick={applyNotesSuggestion}
+                              className="w-full bg-surface border border-border text-text-secondary hover:bg-bg-base text-sm py-2"
+                              startIcon={<CheckCircle className="w-3 h-3" />}
+                            >
+                              Use This Text
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* AI Tips */}
+                        <div className="p-3 bg-status-warning-bg border border-status-warning-border rounded-lg">
+                          <div className="flex items-start gap-2">
+                            <Zap className="w-4 h-4 text-status-warning mt-0.5" />
+                            <div>
+                              <h5 className="font-semibold text-status-warning text-sm">
+                                AI Tip
+                              </h5>
+                              <p className="text-status-warning/80 text-xs mt-1">
+                                Based on industry analysis, AI services
+                                typically range from AED 800-3000 depending on
+                                complexity.
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <Brain className="w-12 h-12 text-text-muted/40 mx-auto mb-3" />
-                      <p className="text-text-muted text-sm">
-                        {currentInvoice.customer_name
-                          ? "Enter customer details to get AI suggestions"
-                          : "Start typing customer name for AI-powered suggestions"}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </SectionCard>
-            </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <Brain className="w-12 h-12 text-text-muted/40 mx-auto mb-3" />
+                        <p className="text-text-muted text-sm">
+                          {currentInvoice.customer_name
+                            ? "Enter customer details to get AI suggestions"
+                            : "Start typing customer name for AI-powered suggestions"}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </SectionCard>
+              </div>
+            </OverlayTooltip>
           </div>
         </div>
       </div>

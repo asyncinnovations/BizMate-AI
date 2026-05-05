@@ -130,9 +130,9 @@ export default function EmployeeDetailPage() {
   const gross = computeGross(
     editing ? ({ ...employee, ...form } as Employee) : employee,
   );
-  const currentEmployee = editing
-    ? ({ ...employee, ...form } as Employee)
-    : employee;
+  // const currentEmployee = editing
+  //   ? ({ ...employee, ...form } as Employee)
+  //   : employee;
 
   return (
     <DashboardLayout>

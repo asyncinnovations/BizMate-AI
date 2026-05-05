@@ -8,7 +8,6 @@ import {
   Clock,
   Search,
   X,
-  Tag,
   TrendingUp,
   BookOpen,
   CheckCircle2,

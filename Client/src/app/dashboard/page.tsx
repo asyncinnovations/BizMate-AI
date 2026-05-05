@@ -12,7 +12,6 @@ import {
   Plus,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import Button from "../../components/ui/Button";
 import StatCard from "../../components/stat-card/StatCard";
 import UpcomingDeadlines from "./components/upcoming-deadlines/UpcomingDeadlines";
 import RecentDocuments from "./components/recent-documents/RecentDocuments";
@@ -25,6 +24,8 @@ import PageHeader from "../../components/page-header/PageHeader";
 import Card from "../../components/ui/Card";
 import axiosInstance from "@/utils/axiosInstance";
 import { useAuth } from "@/context/AuthContext";
+import { useSubscription } from "@/context/SubscriptionContext";
+import OverlayTooltip from "@/components/overlay_tooltip/OverlayTooltip";
 
 // TypeScript interfaces
 interface Invoice {
@@ -41,6 +42,7 @@ interface Reminder {
 
 const Dashboard = () => {
   const router = useRouter();
+  const { currentPlan } = useSubscription();
   const { user, loading } = useAuth();
 
   /////////////////////////////////////
@@ -200,7 +202,15 @@ const Dashboard = () => {
           description="Here's what's happening with your business today"
           buttons={[
             {
-              text: "Ask AI Assistant",
+              disabled: currentPlan?.name == "Starter",
+              text: (
+                <OverlayTooltip
+                  id="btn-1"
+                  title="This feature is not included in your current plan."
+                >
+                  <span>Ask AI Assistant</span>
+                </OverlayTooltip>
+              ),
               onClick: () => router.push("/dashboard/ai-chat"),
               icon: <MessageCircle size={20} />,
             },
@@ -209,9 +219,40 @@ const Dashboard = () => {
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {statsData.map((item, index) => (
-            <StatCard key={index} {...item} />
-          ))}
+          {statsData.map((item, index) => {
+            const isLocked =
+              currentPlan?.name === "Starter" && item.title === "Auto Replies";
+
+            const card = (
+              <StatCard
+                key={index}
+                className=""
+                title={item.title}
+                badgeBg={item.badgeBg}
+                badgeColor={item.badgeColor}
+                badgeText={item.badgeText}
+                icon={item.icon}
+                iconBg={item.iconBg}
+                iconColor={item.iconColor}
+                subtitle={item.subtitle}
+                value={isLocked ? 0 : item.value}
+                style={{
+                  filter: isLocked ? "grayscale(100%)" : "",
+                }}
+              />
+            );
+            return isLocked ? (
+              <OverlayTooltip
+                key={index}
+                id={`state-card-${index}`}
+                title="This feature is not included in your current plan."
+              >
+                <div>{card}</div>
+              </OverlayTooltip>
+            ) : (
+              <div key={index}>{card}</div>
+            );
+          })}
         </div>
 
         {/* Main content grid */}

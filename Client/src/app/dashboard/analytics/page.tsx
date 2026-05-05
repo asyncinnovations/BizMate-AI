@@ -27,7 +27,8 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import PageHeader from "@/components/page-header/PageHeader";
 import axiosInstance from "@/utils/axiosInstance";
 import { useAuth } from "@/context/AuthContext";
-
+import OverlayTooltip from "@/components/overlay_tooltip/OverlayTooltip";
+import { useSubscription } from "@/context/SubscriptionContext";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -73,8 +74,18 @@ interface AiReminder {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const MONTH_LABELS = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ];
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -151,7 +162,13 @@ function buildInvoiceStatusData(invoices: Invoice[]) {
 
 function buildInvoicePatternData(invoices: Invoice[]) {
   const counts: Record<string, number> = {
-    Sun: 0, Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0,
+    Sun: 0,
+    Mon: 0,
+    Tue: 0,
+    Wed: 0,
+    Thu: 0,
+    Fri: 0,
+    Sat: 0,
   };
 
   invoices.forEach((inv) => {
@@ -249,6 +266,7 @@ const renderPiePercent = ({ percent }: PieLabelRenderProps) =>
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const AnalyticsPage = () => {
+  const { currentPlan } = useSubscription();
   const { user } = useAuth();
   const userId = user?.user?.user_id;
 
@@ -325,11 +343,19 @@ const AnalyticsPage = () => {
   })();
 
   const myExpenseData = [
-    { category: "Office Rent",        amount: 3200, color: "var(--color-secondary)" },
-    { category: "Software & Tools",   amount: 1800, color: "#7c3aed" },
-    { category: "Marketing",          amount: 2400, color: "#db2777" },
-    { category: "Utilities",          amount: 800,  color: "var(--color-status-warning)" },
-    { category: "Miscellaneous",      amount: 1600, color: "var(--color-status-success)" },
+    { category: "Office Rent", amount: 3200, color: "var(--color-secondary)" },
+    { category: "Software & Tools", amount: 1800, color: "#7c3aed" },
+    { category: "Marketing", amount: 2400, color: "#db2777" },
+    {
+      category: "Utilities",
+      amount: 800,
+      color: "var(--color-status-warning)",
+    },
+    {
+      category: "Miscellaneous",
+      amount: 1600,
+      color: "var(--color-status-success)",
+    },
   ];
 
   // ── Stat cards ────────────────────────────────────────────────────────────
@@ -406,7 +432,7 @@ const AnalyticsPage = () => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {statCardsData.map((card, index) => (
+          {/* {statCardsData.map((card, index) => (
             <StatCard
               key={index}
               icon={card.icon}
@@ -419,7 +445,42 @@ const AnalyticsPage = () => {
               value={card.value}
               subtitle={card.subtitle}
             />
-          ))}
+          ))} */}
+          {statCardsData.map((item, index) => {
+            const isLocked =
+              currentPlan?.name === "Starter" &&
+              item.title === "AI Queries Used";
+
+            const card = (
+              <StatCard
+                key={index}
+                className=""
+                title={item.title}
+                badgeBg={item.badgeBg}
+                badgeColor={item.badgeColor}
+                badgeText={item.badgeText}
+                icon={item.icon}
+                iconBg={item.iconBg}
+                iconColor={item.iconColor}
+                subtitle={item.subtitle}
+                value={isLocked ? 0 : item.value}
+                style={{
+                  filter: isLocked ? "grayscale(100%)" : "",
+                }}
+              />
+            );
+            return isLocked ? (
+              <OverlayTooltip
+                key={index}
+                id={`state-card-${index}`}
+                title="This feature is not included in your current plan."
+              >
+                <div>{card}</div>
+              </OverlayTooltip>
+            ) : (
+              <div key={index}>{card}</div>
+            );
+          })}
         </div>
 
         {/* Row 1 — Revenue (wide) + Invoice Status */}
@@ -453,9 +514,23 @@ const AnalyticsPage = () => {
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={revenueData}>
                   <defs>
-                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%"   stopColor="var(--color-secondary)" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="var(--color-secondary)" stopOpacity={0} />
+                    <linearGradient
+                      id="colorRevenue"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="0%"
+                        stopColor="var(--color-secondary)"
+                        stopOpacity={0.3}
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor="var(--color-secondary)"
+                        stopOpacity={0}
+                      />
                     </linearGradient>
                   </defs>
                   <CartesianGrid
@@ -559,13 +634,18 @@ const AnalyticsPage = () => {
                 )}
                 <div className="w-full space-y-2 mt-2">
                   {invoiceStatusLegend.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between">
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between"
+                    >
                       <div className="flex items-center">
                         <div
                           className="w-2.5 h-2.5 rounded-full mr-2.5"
                           style={{
                             backgroundColor:
-                              item.value > 0 ? item.color : "var(--color-border)",
+                              item.value > 0
+                                ? item.color
+                                : "var(--color-border)",
                           }}
                         />
                         <span
@@ -646,7 +726,8 @@ const AnalyticsPage = () => {
                       fill={
                         entry.isToday
                           ? "var(--color-brand)"
-                          : entry.queries === Math.max(...aiWeekData.map((d) => d.queries))
+                          : entry.queries ===
+                              Math.max(...aiWeekData.map((d) => d.queries))
                             ? "var(--color-secondary)"
                             : "var(--color-status-info-border)"
                       }
@@ -657,9 +738,12 @@ const AnalyticsPage = () => {
             </ResponsiveContainer>
             <div className="flex items-center gap-5 mt-3 justify-center">
               {[
-                { color: "var(--color-brand)",               label: "Today" },
-                { color: "var(--color-secondary)",           label: "Peak day" },
-                { color: "var(--color-status-info-border)",  label: "Other days" },
+                { color: "var(--color-brand)", label: "Today" },
+                { color: "var(--color-secondary)", label: "Peak day" },
+                {
+                  color: "var(--color-status-info-border)",
+                  label: "Other days",
+                },
               ].map((l) => (
                 <div key={l.label} className="flex items-center gap-1.5">
                   <div
@@ -761,7 +845,7 @@ const AnalyticsPage = () => {
                     <Pie
                       data={[
                         { name: "Completed", value: reminderWeek.completed },
-                        { name: "Missed",    value: reminderWeek.missed },
+                        { name: "Missed", value: reminderWeek.missed },
                       ].filter((d) => d.value > 0)}
                       cx="50%"
                       cy="50%"
@@ -802,7 +886,9 @@ const AnalyticsPage = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <div className="w-3 h-3 rounded-full mr-3 bg-status-success" />
-                        <span className="text-sm text-text-secondary">Completed</span>
+                        <span className="text-sm text-text-secondary">
+                          Completed
+                        </span>
                       </div>
                       <span className="text-sm font-semibold text-text-heading">
                         {reminderWeek.completed}
@@ -811,7 +897,9 @@ const AnalyticsPage = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <div className="w-3 h-3 rounded-full mr-3 bg-status-error" />
-                        <span className="text-sm text-text-secondary">Missed</span>
+                        <span className="text-sm text-text-secondary">
+                          Missed
+                        </span>
                       </div>
                       <span className="text-sm font-semibold text-text-heading">
                         {reminderWeek.missed}
@@ -824,11 +912,14 @@ const AnalyticsPage = () => {
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-text-muted">Completion rate</span>
+                      <span className="text-sm text-text-muted">
+                        Completion rate
+                      </span>
                       <span className="text-sm font-bold text-status-success">
                         {reminderWeek.total > 0
                           ? Math.round(
-                              (reminderWeek.completed / reminderWeek.total) * 100,
+                              (reminderWeek.completed / reminderWeek.total) *
+                                100,
                             )
                           : 0}
                         %

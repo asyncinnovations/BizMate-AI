@@ -2,25 +2,12 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Lock,
-  Shield,
-  Smartphone,
-  Mail,
-  Chrome,
-  Globe,
-  Eye,
-  EyeOff,
-} from "lucide-react";
-import SectionCard from "@/components/section-card/SectionCard";
-import ToggleSwitch from "@/components/ui/ToggleSwitch";
+
 import ChangePasswordForm from "./ChangePasswordForm";
 import ActiveSessions from "@/components/active-sessions/ActiveSessions";
 import TwoFactorSettings from "@/components/2fa-settings/TwoFactorSettings";
 
 const AccountSecurityTab: React.FC = () => {
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
-
   return (
     <div className="space-y-6">
       <ChangePasswordForm />

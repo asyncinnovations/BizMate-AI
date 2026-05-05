@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   Clock,
   Users,
-  DollarSign,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import PageHeader from "@/components/page-header/PageHeader";

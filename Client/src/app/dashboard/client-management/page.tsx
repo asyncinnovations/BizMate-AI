@@ -61,7 +61,7 @@ export default function ClientManagement() {
   const [showImportModal, setShowImportModal] = useState<boolean>(false);
   const [importData, setImportData] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const user_id = user?.user.user_id;
 
   // Client form state - ONLY backend fields

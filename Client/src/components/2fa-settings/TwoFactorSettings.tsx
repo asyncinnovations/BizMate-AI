@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Shield, ShieldCheck, ShieldOff, KeyRound, RefreshCw, Loader2 } from "lucide-react";
+import { Shield } from "lucide-react";
 import SectionCard from "@/components/section-card/SectionCard";
 import EmptyState from "@/components/empty-state/EmptyState";
 import LoadingSpinner from "@/components/loading-spinner/LoadingSpinner";
@@ -94,7 +94,9 @@ const TwoFactorSettings: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await axiosInstance.get(`/user-two-factor-settings/user/${userId}`);
+      const res = await axiosInstance.get(
+        `/user-two-factor-settings/user/${userId}`,
+      );
       setSettings(res.data || null);
     } catch {
       setError("Failed to load 2FA settings.");
@@ -110,7 +112,10 @@ const TwoFactorSettings: React.FC = () => {
   const handleSetupTOTP = async () => {
     setSetupLoading(true);
     try {
-      const res = await axiosInstance.post(`/user-two-factor-settings/user_totp_setup`, { user_id: userId });
+      const res = await axiosInstance.post(
+        `/user-two-factor-settings/user_totp_setup`,
+        { user_id: userId },
+      );
       setQrCode(res.data?.qrcode || null);
       setTotpSecret(res.data?.response?.secret || null);
       setStep(1);
@@ -126,12 +131,15 @@ const TwoFactorSettings: React.FC = () => {
   // API: POST /user-two-factor-settings/verify_user_totp/:userId
   // ─────────────────────────────────────────
   const handleVerifyTOTP = async () => {
-    if (totpCode.length < 6) { toast.error("Please enter the 6-digit code"); return; }
+    if (totpCode.length < 6) {
+      toast.error("Please enter the 6-digit code");
+      return;
+    }
     setVerifyLoading(true);
     try {
       const res = await axiosInstance.post(
         `/user-two-factor-settings/verify_user_totp/${userId}`,
-        { code: totpCode }
+        { code: totpCode },
       );
       if (res.data?.is_enabled) {
         toast.success("Code verified! Generating recovery codes…");
@@ -154,12 +162,17 @@ const TwoFactorSettings: React.FC = () => {
   // ─────────────────────────────────────────
   const handleSaveMethod = async () => {
     if (!methodValue.trim()) {
-      toast.error(`Please enter your ${selectedMethod === "sms" ? "phone number" : "email address"}`);
+      toast.error(
+        `Please enter your ${selectedMethod === "sms" ? "phone number" : "email address"}`,
+      );
       return;
     }
     setSetupLoading(true);
     try {
-      await axiosInstance.post(`/user-two-factor-settings/method/${userId}`, { method: selectedMethod, value: methodValue });
+      await axiosInstance.post(`/user-two-factor-settings/method/${userId}`, {
+        method: selectedMethod,
+        value: methodValue,
+      });
       await handleSendOtp();
       setStep(1);
     } catch {
@@ -179,7 +192,9 @@ const TwoFactorSettings: React.FC = () => {
       await axiosInstance.post(`/two-factor-otps/generate/${userId}`);
       setOtpSent(true);
       setOtpUserId(userId!);
-      toast.success(`OTP sent to your ${selectedMethod === "sms" ? "phone" : "email"}`);
+      toast.success(
+        `OTP sent to your ${selectedMethod === "sms" ? "phone" : "email"}`,
+      );
     } catch {
       toast.error("Failed to send OTP. Please try again.");
     } finally {
@@ -192,10 +207,16 @@ const TwoFactorSettings: React.FC = () => {
   // API: POST /two-factor-otps/verify/:user_id
   // ─────────────────────────────────────────
   const handleVerifyOtp = async () => {
-    if (!otpCode.trim()) { toast.error("Please enter the OTP"); return; }
+    if (!otpCode.trim()) {
+      toast.error("Please enter the OTP");
+      return;
+    }
     setVerifyLoading(true);
     try {
-      const res = await axiosInstance.post(`/two-factor-otps/verify/${userId}`, { otpCode });
+      const res = await axiosInstance.post(
+        `/two-factor-otps/verify/${userId}`,
+        { otpCode },
+      );
       if (res.data?.success) {
         toast.success("OTP verified! Generating recovery codes…");
         await handleGenerateRecoveryCodes();
@@ -218,7 +239,9 @@ const TwoFactorSettings: React.FC = () => {
   const handleGenerateRecoveryCodes = async () => {
     setRecoveryLoading(true);
     try {
-      const res = await axiosInstance.post(`/two-factor-recovery-codes/generate/${userId}`);
+      const res = await axiosInstance.post(
+        `/two-factor-recovery-codes/generate/${userId}`,
+      );
       setRecoveryCodes(res.data?.codes || []);
     } catch {
       toast.error("Failed to generate recovery codes.");

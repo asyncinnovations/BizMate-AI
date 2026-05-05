@@ -22,18 +22,20 @@ const StepIndicator: React.FC<{ current: SetupStep }> = ({ current }) => (
       <React.Fragment key={i}>
         <div className="flex items-center gap-1.5 shrink-0">
           <div
-            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${i < current
-              ? "bg-secondary text-on-secondary"
-              : i === current
-                ? "bg-brand text-on-brand"
-                : "bg-bg-subtle text-text-muted"
-              }`}
+            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+              i < current
+                ? "bg-secondary text-on-secondary"
+                : i === current
+                  ? "bg-brand text-on-brand"
+                  : "bg-bg-subtle text-text-muted"
+            }`}
           >
             {i < current ? <Check className="w-3 h-3" /> : i + 1}
           </div>
           <span
-            className={`text-xs font-medium hidden sm:block whitespace-nowrap ${i === current ? "text-text-heading" : "text-text-muted"
-              }`}
+            className={`text-xs font-medium hidden sm:block whitespace-nowrap ${
+              i === current ? "text-text-heading" : "text-text-muted"
+            }`}
           >
             {label}
           </span>
@@ -84,19 +86,21 @@ const ActionButton: React.FC<{
   fullWidth = true,
   variant = "primary",
 }) => (
-    <button
-      onClick={onClick}
-      disabled={disabled || loading}
-      className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${fullWidth ? "w-full" : ""
-        } ${variant === "primary"
-          ? "bg-brand text-on-brand hover:bg-brand-hover"
-          : "border border-secondary text-secondary bg-surface hover:bg-secondary-light"
-        }`}
-    >
-      {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-      {loading && loadingText ? loadingText : children}
-    </button>
-  );
+  <button
+    onClick={onClick}
+    disabled={disabled || loading}
+    className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+      fullWidth ? "w-full" : ""
+    } ${
+      variant === "primary"
+        ? "bg-brand text-on-brand hover:bg-brand-hover"
+        : "border border-secondary text-secondary bg-surface hover:bg-secondary-light"
+    }`}
+  >
+    {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+    {loading && loadingText ? loadingText : children}
+  </button>
+);
 
 interface TwoFactorSetupProps {
   step: SetupStep;
@@ -134,9 +138,7 @@ const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({
   totpSecret,
   totpCode,
   methodValue,
-  otpSent,
   otpCode,
-  otpUserId,
   recoveryCodes,
   setupLoading,
   sendOtpLoading,
@@ -151,7 +153,6 @@ const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({
   onVerifyTOTP,
   onSendOtp,
   onVerifyOtp,
-  onGenerateRecoveryCodes,
   onStepComplete,
   methodLabel,
 }) => {
@@ -162,29 +163,47 @@ const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({
       {/* STEP 0 — Choose Method */}
       {step === 0 && (
         <div className="space-y-4">
-          <p className="text-sm font-semibold text-text-heading">Choose your authentication method</p>
+          <p className="text-sm font-semibold text-text-heading">
+            Choose your authentication method
+          </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {(
-              [
-                { key: "totp" as const, icon: QrCode, label: "Authenticator App", desc: "Google Authenticator, Authy, etc." },
-                { key: "sms" as const, icon: Smartphone, label: "SMS", desc: "Receive code via text message" },
-                { key: "email" as const, icon: Mail, label: "Email", desc: "Receive code via email" },
-              ]
-            ).map(({ key, icon: Icon, label, desc }) => (
+            {[
+              {
+                key: "totp" as const,
+                icon: QrCode,
+                label: "Authenticator App",
+                desc: "Google Authenticator, Authy, etc.",
+              },
+              {
+                key: "sms" as const,
+                icon: Smartphone,
+                label: "SMS",
+                desc: "Receive code via text message",
+              },
+              {
+                key: "email" as const,
+                icon: Mail,
+                label: "Email",
+                desc: "Receive code via email",
+              },
+            ].map(({ key, icon: Icon, label, desc }) => (
               <button
                 key={key}
                 onClick={() => onMethodSelect(key)}
-                className={`flex flex-col items-start gap-2 p-4 rounded-lg border text-left transition-all ${selectedMethod === key
-                  ? "border-secondary bg-brand-light"
-                  : "border-border bg-bg-base hover:bg-bg-subtle"
-                  }`}
+                className={`flex flex-col items-start gap-2 p-4 rounded-lg border text-left transition-all ${
+                  selectedMethod === key
+                    ? "border-secondary bg-brand-light"
+                    : "border-border bg-bg-base hover:bg-bg-subtle"
+                }`}
               >
                 <div className="inline-flex p-2 rounded-md bg-surface border border-border">
                   <Icon className="w-4 h-4 text-text-heading" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-text-heading">{label}</p>
+                  <p className="text-sm font-medium text-text-heading">
+                    {label}
+                  </p>
                   <p className="text-xs text-text-primary mt-0.5">{desc}</p>
                 </div>
               </button>
@@ -195,13 +214,19 @@ const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({
           {(selectedMethod === "sms" || selectedMethod === "email") && (
             <div className="space-y-2 pt-1">
               <label className="text-xs font-medium text-text-secondary">
-                {selectedMethod === "sms" ? "Enter your phone number" : "Enter your email address"}
+                {selectedMethod === "sms"
+                  ? "Enter your phone number"
+                  : "Enter your email address"}
               </label>
               <input
                 type={selectedMethod === "email" ? "email" : "tel"}
                 value={methodValue}
                 onChange={(e) => onMethodValueChange(e.target.value)}
-                placeholder={selectedMethod === "sms" ? "+971 50 000 0000" : "you@example.com"}
+                placeholder={
+                  selectedMethod === "sms"
+                    ? "+971 50 000 0000"
+                    : "you@example.com"
+                }
                 className="w-full px-4 py-2.5 border border-border rounded-lg text-sm text-text-heading focus:outline-none focus:border-border-focus bg-bg-base placeholder:text-text-muted"
               />
             </div>
@@ -210,12 +235,18 @@ const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({
           <ActionButton
             onClick={selectedMethod === "totp" ? onSetupTOTP : onSaveMethod}
             loading={setupLoading}
-            loadingText={selectedMethod === "totp" ? "Generating QR…" : "Sending OTP…"}
+            loadingText={
+              selectedMethod === "totp" ? "Generating QR…" : "Sending OTP…"
+            }
           >
             {selectedMethod === "totp" ? (
-              <><QrCode className="w-4 h-4" /> Continue with Authenticator App</>
+              <>
+                <QrCode className="w-4 h-4" /> Continue with Authenticator App
+              </>
             ) : (
-              <><Send className="w-4 h-4" /> Send Verification Code</>
+              <>
+                <Send className="w-4 h-4" /> Send Verification Code
+              </>
             )}
           </ActionButton>
         </div>
@@ -226,12 +257,18 @@ const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({
         <div className="space-y-4">
           {selectedMethod === "totp" && (
             <>
-              <p className="text-sm font-semibold text-text-heading">Scan with your authenticator app</p>
+              <p className="text-sm font-semibold text-text-heading">
+                Scan with your authenticator app
+              </p>
 
               {qrCode ? (
                 <div className="flex justify-center">
                   <div className="p-4 bg-surface border border-border rounded-xl inline-block shadow-card">
-                    <img src={qrCode} alt="TOTP QR Code" className="w-44 h-44" />
+                    <img
+                      src={qrCode}
+                      alt="TOTP QR Code"
+                      className="w-44 h-44"
+                    />
                   </div>
                 </div>
               ) : (
@@ -242,7 +279,9 @@ const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({
 
               {totpSecret && (
                 <div className="bg-bg-base rounded-lg p-3 border border-border">
-                  <p className="text-xs text-text-secondary mb-1 font-medium">Can&apos;t scan? Enter this key manually:</p>
+                  <p className="text-xs text-text-secondary mb-1 font-medium">
+                    Can&apos;t scan? Enter this key manually:
+                  </p>
                   <p className="font-mono text-sm text-text-heading tracking-widest break-all select-all">
                     {totpSecret}
                   </p>
@@ -250,7 +289,9 @@ const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({
               )}
 
               <div className="space-y-2">
-                <p className="text-sm font-medium text-text-heading">Enter the 6-digit code from your app</p>
+                <p className="text-sm font-medium text-text-heading">
+                  Enter the 6-digit code from your app
+                </p>
                 <OtpInput value={totpCode} onChange={onTotpCodeChange} />
               </div>
 
@@ -276,7 +317,8 @@ const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({
                 )}
                 <div>
                   <p className="text-sm font-medium text-text-heading">
-                    Code sent to your {selectedMethod === "sms" ? "phone" : "email"}
+                    Code sent to your{" "}
+                    {selectedMethod === "sms" ? "phone" : "email"}
                   </p>
                   <p className="text-xs text-text-primary mt-0.5">
                     {methodValue} · Expires in 5 minutes
@@ -285,7 +327,9 @@ const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({
               </div>
 
               <div className="space-y-2">
-                <p className="text-sm font-medium text-text-heading">Enter the 6-digit code you received</p>
+                <p className="text-sm font-medium text-text-heading">
+                  Enter the 6-digit code you received
+                </p>
                 <OtpInput value={otpCode} onChange={onOtpCodeChange} />
               </div>
 
@@ -325,7 +369,8 @@ const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({
               Save your recovery codes
             </p>
             <p className="text-xs text-text-primary mt-1">
-              2FA is now active. Save these codes — they are your backup if you lose access to your {methodLabel[selectedMethod]}.
+              2FA is now active. Save these codes — they are your backup if you
+              lose access to your {methodLabel[selectedMethod]}.
             </p>
           </div>
 
@@ -353,9 +398,13 @@ const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({
             </div>
           </div>
           <div>
-            <p className="text-base font-semibold text-text-heading">2FA is now active</p>
+            <p className="text-base font-semibold text-text-heading">
+              2FA is now active
+            </p>
             <p className="text-sm text-text-primary mt-1">
-              Your account is protected with <span className="font-medium">{methodLabel[selectedMethod]}</span>.
+              Your account is protected with{" "}
+              <span className="font-medium">{methodLabel[selectedMethod]}</span>
+              .
             </p>
           </div>
           <ActionButton onClick={onStepComplete}>Done</ActionButton>

@@ -14,6 +14,7 @@ interface ButtonProps {
   type?: "button" | "submit" | "reset";
   disabled?: boolean;
   loading?: boolean;
+  style?: any;
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -26,6 +27,7 @@ const Button: React.FC<ButtonProps> = ({
   type = "button",
   disabled = false,
   loading = false,
+  style,
 }) => {
   const baseClasses =
     "px-6 py-3 rounded-lg transition-all flex items-center justify-center font-medium shadow-card focus:outline-none focus:ring-2 focus:ring-offset-1";
@@ -39,7 +41,7 @@ const Button: React.FC<ButtonProps> = ({
     baseClasses,
     variantClasses,
     disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
-    className
+    className,
   );
 
   return (
@@ -48,12 +50,15 @@ const Button: React.FC<ButtonProps> = ({
       onClick={onClick}
       disabled={disabled || loading}
       className={mergedClasses}
+      style={style}
     >
       {loading ? (
         <LoadingSpinner size="w-5 h-5" color="border-on-brand" />
       ) : (
         <>
-          {startIcon && <span className="mr-2 flex items-center">{startIcon}</span>}
+          {startIcon && (
+            <span className="mr-2 flex items-center">{startIcon}</span>
+          )}
           {children}
           {endIcon && <span className="ml-2 flex items-center">{endIcon}</span>}
         </>

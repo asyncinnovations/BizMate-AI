@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Lock, Eye, EyeOff } from "lucide-react";
+import { Lock } from "lucide-react";
 import SectionCard from "@/components/section-card/SectionCard";
 import axiosInstance from "@/utils/axiosInstance";
 import { useAuth } from "@/context/AuthContext";
@@ -19,42 +19,42 @@ const ChangePasswordForm: React.FC = () => {
   const [errors, setErrors] = useState({
     currentPassword: "",
     newPassword: "",
-    confirmPassword: ""
-  })
-
+    confirmPassword: "",
+  });
 
   const validateFields = () => {
     const newErrors = {
       currentPassword: "",
       newPassword: "",
-      confirmPassword: ""
-    }
+      confirmPassword: "",
+    };
 
-    if (!currentPassword) newErrors.currentPassword = "Current password is required!";
+    if (!currentPassword)
+      newErrors.currentPassword = "Current password is required!";
 
     if (!newPassword) newErrors.newPassword = "New password is required!";
-    else if (newPassword.length < 8) newErrors.newPassword = "Password must be at least 8 characters";
+    else if (newPassword.length < 8)
+      newErrors.newPassword = "Password must be at least 8 characters";
 
-    if (!confirmPassword) newErrors.confirmPassword = "Please confirm your password";
-    else if (confirmPassword !== newPassword) newErrors.confirmPassword = "Password do not match";
+    if (!confirmPassword)
+      newErrors.confirmPassword = "Please confirm your password";
+    else if (confirmPassword !== newPassword)
+      newErrors.confirmPassword = "Password do not match";
 
     setErrors(newErrors);
 
-
-    return Object.values(newErrors).every((err) => err === "")
-
-  }
-
+    return Object.values(newErrors).every((err) => err === "");
+  };
 
   const isButtonDisabled = !currentPassword || !newPassword || !confirmPassword;
 
-
   const resetUserPassword = async () => {
-
     if (!validateFields()) return;
 
     try {
-      await axiosInstance.put(`/auth/reset_password/${user?.user.user_id}`, { new_password: newPassword });
+      await axiosInstance.put(`/auth/reset_password/${user?.user.user_id}`, {
+        new_password: newPassword,
+      });
       toast.success("Password updated successfully");
       setCurrentPassword("");
       setNewPassword("");
@@ -62,13 +62,13 @@ const ChangePasswordForm: React.FC = () => {
       setErrors({
         currentPassword: "",
         newPassword: "",
-        confirmPassword: ""
-      })
+        confirmPassword: "",
+      });
     } catch (error) {
-      toast.error("Failed to update password")
-      console.log("Error occur while updating password", error)
+      toast.error("Failed to update password");
+      console.log("Error occur while updating password", error);
     }
-  }
+  };
 
   return (
     <SectionCard title="Change Password" icon={Lock}>
@@ -107,7 +107,6 @@ const ChangePasswordForm: React.FC = () => {
           <Button disabled={isButtonDisabled} onClick={resetUserPassword}>
             Update Password
           </Button>
-
         </div>
       </div>
     </SectionCard>

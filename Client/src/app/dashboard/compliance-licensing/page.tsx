@@ -17,14 +17,12 @@ import {
   Link2,
   Download,
   Trash2,
-  Paperclip,
   X,
   FileBadge,
   BadgeCheck,
   Ban,
   Bell,
   Search,
-  BarChart3,
   FileCheck,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";

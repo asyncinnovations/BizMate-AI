@@ -1,16 +1,16 @@
 // app/settings/components/NotificationsTab.tsx
 "use client";
 
-import React, { useState } from "react";
-import { Mail, MessageSquare, Bell } from "lucide-react";
-import SectionCard from "@/components/section-card/SectionCard";
-import ToggleSwitch from "@/components/ui/ToggleSwitch";
+import React from "react";
+// import { Mail, MessageSquare, Bell } from "lucide-react";
+// import SectionCard from "@/components/section-card/SectionCard";
+// import ToggleSwitch from "@/components/ui/ToggleSwitch";
 import NotificationPreferences from "@/components/notification-preferences/NotificationPreferences";
 import ReminderSettings from "@/components/reminders-settings/ReminderSettings";
 
 const NotificationsTab: React.FC = () => {
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [whatsappNotifications, setWhatsappNotifications] = useState(false);
+  // const [emailNotifications, setEmailNotifications] = useState(true);
+  // const [whatsappNotifications, setWhatsappNotifications] = useState(false);
 
   return (
     <div className="space-y-6">
