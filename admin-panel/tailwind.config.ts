@@ -10,17 +10,18 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        brand: "#F57C00",
-        "brand-hover": "#E06500",
-        "brand-light": "#FEF3E2",
-        sidebar: "#0B1120",
-        "sidebar-hover": "#131D30",
-        "sidebar-active": "#1A2844",
-      },
-      fontFamily: {
-        sans: ["DM Sans", "system-ui", "sans-serif"],
-        display: ["Outfit", "system-ui", "sans-serif"],
-        mono: ["DM Mono", "monospace"],
+        canvas: "var(--bg-canvas)",
+        panel: "var(--bg-panel)",
+        surface: "var(--bg-surface)",
+        raised: "var(--bg-raised)",
+
+        primary: "var(--text-primary)",
+        secondary: "var(--text-secondary)",
+        muted: "var(--text-muted)",
+
+        accent: "var(--accent)",
+        "accent-hover": "var(--accent-hover)",
+        border: "var(--border)",
       },
     },
   },

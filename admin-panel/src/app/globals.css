@@ -1,44 +1,66 @@
-@reference "tailwindcss";
 
 @import url("https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Outfit:wght@300;400;500;600&display=swap");
 
-/* Tailwind v4 core imports */
-@import "tailwindcss/preflight";
-@import "tailwindcss/utilities";
+/* Tailwind v4 */
 
-/* ───────────────── DESIGN SYSTEM ───────────────── */
+@import "tailwindcss";
 
+/* ───────────────── LIGHT THEME (DEFAULT) ───────────────── */
 :root {
   --font-display: "Syne", sans-serif;
   --font-body: "Outfit", sans-serif;
 
+  /* Background */
+  --bg-canvas:  #f6f8fc;
+  --bg-panel:   #ffffff;
+  --bg-surface: #ffffff;
+  --bg-raised:  #f1f4f9;
+
+  /* Accent */
+  --accent:        #1a6fff;
+  --accent-hover:  #1458cc;
+  --accent-dim:    rgba(26,111,255,0.08);
+  --accent-border: rgba(26,111,255,0.2);
+
+  --cyan:          #00c8e8;
+  --cyan-dim:      rgba(0,200,232,0.08);
+
+  /* Text */
+  --text-primary:   #0b1426;
+  --text-secondary: #4a6785;
+  --text-muted:     #8aa4c4;
+
+  /* UI */
+  --border:        rgba(0,0,0,0.06);
+  --border-strong: rgba(0,0,0,0.12);
+  --border-focus:  rgba(26,111,255,0.4);
+
+  --error:   #ff4560;
+  --success: #00c97d;
+}
+
+/* ───────────────── DARK THEME ───────────────── */
+.dark {
   --bg-canvas:  #040912;
   --bg-panel:   #070d1b;
   --bg-surface: #0c1426;
   --bg-raised:  #111d30;
 
-  --accent:        #1a6fff;
-  --accent-hover:  #1458cc;
   --accent-dim:    rgba(26,111,255,0.12);
   --accent-border: rgba(26,111,255,0.25);
 
-  --cyan:          #00c8e8;
   --cyan-dim:      rgba(0,200,232,0.1);
 
   --text-primary:   #eef4ff;
   --text-secondary: #8aa4c4;
   --text-muted:     #3d5478;
 
-  --border:       rgba(255,255,255,0.06);
+  --border:        rgba(255,255,255,0.06);
   --border-strong: rgba(255,255,255,0.12);
-  --border-focus: rgba(26,111,255,0.5);
-
-  --error:        #ff4560;
-  --success:      #00c97d;
+  --border-focus:  rgba(26,111,255,0.5);
 }
 
-/* ───────────────── BASE RESET ───────────────── */
-
+/* ───────────────── BASE ───────────────── */
 *,
 *::before,
 *::after {
@@ -49,49 +71,35 @@ html,
 body {
   height: 100%;
   margin: 0;
-  padding: 0;
   background: var(--bg-canvas);
   color: var(--text-primary);
   font-family: var(--font-body);
-  -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4 {
+/* Typography */
+h1,h2,h3,h4 {
   font-family: var(--font-display);
-  letter-spacing: -0.01em;
 }
-
 h1 { font-size: 28px; font-weight: 700; }
 h2 { font-size: 22px; font-weight: 600; }
 h3 { font-size: 18px; font-weight: 600; }
 
 p {
   color: var(--text-secondary);
-  line-height: 1.6;
 }
 
-/* ───────────────── SCROLLBAR ───────────────── */
-
-::-webkit-scrollbar {
-  width: 4px;
-}
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-thumb {
   background: var(--bg-raised);
   border-radius: 2px;
 }
 
-/* ───────────────── UTILITIES ───────────────── */
+/* ───────────────── UI SYSTEM ───────────────── */
 
-.font-display { font-family: var(--font-display); }
-.font-body { font-family: var(--font-body); }
-
-.page-container {
-  @apply w-full max-w-[1400px] mx-auto;
-}
-
-.page-section {
-  @apply mb-6;
-}
+/* Layout */
+.page-container { @apply w-full max-w-[1400px] mx-auto; }
+.page-section { @apply mb-6; }
 
 .page-title {
   @apply text-xl font-semibold;
@@ -109,92 +117,42 @@ p {
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 16px;
-  transition: all 0.2s ease;
+  transition: 0.2s;
 }
-
 .card:hover {
   border-color: var(--border-strong);
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.03);
-}
-
-.glass-card {
-  background: rgba(12,20,38,0.65);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
-  border-radius: 14px;
 }
 
 /* Buttons */
 .btn {
-  @apply px-4 py-2 rounded-lg text-sm font-medium transition;
+  @apply px-4 py-2 rounded-lg text-sm font-medium;
   background: var(--bg-raised);
-  color: var(--text-primary);
   border: 1px solid var(--border);
 }
-
-.btn:hover {
-  background: rgba(255,255,255,0.05);
-}
-
 .btn-primary {
   background: var(--accent);
-  color: white;
-  border: 1px solid var(--accent-border);
-}
-
-.btn-primary:hover {
-  background: var(--accent-hover);
+  color: #fff;
 }
 
 /* Inputs */
 .input {
-  @apply w-full px-3 py-2 rounded-lg text-sm outline-none;
+  @apply w-full px-3 py-2 rounded-lg text-sm;
   background: var(--bg-surface);
   border: 1px solid var(--border);
-  color: var(--text-primary);
 }
-
 .input:focus {
   border-color: var(--border-focus);
   box-shadow: 0 0 0 2px var(--accent-dim);
 }
 
 /* Tables */
-.table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.table th {
-  text-align: left;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-muted);
-  padding: 10px;
-}
-
-.table td {
-  padding: 12px 10px;
-  border-top: 1px solid var(--border);
-  color: var(--text-secondary);
-}
-
-.table tr:hover {
-  background: rgba(255,255,255,0.02);
-}
+.table { width: 100%; }
+.table th { color: var(--text-muted); font-size: 12px; }
+.table td { border-top: 1px solid var(--border); }
 
 /* Animation */
 @keyframes fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-
-.animate-in {
-  animation: fade-up 0.4s ease both;
-}
+.animate-in { animation: fade-up 0.4s ease both; }
