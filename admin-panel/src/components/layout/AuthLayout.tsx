@@ -1,345 +1,126 @@
-"use client";
+import { cn } from "@/lib/cn";
 
-import React from "react";
+const ORBIT_RINGS = [
+  { size: 300, duration: 52, reverse: true },
+  { size: 244, duration: 38, reverse: false },
+  { size: 188, duration: 30, reverse: true },
+  { size: 132, duration: 22, reverse: false },
+] as const;
 
-interface AuthLayoutProps {
-  children: React.ReactNode;
-}
-
-// ─── Orbital SVG Background Component ─────────────────────────────────
-function OrbitalBackground() {
+function OrbitGraphic() {
   return (
-    <svg
-      className="absolute inset-0 w-full h-full"
-      viewBox="0 0 600 700"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
+    <div
+      className="relative mx-auto h-[min(340px,38vh)] w-full max-w-[360px]"
       aria-hidden="true"
     >
-      {/* ── Outer orbit ring ── */}
-      <g
-        style={{
-          transformOrigin: "300px 350px",
-          animation: "orbit-spin 28s linear infinite",
-        }}
-      >
-        <ellipse
-          cx="300" cy="350" rx="210" ry="210"
-          stroke="rgba(26,111,255,0.12)" strokeWidth="1"
-          strokeDasharray="4 10"
-        />
-        {/* Marker dots on outer ring */}
-        <circle cx="300" cy="140" r="3.5" fill="#1a6fff" opacity="0.7"
-          style={{ animation: "pulse-node 3.2s ease-in-out infinite" }} />
-        <circle cx="510" cy="350" r="2.5" fill="#00c8e8" opacity="0.5"
-          style={{ animation: "pulse-node 2.8s ease-in-out 0.6s infinite" }} />
-        <circle cx="90"  cy="350" r="2"   fill="#1a6fff" opacity="0.4"
-          style={{ animation: "pulse-node 3.6s ease-in-out 1.2s infinite" }} />
-      </g>
-
-      {/* ── Middle orbit ring ── */}
-      <g
-        style={{
-          transformOrigin: "300px 350px",
-          animation: "orbit-spin-reverse 18s linear infinite",
-        }}
-      >
-        <ellipse
-          cx="300" cy="350" rx="140" ry="140"
-          stroke="rgba(0,200,232,0.10)" strokeWidth="1"
-          strokeDasharray="2 14"
-        />
-        <circle cx="300" cy="210" r="4" fill="#00c8e8" opacity="0.8"
-          style={{ animation: "pulse-node 2.4s ease-in-out 0.3s infinite" }} />
-        <circle cx="440" cy="350" r="3" fill="#1a6fff" opacity="0.6"
-          style={{ animation: "pulse-node 3s ease-in-out 0.9s infinite" }} />
-        <circle cx="160" cy="430" r="2.5" fill="#00c8e8" opacity="0.4"
-          style={{ animation: "pulse-node 2.6s ease-in-out 1.5s infinite" }} />
-      </g>
-
-      {/* ── Inner orbit ring ── */}
-      <g
-        style={{
-          transformOrigin: "300px 350px",
-          animation: "orbit-spin 11s linear infinite",
-        }}
-      >
-        <ellipse
-          cx="300" cy="350" rx="72" ry="72"
-          stroke="rgba(26,111,255,0.18)" strokeWidth="1.5"
-        />
-        <circle cx="300" cy="278" r="5" fill="#1a6fff" opacity="0.9"
-          style={{ animation: "pulse-node 1.8s ease-in-out infinite" }} />
-        <circle cx="372" cy="350" r="3.5" fill="#00c8e8" opacity="0.7"
-          style={{ animation: "pulse-node 2s ease-in-out 0.5s infinite" }} />
-      </g>
-
-      {/* ── Central core ── */}
-      <circle cx="300" cy="350" r="18" fill="rgba(26,111,255,0.15)"
-        stroke="rgba(26,111,255,0.35)" strokeWidth="1.5" />
-      <circle cx="300" cy="350" r="8"  fill="#1a6fff" opacity="0.9" />
-      <circle cx="300" cy="350" r="3"  fill="#ffffff" opacity="0.95" />
-
-      {/* ── Connector lines (network edges) ── */}
-      <line x1="300" y1="140" x2="440" y2="350"
-        stroke="rgba(26,111,255,0.08)" strokeWidth="1" />
-      <line x1="510" y1="350" x2="300" y2="210"
-        stroke="rgba(0,200,232,0.06)" strokeWidth="1" />
-      <line x1="90"  y1="350" x2="300" y2="560"
-        stroke="rgba(26,111,255,0.07)" strokeWidth="1" />
-      <line x1="300" y1="210" x2="160" y2="430"
-        stroke="rgba(0,200,232,0.07)" strokeWidth="1" />
-
-      {/* ── Floating peripheral nodes ── */}
-      {[
-        { cx: 80,  cy: 160, r: 2,   opacity: 0.3, delay: "0s",    dur: "4s"   },
-        { cx: 520, cy: 200, r: 1.5, opacity: 0.25, delay: "0.8s", dur: "5s"   },
-        { cx: 60,  cy: 520, r: 2.5, opacity: 0.3, delay: "1.6s",  dur: "3.8s" },
-        { cx: 540, cy: 510, r: 2,   opacity: 0.2, delay: "0.4s",  dur: "4.5s" },
-        { cx: 150, cy: 100, r: 1.5, opacity: 0.2, delay: "2s",    dur: "4.2s" },
-        { cx: 460, cy: 620, r: 2,   opacity: 0.25, delay: "1.2s", dur: "3.6s" },
-      ].map((node, i) => (
-        <circle
-          key={i}
-          cx={node.cx} cy={node.cy} r={node.r}
-          fill="#1a6fff" opacity={node.opacity}
-          style={{
-            animation: `pulse-node ${node.dur} ease-in-out ${node.delay} infinite`,
-          }}
-        />
-      ))}
-    </svg>
-  );
-}
-
-// ─── Feature Chip ──────────────────────────────────────────────────────
-interface FeatureChipProps {
-  icon: React.ReactNode;
-  label: string;
-  delay: string;
-}
-
-function FeatureChip({ icon, label, delay }: FeatureChipProps) {
-  return (
-    <div
-      className="animate-in flex items-center gap-2.5 px-4 py-2.5 rounded-full"
-      style={{
-        animationDelay: delay,
-        background: "rgba(26, 111, 255, 0.08)",
-        border: "1px solid rgba(26, 111, 255, 0.18)",
-      }}
-    >
-      <span style={{ color: "#00c8e8" }}>{icon}</span>
-      <span
-        className="text-sm font-medium tracking-wide"
-        style={{ color: "rgba(238, 244, 255, 0.75)", fontFamily: "var(--font-body)" }}
-      >
-        {label}
-      </span>
-    </div>
-  );
-}
-
-// ─── Stat Badge ────────────────────────────────────────────────────────
-function StatBadge({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="text-center">
-      <div
-        className="text-xl font-bold"
-        style={{ fontFamily: "var(--font-display)", color: "#eef4ff" }}
-      >
-        {value}
-      </div>
-      <div className="text-xs mt-0.5" style={{ color: "rgba(120,152,184,0.8)" }}>
-        {label}
-      </div>
-    </div>
-  );
-}
-
-// ─── Auth Layout ───────────────────────────────────────────────────────
-export default function AuthLayout({ children }: AuthLayoutProps) {
-  return (
-    <div
-      className="min-h-screen flex"
-      style={{ background: "var(--bg-canvas)", fontFamily: "var(--font-body)" }}
-    >
-      {/* ──────────── LEFT BRAND PANEL ──────────── */}
-      <div
-        className="hidden lg:flex lg:w-[52%] xl:w-[55%] relative flex-col overflow-hidden"
-        style={{ background: "var(--bg-panel)" }}
-      >
-        {/* Dot-grid overlay */}
-        <div className="absolute inset-0 bg-dot-grid opacity-50" />
-
-        {/* Bottom-left corner gradient bleed */}
-        <div
-          className="absolute bottom-0 left-0 w-96 h-96 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(ellipse at bottom left, rgba(0,200,232,0.06) 0%, transparent 70%)",
-          }}
-        />
-
-        {/* Top-right gradient bleed */}
-        <div
-          className="absolute top-0 right-0 w-80 h-80 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(ellipse at top right, rgba(26,111,255,0.08) 0%, transparent 65%)",
-          }}
-        />
-
-        {/* Border right */}
-        <div
-          className="absolute right-0 inset-y-0 w-px"
-          style={{ background: "var(--border)" }}
-        />
-
-        {/* ── Logo ── */}
-        <div className="relative z-10 px-12 pt-12">
-          <div className="flex items-center gap-3 animate-in">
-            {/* Logo mark */}
-            <div
-              className="w-9 h-9 rounded-lg flex items-center justify-center"
-              style={{ background: "#1a6fff" }}
-            >
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <rect x="2" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.9" />
-                <rect x="10" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.55" />
-                <rect x="2" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.55" />
-                <rect x="10" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.9" />
-              </svg>
-            </div>
-            <span
-              className="text-xl font-bold tracking-widest uppercase"
-              style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)", letterSpacing: "0.18em" }}
-            >
-              Bizmate
-            </span>
-          </div>
-        </div>
-
-        {/* ── Orbital Visual ── */}
-        <div className="relative flex-1 flex items-center justify-center">
-          {/* Central glow orb */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        {ORBIT_RINGS.map((ring, i) => (
           <div
-            className="absolute w-72 h-72 rounded-full pointer-events-none"
+            key={ring.size}
+            className="pointer-events-none absolute left-1/2 top-1/2 rounded-full border border-[#1a6fff]/22"
             style={{
-              background: "radial-gradient(circle, rgba(26,111,255,0.22) 0%, transparent 70%)",
-              animation: "orb-breathe 5s ease-in-out infinite",
+              width: ring.size,
+              height: ring.size,
+              marginLeft: -(ring.size / 2),
+              marginTop: -(ring.size / 2),
+              animation: `${ring.reverse ? "orbit-spin-reverse" : "orbit-spin"} ${ring.duration}s linear infinite`,
             }}
-          />
-          {/* Orbital SVG */}
-          <div className="relative w-full h-full max-w-md max-h-96">
-            <OrbitalBackground />
-          </div>
-        </div>
-
-        {/* ── Copy block ── */}
-        <div className="relative z-10 px-12 pb-6">
-          <h1
-            className="animate-in delay-100 text-4xl xl:text-5xl font-bold leading-tight mb-4"
-            style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)" }}
           >
-            Intelligent Business
-            <br />
-            <span style={{ color: "#1a6fff" }}>at Scale.</span>
-          </h1>
-          <p
-            className="animate-in delay-200 text-base leading-relaxed mb-8 max-w-sm"
-            style={{ color: "var(--text-secondary)" }}
-          >
-            One operating system for workflow automation, compliance management,
-            and AI-powered advisory — built for enterprises that don&apos;t stand still.
-          </p>
-
-          {/* Feature chips */}
-          <div className="flex flex-wrap gap-2.5 mb-10">
-            <FeatureChip
-              delay="300ms"
-              label="Workflow Automation"
-              icon={
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M2 7h3l2-4 2 8 2-4h1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              }
-            />
-            <FeatureChip
-              delay="400ms"
-              label="Compliance Engine"
-              icon={
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M7 1.5L2 3.5v4c0 2.5 2.2 4.5 5 5 2.8-.5 5-2.5 5-5v-4L7 1.5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-                </svg>
-              }
-            />
-            <FeatureChip
-              delay="500ms"
-              label="AI Advisory"
-              icon={
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.5" />
-                  <path d="M5 6c0-1.1.9-2 2-2s2 .9 2 2c0 .8-.4 1.4-1 1.7V9H7v-1.3c-.6-.3-2-1-2-1.7z" fill="currentColor" opacity="0.7" />
-                  <circle cx="7" cy="11" r="0.8" fill="currentColor" opacity="0.7" />
-                </svg>
-              }
+            <span
+              className={cn(
+                "absolute left-1/2 top-0 block h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full",
+                i % 2 === 0
+                  ? "bg-[#1a6fff] shadow-[0_0_14px_rgba(26,111,255,0.95)]"
+                  : "bg-[#22d4ee] shadow-[0_0_12px_rgba(34,212,238,0.9)]"
+              )}
             />
           </div>
+        ))}
 
-          {/* Stats row */}
-          <div
-            className="animate-in delay-600 flex items-center gap-8 pt-6"
-            style={{ borderTop: "1px solid var(--border)" }}
-          >
-            <StatBadge value="12k+" label="Businesses" />
-            <div className="w-px h-8" style={{ background: "var(--border)" }} />
-            <StatBadge value="99.9%" label="Uptime SLA" />
-            <div className="w-px h-8" style={{ background: "var(--border)" }} />
-            <StatBadge value="SOC 2" label="Certified" />
-          </div>
-        </div>
-
-        {/* Bottom padding */}
-        <div className="h-10" />
+        <div className="pointer-events-none absolute left-1/2 top-1/2 z-[1] h-[5.5rem] w-[5.5rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#1a6fff]/20 blur-3xl" />
+        <div className="pointer-events-none absolute left-1/2 top-1/2 z-[2] h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#f0f6ff] shadow-[0_0_22px_8px_rgba(26,111,255,0.95)]" />
       </div>
+    </div>
+  );
+}
 
-      {/* ──────────── RIGHT FORM PANEL ──────────── */}
-      <div
-        className="flex-1 flex flex-col items-center justify-center px-6 sm:px-12 lg:px-16 py-12 relative"
-        style={{ background: "var(--bg-canvas)" }}
-      >
-        {/* Mobile logo — only visible below lg */}
-        <div className="lg:hidden flex items-center gap-3 mb-12 animate-in">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: "#1a6fff" }}
-          >
-            <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
-              <rect x="2" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.9" />
-              <rect x="10" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.55" />
-              <rect x="2" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.55" />
-              <rect x="10" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.9" />
-            </svg>
+const FEATURE_PILLS = [
+  "Workflow Automation",
+  "Compliance Engine",
+  "AI Advisory",
+] as const;
+
+export default function AuthLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-h-screen bg-black text-[var(--text-primary)]">
+      <div className="mx-auto grid min-h-screen w-full max-w-[1600px] grid-cols-1 lg:grid-cols-[minmax(0,1.14fr)_minmax(0,0.86fr)]">
+        <aside className="relative hidden min-h-screen flex-col bg-[#060b16] lg:flex">
+          <div className="absolute inset-0 bg-dot-grid opacity-[0.38]" />
+          <div className="pointer-events-none absolute left-[6%] top-[18%] h-[420px] w-[420px] rounded-full bg-[rgba(26,111,255,0.07)] blur-[110px]" />
+          <div className="pointer-events-none absolute bottom-[8%] right-[5%] h-[320px] w-[320px] rounded-full bg-[rgba(0,200,232,0.06)] blur-[100px]" />
+
+          <div className="relative z-10 flex min-h-0 flex-1 flex-col px-10 pb-12 pt-10 xl:px-14">
+            <div className="flex shrink-0 items-center gap-3">
+              <div className="grid h-10 w-10 grid-cols-2 gap-1 rounded-xl bg-[#1a6fff] p-2">
+                <span className="rounded-[3px] bg-white/95" />
+                <span className="rounded-[3px] bg-white/65" />
+                <span className="rounded-[3px] bg-white/65" />
+                <span className="rounded-[3px] bg-white/95" />
+              </div>
+              <span className="font-display text-xl font-bold tracking-[0.2em] text-white">
+                BIZMATE
+              </span>
+            </div>
+
+            <div className="flex min-h-0 flex-1 flex-col justify-center py-10">
+              <OrbitGraphic />
+            </div>
+
+            <div className="mt-auto shrink-0 space-y-5">
+              <h1 className="font-display text-4xl font-bold leading-[1.1] tracking-tight text-white xl:text-[2.75rem]">
+                Intelligent Business
+                <br />
+                <span className="text-[#4da3ff]">at Scale.</span>
+              </h1>
+              <p className="max-w-lg text-base leading-relaxed text-[#8aa4c4]">
+                One operating system for workflow automation, compliance management,
+                and AI-powered advisory.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                {FEATURE_PILLS.map((item) => (
+                  <span
+                    key={item}
+                    className="inline-flex items-center gap-2 rounded-full border border-[#1a6fff]/35 bg-[#050a14]/80 px-4 py-2 text-sm text-[#c6d9ff] backdrop-blur-sm"
+                  >
+                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#1a6fff] shadow-[0_0_8px_#1a6fff]" />
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
-          <span
-            className="text-lg font-bold tracking-widest uppercase"
-            style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)", letterSpacing: "0.18em" }}
-          >
-            Bizmate
-          </span>
-        </div>
+        </aside>
 
-        {/* Form slot */}
-        <div className="w-full max-w-[400px]">{children}</div>
-
-        {/* Footer */}
-        <p
-          className="absolute bottom-8 text-xs"
-          style={{ color: "var(--text-muted)" }}
-        >
-          © {new Date().getFullYear()} Bizmate. All rights reserved.
-        </p>
+        <main className="relative flex min-h-screen items-center justify-center bg-black px-6 py-10 sm:px-10 lg:px-12 xl:px-16">
+          <div className="relative w-full max-w-[400px]">
+            <div className="mb-10 flex items-center gap-3 lg:hidden">
+              <div className="grid h-9 w-9 grid-cols-2 gap-1 rounded-xl bg-[#1a6fff] p-2">
+                <span className="rounded-[3px] bg-white/95" />
+                <span className="rounded-[3px] bg-white/65" />
+                <span className="rounded-[3px] bg-white/65" />
+                <span className="rounded-[3px] bg-white/95" />
+              </div>
+              <span className="font-display text-lg font-bold tracking-[0.18em] text-white">
+                BIZMATE
+              </span>
+            </div>
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );

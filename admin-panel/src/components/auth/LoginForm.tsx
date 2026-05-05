@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
+import type { UseFormRegisterReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginFormData } from "@/lib/validation";
 import { useAuth } from "@/hooks/useAuth";
@@ -57,10 +58,7 @@ interface InputFieldProps {
   error?: string;
   autoComplete?: string;
   rightElement?: React.ReactNode;
-  registration: ReturnType<typeof useForm<LoginFormData>>["register"] extends
-    (name: keyof LoginFormData, ...args: unknown[]) => infer R
-    ? R
-    : never;
+  registration: UseFormRegisterReturn;
 }
 
 function InputField({
@@ -74,11 +72,10 @@ function InputField({
   registration,
 }: InputFieldProps) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-2">
       <label
         htmlFor={id}
-        className="text-sm font-medium"
-        style={{ color: "rgba(238,244,255,0.8)", fontFamily: "var(--font-body)" }}
+        className="text-sm font-medium text-[rgba(238,244,255,0.78)]"
       >
         {label}
       </label>
@@ -90,31 +87,14 @@ function InputField({
           autoComplete={autoComplete}
           {...registration}
           className={cn(
-            "w-full rounded-xl px-4 py-3 text-sm outline-none transition-all duration-200",
-            "placeholder:text-[var(--text-muted)]",
+            "w-full rounded-xl border bg-[#1a1a1a] px-4 py-3 text-sm text-[#eef4ff] outline-none transition-[border-color,box-shadow] duration-200",
+            "placeholder:text-[#5c6d85]",
+            "focus:border-[#1a6fff]/55 focus:ring-[3px] focus:ring-[rgba(26,111,255,0.12)]",
+            error
+              ? "border-[var(--error)] ring-[3px] ring-[var(--error-dim)]"
+              : "border-transparent",
             rightElement && "pr-11"
           )}
-          style={{
-            background: "var(--bg-surface)",
-            border: `1px solid ${error ? "var(--error)" : "var(--border)"}`,
-            color: "var(--text-primary)",
-            fontFamily: "var(--font-body)",
-            boxShadow: error
-              ? "0 0 0 3px var(--error-dim)"
-              : undefined,
-          }}
-          onFocus={(e) => {
-            if (!error) {
-              e.currentTarget.style.border = "1px solid var(--border-focus)";
-              e.currentTarget.style.boxShadow = "0 0 0 3px var(--accent-dim)";
-            }
-          }}
-          onBlur={(e) => {
-            if (!error) {
-              e.currentTarget.style.border = "1px solid var(--border)";
-              e.currentTarget.style.boxShadow = "none";
-            }
-          }}
         />
         {rightElement && (
           <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
@@ -159,39 +139,20 @@ export default function LoginForm() {
 
   return (
     <div className="w-full">
-      {/* ── Header ── */}
-      <div className="mb-8">
-        <div
-          className="animate-in inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-6"
-          style={{
-            background: "var(--accent-dim)",
-            border: "1px solid var(--accent-border)",
-            color: "#00c8e8",
-            fontFamily: "var(--font-body)",
-          }}
-        >
-          <span
-            className="w-1.5 h-1.5 rounded-full"
-            style={{ background: "#00c8e8", boxShadow: "0 0 6px #00c8e8" }}
-          />
+      <div className="mb-8 sm:mb-9">
+        <div className="animate-in mb-5 inline-flex items-center gap-2 rounded-full border border-[#1a6fff]/35 bg-[#0a1628] px-3.5 py-1.5 text-xs font-medium text-[#5eb0ff] sm:mb-6">
+          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#1a6fff] shadow-[0_0_8px_#1a6fff]" />
           Admin Panel Access
         </div>
 
-        <h2
-          className="animate-in delay-100 text-3xl font-bold mb-2"
-          style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)" }}
-        >
+        <h2 className="font-display animate-in delay-100 mb-2 text-3xl font-bold tracking-tight text-white sm:text-[2.125rem]">
           Welcome back
         </h2>
-        <p
-          className="animate-in delay-200 text-sm"
-          style={{ color: "var(--text-secondary)" }}
-        >
-          Sign in to your administrator account to continue.
+        <p className="animate-in delay-200 text-sm leading-relaxed text-[#8aa4c4]">
+          Sign in to your administrator account.
         </p>
       </div>
 
-      {/* ── Server Error Banner ── */}
       {serverError && (
         <div
           className="mb-5 flex items-start gap-3 px-4 py-3 rounded-xl text-sm animate-in"
@@ -213,10 +174,8 @@ export default function LoginForm() {
         </div>
       )}
 
-      {/* ── Form ── */}
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="flex flex-col gap-4">
-          {/* Email */}
           <div className="animate-in delay-300">
             <InputField
               id="email"
@@ -229,7 +188,6 @@ export default function LoginForm() {
             />
           </div>
 
-          {/* Password */}
           <div className="animate-in delay-400">
             <InputField
               id="password"
@@ -244,8 +202,7 @@ export default function LoginForm() {
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="flex items-center justify-center transition-opacity hover:opacity-100 opacity-50"
-                  style={{ color: "var(--text-secondary)" }}
+                  className="flex items-center justify-center text-[#8aa4c4] opacity-60 transition-opacity hover:opacity-100"
                 >
                   {showPassword ? <EyeOff /> : <EyeOpen />}
                 </button>
@@ -253,60 +210,59 @@ export default function LoginForm() {
             />
           </div>
 
-          {/* Remember me + Forgot password */}
-          <div className="animate-in delay-500 flex items-center justify-between">
-            <label className="flex items-center gap-2.5 cursor-pointer group">
-              <div className="relative">
+          <div className="animate-in delay-500 flex items-center justify-between gap-3">
+            <label className="group flex cursor-pointer items-center gap-2.5">
+              <div className="relative flex items-center">
                 <input
                   id="rememberMe"
                   type="checkbox"
                   {...register("rememberMe")}
-                  className="sr-only"
+                  className="peer sr-only"
                 />
                 <div
-                  className="w-4 h-4 rounded flex items-center justify-center transition-all"
-                  style={{
-                    background: "var(--bg-raised)",
-                    border: "1px solid var(--border)",
-                  }}
+                  className="flex h-4 w-4 items-center justify-center rounded border border-white/15 bg-[#141414] transition-all peer-checked:border-[#1a6fff] peer-checked:bg-[#1a6fff]/18"
                   aria-hidden="true"
-                />
+                >
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 10 10"
+                    fill="none"
+                    className="opacity-0 transition-opacity peer-checked:opacity-100"
+                  >
+                    <path
+                      d="M2 5.3L4.1 7.2L8 3"
+                      stroke="#4f8dff"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
               </div>
-              <span className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                Remember me
-              </span>
+              <span className="text-sm text-[#9db0c8]">Remember me</span>
             </label>
 
             <a
               href="/forgot-password"
-              className="text-sm font-medium transition-opacity hover:opacity-80"
-              style={{ color: "#1a6fff" }}
+              className="text-sm font-medium text-[#4da3ff] transition-opacity hover:opacity-90"
             >
               Forgot password?
             </a>
           </div>
 
-          {/* Submit */}
           <div className="animate-in delay-600 mt-2">
             <button
               type="submit"
               disabled={isLoading}
               className={cn(
                 "w-full flex items-center justify-center gap-2.5",
-                "rounded-xl py-3.5 text-sm font-semibold tracking-wide",
-                "transition-all duration-200",
-                isLoading ? "opacity-80 cursor-not-allowed" : "hover:opacity-90 active:scale-[0.99]"
+                "rounded-xl border border-white/25 bg-black py-3.5 text-sm font-semibold tracking-wide text-white",
+                "transition-[border-color,background-color,opacity] duration-200",
+                isLoading
+                  ? "cursor-not-allowed opacity-70 border-white/15"
+                  : "hover:border-white/40 hover:bg-white/[0.04] active:scale-[0.995]"
               )}
-              style={{
-                background: isLoading
-                  ? "var(--accent-mid)"
-                  : "linear-gradient(135deg, #1a6fff 0%, #0f52cc 100%)",
-                color: "#fff",
-                fontFamily: "var(--font-body)",
-                boxShadow: isLoading
-                  ? "none"
-                  : "0 4px 24px rgba(26,111,255,0.35), 0 1px 0 rgba(255,255,255,0.1) inset",
-              }}
             >
               {isLoading ? (
                 <>
@@ -329,20 +285,14 @@ export default function LoginForm() {
         </div>
       </form>
 
-      {/* ── Divider / Security note ── */}
-      <div
-        className="animate-in delay-600 mt-8 pt-6 flex items-center justify-center gap-2"
-        style={{ borderTop: "1px solid var(--border)" }}
-      >
+      <div className="animate-in delay-600 mt-8 flex items-center justify-center gap-2 border-t border-white/10 pt-6">
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
           <path
             d="M6 1L2 2.5v3C2 7.8 3.8 9.6 6 10c2.2-.4 4-2.2 4-4.5v-3L6 1z"
-            stroke="rgba(120,152,184,0.6)" strokeWidth="1.2" strokeLinejoin="round"
+            stroke="rgba(138,164,196,0.55)" strokeWidth="1.2" strokeLinejoin="round"
           />
         </svg>
-        <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-          Secured with 256-bit TLS encryption
-        </span>
+        <span className="text-xs text-[#6b7f99]">Secured with 256-bit TLS encryption</span>
       </div>
     </div>
   );

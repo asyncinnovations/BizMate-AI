@@ -1,7 +1,8 @@
 src/
 │
 ├── app/                         # Next.js routing ONLY
-│   │   └── login/
+    │   └──(Auth)   
+│   └.    login/
 │   │       └── page.tsx
 │   │
 │   ├── (admin)/
@@ -91,4 +92,5 @@ src/
 │   └── index.ts
 │
 └── styles/
-    └── globals.css
+
+└── globals.css

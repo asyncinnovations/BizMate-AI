@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import "@/styles/globals.css";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Bizmate Admin",
@@ -11,16 +11,9 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        {/*
-          Fonts are loaded via @import in globals.css (Syne + Outfit from Google Fonts).
-          If you prefer next/font/google, remove the @import from globals.css and
-          add the font variables here via className on <body>.
-        */}
-      </head>
+   return (
+    <html lang="en">
       <body>{children}</body>
     </html>
-  );
+  )
 }

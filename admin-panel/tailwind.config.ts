@@ -1,7 +1,12 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
+  content: [
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/modules/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+
   theme: {
     extend: {
       colors: {
@@ -13,12 +18,13 @@ const config: Config = {
         "sidebar-active": "#1A2844",
       },
       fontFamily: {
-        sans: ["'DM Sans'", "system-ui", "sans-serif"],
-        display: ["'Outfit'", "system-ui", "sans-serif"],
-        mono: ["'DM Mono'", "monospace"],
+        sans: ["DM Sans", "system-ui", "sans-serif"],
+        display: ["Outfit", "system-ui", "sans-serif"],
+        mono: ["DM Mono", "monospace"],
       },
     },
   },
+
   plugins: [],
 };
 
