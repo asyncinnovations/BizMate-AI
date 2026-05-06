@@ -65,9 +65,9 @@ let SubscriptionUsageService = class SubscriptionUsageService {
             },
         });
     }
-    async check_usage_limit_service(subscriptionId, usageKey, limit) {
+    async check_usage_limit_service(subscriptionId, usageKey) {
         const usage = await this.get_subscription_usage_serice(subscriptionId, usageKey);
-        return (usage?.used || 0) >= limit;
+        return { usage: usage?.used || 0 };
     }
     async reset_usage_service(subscriptionId, usageKey, periodStart, periodEnd) {
         const now = new Date();
