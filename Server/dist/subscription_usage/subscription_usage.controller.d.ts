@@ -9,7 +9,7 @@ export declare class SubscriptionUsageController {
         amount?: number;
     }): Promise<SubscriptionUsage>;
     getUsage(subscriptionId: string, usageKey: string): Promise<SubscriptionUsage | null>;
-    checkLimit(subscriptionId: string, usageKey: string, limit: number): Promise<{
+    checkLimit(subscriptionId: string, usageKey: string): Promise<{
         exceeded: boolean;
     }>;
     resetUsage(body: {

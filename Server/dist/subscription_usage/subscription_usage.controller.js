@@ -27,9 +27,9 @@ let SubscriptionUsageController = class SubscriptionUsageController {
     async getUsage(subscriptionId, usageKey) {
         return this.usageService.get_subscription_usage_serice(subscriptionId, usageKey);
     }
-    async checkLimit(subscriptionId, usageKey, limit) {
-        const exceeded = await this.usageService.check_usage_limit_service(subscriptionId, usageKey, limit);
-        return { exceeded };
+    async checkLimit(subscriptionId, usageKey) {
+        const exceeded = await this.usageService.check_usage_limit_service(subscriptionId, usageKey);
+        return exceeded;
     }
     async resetUsage(body) {
         const { subscriptionId, usageKey } = body;
@@ -73,9 +73,8 @@ __decorate([
     (0, common_1.Get)("check_usage_limit/:subscriptionId/:usageKey"),
     __param(0, (0, common_1.Param)("subscriptionId")),
     __param(1, (0, common_1.Param)("usageKey")),
-    __param(2, (0, common_1.Query)("limit", common_1.ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, Number]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], SubscriptionUsageController.prototype, "checkLimit", null);
 __decorate([

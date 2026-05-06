@@ -82,13 +82,12 @@ export class SubscriptionUsageService {
   async check_usage_limit_service(
     subscriptionId: string,
     usageKey: string,
-    limit: number,
-  ): Promise<boolean> {
+  ): Promise<any> {
     const usage = await this.get_subscription_usage_serice(
       subscriptionId,
       usageKey,
     );
-    return (usage?.used || 0) >= limit;
+    return { usage: usage?.used || 0 };
   }
 
   //=================================

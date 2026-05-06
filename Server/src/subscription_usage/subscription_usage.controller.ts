@@ -51,14 +51,12 @@ export class SubscriptionUsageController {
   async checkLimit(
     @Param("subscriptionId") subscriptionId: string,
     @Param("usageKey") usageKey: string,
-    @Query("limit", ParseIntPipe) limit: number,
   ): Promise<{ exceeded: boolean }> {
     const exceeded = await this.usageService.check_usage_limit_service(
       subscriptionId,
       usageKey,
-      limit,
     );
-    return { exceeded };
+    return exceeded
   }
 
   // ===============================
