@@ -20,6 +20,8 @@ import { useAuth } from "@/context/AuthContext";
 import { formatDate } from "@/utils/formatDate";
 import Button from "@/components/ui/Button";
 import LoadingSpinner from "@/components/loading-spinner/LoadingSpinner";
+import { useSubscription } from "@/context/SubscriptionContext";
+import { useSubscriptionUsage } from "@/hooks/useSubscriptionUsage";
 
 // Type definitions (type alias)
 type ReminderStatus = "pending" | "sent" | "completed" | "missed";
@@ -59,6 +61,9 @@ interface FormData {
 type ViewMode = "list" | "calendar";
 
 const AIRemindersPage = () => {
+  const { currentPlan, checkUsageLimit } = useSubscription();
+  const { incrementUsage } = useSubscriptionUsage();
+
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [recurringReminders, setRecurringReminders] = useState<Reminder[]>([]);
   const [showRecurring, setShowRecurring] = useState<boolean>(false);
@@ -165,6 +170,14 @@ const AIRemindersPage = () => {
       return toast.error("Fill all the required fields!");
     }
 
+    const exceeded = await checkUsageLimit("ai_reminder");
+    const limit: any = currentPlan?.features?.reminders;
+    if (exceeded >= limit) {
+      return toast.error(
+        "Your Smart Reminder Limit Was exceeded. Kindly upgrade to Pro or Enterprise",
+      );
+    }
+
     try {
       const response = await axiosInstance.post(
         "/ai_reminder/create",
@@ -174,6 +187,9 @@ const AIRemindersPage = () => {
         toast.success("Reminder created successfully!");
         setReminders((prev) => [...prev, response.data.response]);
         fetchRecurringReminders();
+        await incrementUsage({
+          usageKey: "ai_reminder",
+        });
         console.log(response.data);
       }
     } catch (error) {

@@ -33,6 +33,7 @@ import { useSubscription } from "@/context/SubscriptionContext";
 import GlassLockTooltip from "../overlay_tooltip/GlassLockTooltip";
 import OverlayTooltip from "../overlay_tooltip/OverlayTooltip";
 import { useSubscriptionUsage } from "@/hooks/useSubscriptionUsage";
+import { useSubscriptionGuard } from "@/hooks/useSubscriptionGuard";
 
 // TypeScript interfaces
 interface InvoiceItem {
@@ -91,6 +92,7 @@ type FieldChangeHandler = (
 const CreateInvoicePage: React.FC = () => {
   const { currentPlan, checkUsageLimit } = useSubscription();
   const { incrementUsage } = useSubscriptionUsage();
+  const { checkLimit } = useSubscriptionGuard();
   const { user, loading } = useAuth();
   const searchParams = useSearchParams();
   const invoice_id = searchParams.get("id");
@@ -100,7 +102,7 @@ const CreateInvoicePage: React.FC = () => {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [selectedMethod, setSelectedMethod] = useState("");
   const [currentInvoice, setCurrentInvoice] = useState<Invoice>({
-    user_id: "9b75be08-f781-4edf-8cc4-03b18b47d9e8",
+    user_id: user?.user?.user_id,
     invoice_number:
       "INV-" + String(Math.floor(Math.random() * 1000)).padStart(3, "0"),
     customer_name: "",
@@ -579,7 +581,7 @@ const CreateInvoicePage: React.FC = () => {
   const handleSaveandPreviewInvoice = async () => {
     const exceeded = await checkUsageLimit("invoice");
     const limit: any = currentPlan?.features?.ai_invoicing;
-    
+
     if (!selectedMethod) {
       toast.error("Select payment method first!");
       return;
