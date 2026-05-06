@@ -5,8 +5,8 @@ WORKDIR /app
 
 COPY package*.json ./
 
-# stability + low memory
-ENV NODE_OPTIONS="--max-old-space-size=1024"
+# Prevent memory crashes on small VPS
+ENV NODE_OPTIONS="--max-old-space-size=768"
 
 RUN npm config set fetch-retries 5 \
  && npm config set fetch-retry-mintimeout 20000 \
@@ -15,6 +15,7 @@ RUN npm config set fetch-retries 5 \
 
 COPY . .
 
+# Build Next.js app
 RUN npm run build
 
 
@@ -25,14 +26,12 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Only copy needed files (IMPORTANT)
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/.next ./.next  # if Next.js
+# Copy standalone output (IMPORTANT)
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-
-# install only production deps (light)
-RUN npm install --omit=dev --no-audit --prefer-offline
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+# Start optimized server
+CMD ["node", "server.js"]
