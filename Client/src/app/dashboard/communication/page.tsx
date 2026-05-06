@@ -25,6 +25,8 @@ import LoadingSpinner from "@/components/loading-spinner/LoadingSpinner";
 import axiosInstance from "@/utils/axiosInstance";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
+import { useSubscription } from "@/context/SubscriptionContext";
+import { useSubscriptionUsage } from "@/hooks/useSubscriptionUsage";
 
 // ================= TYPES =================
 type Platform = "whatsapp" | "instagram" | "email";
@@ -222,6 +224,8 @@ const StatusIcon: React.FC<{ status: MsgStatus }> = ({ status }) => {
 const AIReplyHubDashboard: React.FC = () => {
   const { user } = useAuth();
   const userId = user?.user?.user_id;
+  const { currentPlan, checkUsageLimit } = useSubscription();
+  const { incrementUsage } = useSubscriptionUsage();
 
   const [clients, setClients] = useState<Client[]>([]);
   const [selected, setSelected] = useState<Client | null>(null);
@@ -334,7 +338,7 @@ const AIReplyHubDashboard: React.FC = () => {
       );
       const data: ApiChatPartner[] = res.data?.result ?? res.data ?? [];
       const mapped = data.map(mapApiPartner);
-      console.log(data)
+      console.log(data);
       setClients(mapped);
       if (mapped.length > 0) loadChatHistory(mapped[0]);
     } catch (error) {
@@ -352,6 +356,15 @@ const AIReplyHubDashboard: React.FC = () => {
   // ── Send message ──────────────────────────────────────────────────────────
   const handleSend = async () => {
     if (!newMessage.trim() || !selected || sendingMessage || !userId) return;
+
+    const exceeded = await checkUsageLimit("reply_hub_chat");
+    const limit: any = currentPlan?.features?.auto_reply_hub;
+    if (exceeded >= limit) {
+      return toast.error(
+        "Your Reply Hub Limit Was exceeded. Kindly upgrade to Pro or Enterprise",
+      );
+    }
+
     const text = newMessage.trim();
     setNewMessage("");
     setInserted(false);
@@ -380,6 +393,11 @@ const AIReplyHubDashboard: React.FC = () => {
         direction: "outbound",
         ai_reply_enable: aiAutoReply,
       });
+      if ([201, 200].includes(res.status)) {
+        await incrementUsage({
+          usageKey: "reply_hub_chat",
+        });
+      }
       const created: ApiMessage = res.data?.result ?? res.data;
       setMessages((prev) =>
         prev.map((m) => (m.id === tempId ? mapApiMessage(created) : m)),

@@ -42,6 +42,8 @@ import QuickActions from "@/components/compliance-actions/QuickActions";
 import UpcomingDeadlines from "@/components/compliance-deadlines-card/UpcomingDeadlines";
 import ActivityTimeline from "@/components/compliance-activity/ActivityTimeline";
 import ModeToggle from "@/components/mode-toggle/ModeToggle";
+import { useSubscription } from "@/context/SubscriptionContext";
+import { useSubscriptionUsage } from "@/hooks/useSubscriptionUsage";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export interface License {
@@ -169,6 +171,9 @@ const selectCls =
 export default function ComplianceLicensingPage() {
   const router = useRouter();
   const { user } = useAuth();
+
+  const { currentPlan, checkUsageLimit } = useSubscription();
+  const { incrementUsage } = useSubscriptionUsage();
   const userId = user?.user?.user_id;
   const companyId = user?.user?.company_id;
 
@@ -454,9 +459,9 @@ export default function ComplianceLicensingPage() {
     }
   };
 
-  //////////////////////////////////////////////////////////////
+  //======================
   // CRUD: Documents
-  ///////////////////////////////////////////////////////
+  //======================
   const handleUploadDocument = async () => {
     if (!uploadDocForm.document_type) {
       toast.error("Please select a document type");
@@ -466,6 +471,15 @@ export default function ComplianceLicensingPage() {
       toast.error("Please upload a file");
       return;
     }
+
+    const exceeded = await checkUsageLimit("compliance-licensing");
+    const limit: any = currentPlan?.features?.compliance;
+    if (exceeded >= limit) {
+      return toast.error(
+        "Your Compliance Licensing Limit Was exceeded. Kindly upgrade to Pro or Enterprise",
+      );
+    }
+
     setUploadDocLoading(true);
     try {
       const fd = new FormData();
@@ -483,6 +497,11 @@ export default function ComplianceLicensingPage() {
       const res = await axiosInstance.post("/compliance-documents/create", fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+      if ([201, 200].includes(res.status)) {
+        await incrementUsage({
+          usageKey: "compliance-licensing",
+        });
+      }
       toast.success("Document uploaded successfully");
       setIsUploadDocOpen(false);
       setUploadDocForm({ document_type: "", file_url: "" });
@@ -625,9 +644,9 @@ export default function ComplianceLicensingPage() {
     }
   };
 
-  //////////////////////////////////////////
+  //==========================
   // Handle Set Reminder
-  /////////////////////////////////////////
+  //==========================
   const handleSetReminder = async () => {
     if (!reminderForm.license_id) {
       toast.error("Please select a license");
@@ -673,9 +692,9 @@ export default function ComplianceLicensingPage() {
     }
   };
 
-  ////////////////////////////////////////////
+  //=======================
   // Calculate Stats
-  //////////////////////////////////////////////
+  //=======================
   const expiringSoon = licenses.filter((l) => {
     const d = getDaysRemaining(l.expiry_date);
     return d > 0 && d <= 60;
@@ -734,9 +753,9 @@ export default function ComplianceLicensingPage() {
     },
   ];
 
-  ///////////////////////////////////////////////////
-  // ── Render ────────────────────────────────────────────────────────────────
-  //////////////////////////////////////////////////////
+  //===============================
+  //RNDER MAIN ELEMENT
+  //===============================
   return (
     <DashboardLayout>
       <div className="min-h-screen p-4 mb-8 bg-bg-base">

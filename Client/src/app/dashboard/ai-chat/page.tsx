@@ -29,6 +29,8 @@ import toast from "react-hot-toast";
 import MessageItem from "@/components/message-item/MessageItem";
 import HistoryItem from "@/components/chat-history-item/HistoryItem";
 import { renderContent } from "@/utils/renderContent";
+import { useSubscription } from "@/context/SubscriptionContext";
+import { useSubscriptionUsage } from "@/hooks/useSubscriptionUsage";
 
 // ================= TYPES ================= (exported for components)
 export interface ChatMessage {
@@ -212,6 +214,8 @@ const WELCOME: ChatMessage = {
 const ComplianceAssistancePage = () => {
   const { user } = useAuth();
   const userId = user?.user?.user_id;
+  const { currentPlan, checkUsageLimit } = useSubscription();
+  const { incrementUsage } = useSubscriptionUsage();
 
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME]);
   const [input, setInput] = useState("");
@@ -339,7 +343,13 @@ const ComplianceAssistancePage = () => {
   const handleSend = async (content?: string) => {
     const text = content || input;
     if (!text.trim() || isLoading) return;
-
+    const exceeded = await checkUsageLimit("compliance_assistant");
+    const limit: any = currentPlan?.features?.ai_assistant;
+    if (exceeded >= limit) {
+      return toast.error(
+        "Your Compliance Assistant Limit Was exceeded. Kindly upgrade to Pro or Enterprise",
+      );
+    }
     setMessages((p) => [
       ...p,
       {
@@ -358,22 +368,26 @@ const ComplianceAssistancePage = () => {
         "/compliance_assistant_chat/ask-ai",
         { user_id: userId, question: text },
       );
-      const data = res.data?.response;
-      const id = data?.uuid || `a-${Date.now()}`;
-
-      setMessages((p) => [
-        ...p,
-        {
-          id,
-          content: data?.answer || "No response received.",
-          isUser: false,
-          timestamp: new Date(data?.timestamp || Date.now()),
-          confidence: 95,
-          sources: ["UAE FTA Guidelines", "DED Portal"],
-          reminderState: "idle",
-        },
-      ]);
-      fetchHistory();
+      if ([200, 201].includes(res.status)) {
+        const data = res.data?.response;
+        const id = data?.uuid || `a-${Date.now()}`;
+        await incrementUsage({
+          usageKey: "compliance_assistant",
+        });
+        setMessages((p) => [
+          ...p,
+          {
+            id,
+            content: data?.answer || "No response received.",
+            isUser: false,
+            timestamp: new Date(data?.timestamp || Date.now()),
+            confidence: 95,
+            sources: ["UAE FTA Guidelines", "DED Portal"],
+            reminderState: "idle",
+          },
+        ]);
+        fetchHistory();
+      }
     } catch (e) {
       console.error("handleSend failed:", e);
       toast.error("Failed to get AI response. Please try again.");
