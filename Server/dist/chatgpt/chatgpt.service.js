@@ -96,6 +96,27 @@ let ChatgptService = class ChatgptService {
             return [];
         }
     }
+    async generate_invoice_service(prompt, systemPrompt) {
+        try {
+            const messages = [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: prompt },
+            ];
+            const model = "gpt-4o-mini";
+            const temperature = 0.7;
+            const completion = await this.openai.chat.completions.create({
+                model,
+                messages,
+                temperature,
+            });
+            const response = completion.choices[0]?.message?.content?.trim();
+            return response;
+        }
+        catch (error) {
+            console.error("Error creating embedding:", error);
+            return [];
+        }
+    }
     async create_embedding_service(text) {
         try {
             const res = await this.openai.embeddings.create({

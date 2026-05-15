@@ -18,9 +18,9 @@ import { EmployeePayrollService } from "./employee_payroll.service";
 export class EmployeePayrollController {
   constructor(private readonly payrollService: EmployeePayrollService) {}
 
-  ///////////////////////////////////////////////////////
+  //====================================
   // GET ALL EMPLOYEES BY USER ID
-  ///////////////////////////////////////////////////////
+  //====================================
   @Get("user_employee/:user_id")
   @HttpCode(HttpStatus.OK)
   async get_all_employees_by_user_id_controller(

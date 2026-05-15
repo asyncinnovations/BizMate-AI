@@ -58,12 +58,16 @@ import { EmployeePayrollModule } from "./employee_payroll/employee_payroll.modul
 import { EmployeePayroll } from "./employee_payroll/employee_payroll.entity";
 import { DocumentHistoryModule } from "./document_history/document_history.module";
 import { DocumentHistory } from "./document_history/document_history.entity";
+import { InvoiceSchedulesModule } from "./invoice_schedules/invoice_schedules.module";
+import { InvoiceSchedule } from "./invoice_schedules/invoice_schedules.entity";
+import { ScheduleModule } from "@nestjs/schedule";
 
 @Module({
   controllers: [],
   providers: [ImportService],
   exports: [],
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true }),
     JwtModule.register({
       secret: process.env.JWT_SECRET || "BizMateAI",
@@ -104,6 +108,7 @@ import { DocumentHistory } from "./document_history/document_history.entity";
         SubscriptionPayment,
         UserSession,
         SubscriptionUsage,
+        InvoiceSchedule
       ],
     }),
     AuthModule,
@@ -134,6 +139,7 @@ import { DocumentHistory } from "./document_history/document_history.entity";
     SubscriptionUsageModule,
     EmployeePayrollModule,
     DocumentHistoryModule,
+    InvoiceSchedulesModule,
   ],
 })
 export class AppModule {}

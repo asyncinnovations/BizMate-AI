@@ -12,6 +12,7 @@ import {
   BadRequestException,
   HttpStatus,
   HttpCode,
+  HttpException,
 } from "@nestjs/common";
 import { InvoicesService } from "./invoices.service";
 import { InvoiceEntity } from "./invoices.entity";
@@ -22,13 +23,13 @@ import { EmailService } from "src/services/EmailService";
 import { UserPaymentGatewayService } from "src/user_payment_gateway/user_payment_gateway.service";
 
 @Controller("invoices")
-@UseGuards(JwtGuard)
+// @UseGuards(JwtGuard)
 export class InvoicesController {
   constructor(
     private readonly invoicesService: InvoicesService,
     private readonly pdfService: PdfService,
     private readonly emailService: EmailService,
-    private readonly upgService: UserPaymentGatewayService
+    private readonly upgService: UserPaymentGatewayService,
   ) {}
   ///////////////////////////////////////////
   // CREATE INVOICE
@@ -36,15 +37,14 @@ export class InvoicesController {
   @Post("create")
   @HttpCode(HttpStatus.CREATED)
   async create_invoice(
-    @Body() data: Partial<InvoiceEntity> | (any & { items?: any[] })
+    @Body() data: Partial<InvoiceEntity> | (any & { items?: any[] }),
   ) {
     // validation
     if (!data.customer_name || typeof data.customer_name !== "string") {
       throw new BadRequestException(
-        "Customer name is required and must be a string."
+        "Customer name is required and must be a string.",
       );
     }
-    if (!data.user_id) throw new BadRequestException("User ID is required.");
     if (!data.items || !Array.isArray(data.items) || data.items.length === 0) {
       throw new BadRequestException("Invoice items are required.");
     }
@@ -53,12 +53,14 @@ export class InvoicesController {
     ////////////////////////////////////////////////////////
     await this.upgService.user_active_gateway_service(
       data.user_id,
-      data.gateway_name
+      data.gateway_name,
     );
 
     const invoiceData = {
-      user_id: data.user_id,
+      user_id: data.user_id || null,
       invoice_number: data.invoice_number,
+      invoice_name: data.invoice_name || null,
+      invoice_type: data.invoice_type || null,
       customer_name: data.customer_name,
       customer_email: data.customer_email,
       customer_address: data.customer_address,
@@ -75,9 +77,33 @@ export class InvoicesController {
     };
     const response =
       await this.invoicesService.create_invoice_service(invoiceData);
-    return { message: "Invoice created successfully", invoice: response };
+    // generate invoice pdf at creation time
+    const filename = `${Math.floor(Number(new Date()) * Math.random())}-invoice_preview.pdf`;
+    const filePath = join(__dirname, `../../public/uploads/${filename}`);
+    const result: any = await this.pdfService.InvoicePDFGenerator(
+      invoiceData,
+      filePath,
+    );
+    const url = `/public/uploads/${filename}`;
+    this.invoicesService.set_invoice_pdf_path_service(url, response.uuid);
+    // return { response: "Invoice PDF Generated", success: true, url, result };
+    return {
+      message: "Invoice created successfully",
+      invoice: { ...response, invoice_pdf: url },
+    };
   }
 
+  //================================
+  // GENERATE AI INVOICES
+  //================================
+  @Post("generate_invoice")
+  @HttpCode(HttpStatus.CREATED)
+  async generate_ai_invoice(@Body() body: { prompt: string }) {
+    if (!body.prompt) {
+      throw new BadRequestException("Invoice prompt is required.");
+    }
+    return await this.invoicesService.generate_ai_invoice_service(body.prompt);
+  }
   ///////////////////////////////////////////
   // GET ALL USER INVOICES
   ///////////////////////////////////////////
@@ -89,7 +115,32 @@ export class InvoicesController {
     }
     return await this.invoicesService.user_invoices_service(user_id);
   }
+  // //================================
+  // // UPDATE INVOICE PDF PATH
+  // //================================
+  // @Put("invoice_pdf")
+  // @HttpCode(HttpStatus.OK)
+  // async set_invoice_pdf_path(@Param("user_id") user_id: string) {
+  //   if (!user_id) {
+  //     throw new BadRequestException("Invoice user id is required.");
+  //   }
+  //   return await this.invoicesService.user_invoices_service(user_id);
+  // }
 
+  //====================
+  // GET ALL INVOICES
+  //====================
+  @Get("prebuild")
+  @HttpCode(HttpStatus.OK)
+  async get_prebuild_invoice_template() {
+    try {
+      const response =
+        await this.invoicesService.get_prebuild_invoice_template_service();
+      return { message: "notification send success", response };
+    } catch (error: any) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
+  }
   ///////////////////////////////////////////
   // GET ALL INVOICES
   ///////////////////////////////////////////
@@ -98,7 +149,7 @@ export class InvoicesController {
   async all_invoices(
     @Query("search") search?: string,
     @Query("status") status?: string,
-    @Query("user_id") user_id?: string
+    @Query("user_id") user_id?: string,
   ) {
     // at least one filter or allow all
     if (status && typeof status !== "string") {
@@ -130,7 +181,7 @@ export class InvoicesController {
   @HttpCode(HttpStatus.OK)
   async update_invoice(
     @Param("id") id: string,
-    @Body() data: Partial<InvoiceEntity>
+    @Body() data: Partial<InvoiceEntity>,
   ) {
     if (!data || Object.keys(data).length === 0) {
       throw new BadRequestException("No data provided to update invoice.");
@@ -147,7 +198,7 @@ export class InvoicesController {
   @HttpCode(HttpStatus.OK)
   async update_custom_fields(
     @Param("id") id: string,
-    @Body() customFields: Record<string, any>
+    @Body() customFields: Record<string, any>,
   ) {
     if (!customFields || typeof customFields !== "object") {
       throw new BadRequestException("Custom fields must be a valid object.");
@@ -156,7 +207,7 @@ export class InvoicesController {
     const parsedId = isNaN(Number(id)) ? id : Number(id);
     return await this.invoicesService.update_custom_field_service(
       parsedId,
-      customFields
+      customFields,
     );
   }
 
@@ -184,7 +235,7 @@ export class InvoicesController {
     const parsedId = isNaN(Number(id)) ? id : Number(id);
     return await this.invoicesService.update_invoice_status_service(
       parsedId,
-      status
+      status,
     );
   }
 
@@ -195,17 +246,17 @@ export class InvoicesController {
   @HttpCode(HttpStatus.OK)
   async compute_totals(
     @Body("subtotal") subtotal: number,
-    @Body("vatRate") vatRate: number
+    @Body("vatRate") vatRate: number,
   ) {
     if (subtotal === undefined || isNaN(Number(subtotal))) {
       throw new BadRequestException(
-        "Subtotal is required and must be numeric."
+        "Subtotal is required and must be numeric.",
       );
     }
 
     if (vatRate === undefined || isNaN(Number(vatRate))) {
       throw new BadRequestException(
-        "VAT rate is required and must be numeric."
+        "VAT rate is required and must be numeric.",
       );
     }
 
@@ -215,40 +266,17 @@ export class InvoicesController {
   //////////////////////////////////////////////
   // PREVIEW DOCUMENT
   //////////////////////////////////////////////
-  @Get("preview")
+  @Post("preview")
   @HttpCode(HttpStatus.OK)
   async preview_invoice(@Body() body: any) {
-    const data = {
-      template_name: "employment Template",
-      description: "Standard invoice for clients",
-      fields_schema: {
-        company_name: "ABC Ltd.",
-        company_address: "123 Business St., City, Country",
-        company_email: "info@abcltd.com",
-        company_phone: "+1 234 567 890",
-        client_name: "John Doe",
-        client_email: "john.doe@example.com",
-        client_phone: "+1 987 654 321",
-        invoice_number: "INV-001",
-        invoice_date: "2025-10-31",
-        due_date: "2025-11-15",
-        payment_terms: "Net 15",
-        agreement_duration: [{ name: "1 year" }],
-        position: "Software Engineer",
-        salary: "USD 60,000",
-        benefits: ["Health insurance", "Paid leave", "Retirement plan"],
-        notes: "Thank you for your business.",
-      },
-      user_id: "e3a77190-e83a-4a7a-a3b9-965fda4ec888",
-      is_prebuilt: false,
-      version: 1,
-      is_active: true,
-    };
     const filename = `${Math.floor(Number(new Date()) * Math.random())}-invoice_preview.pdf`;
     const filePath = join(__dirname, `../../public/uploads/${filename}`);
-    const result = await this.pdfService.InvoicePDFGenerator(data, filePath);
+    const result: any = await this.pdfService.InvoicePDFGenerator(
+      body,
+      filePath,
+    );
     const url = `/public/uploads/${filename}`;
-    return { response: result.message, success: result.success, url };
+    return { response: "Invoice PDF Generated", success: true, url, result };
   }
 
   //////////////////////////////////////////////////
@@ -256,7 +284,17 @@ export class InvoicesController {
   //////////////////////////////////////////////////
   @Post("send_to_email")
   @HttpCode(HttpStatus.OK)
-  async send_invoice_to_email(@Body() body: any) {
+  async send_invoice_to_email(
+    @Body()
+    body: {
+      invoiceId: string;
+      to: string;
+      cc: string;
+      subject: string;
+      message: string;
+      send_at: string;
+    },
+  ) {
     const response = await this.emailService.send_email(body);
     return { message: "email send success", response };
   }

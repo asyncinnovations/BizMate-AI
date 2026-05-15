@@ -100,7 +100,7 @@ export class EmailService {
       const response = await this.transporter.sendMail(mailOptions);
       console.log("Generic email sent");
       return { success: true, response };
-    } catch (err) {
+    } catch (err: any) {
       console.error("Generic email failed:", err.message);
       return { success: false, error: err.message };
     }

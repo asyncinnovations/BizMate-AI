@@ -12,8 +12,8 @@ const gpt_config_1 = require("../config/gpt_config");
 let GPTService = class GPTService {
     async GPTChat(user_prompt, system_prompt) {
         const response = await gpt_config_1.gtp_config.chat.completions.create({
-            model: "Qwen/Qwen2.5-7B-Instruct",
-            max_completion_tokens: 300,
+            model: "openai/gpt-oss-120b:cerebras",
+            max_completion_tokens: 1000,
             messages: [
                 {
                     role: "system",

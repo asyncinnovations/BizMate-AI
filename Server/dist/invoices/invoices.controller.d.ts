@@ -13,9 +13,45 @@ export declare class InvoicesController {
         items?: any[];
     })): Promise<{
         message: string;
-        invoice: InvoiceEntity;
+        invoice: {
+            invoice_pdf: string;
+            id: number;
+            uuid: string;
+            invoice_name: string;
+            invoice_type: string;
+            user_id: string | null;
+            invoice_number: string;
+            customer_name: string;
+            customer_email: string;
+            customer_address: string;
+            invoice_date: Date;
+            due_date: Date;
+            payment_terms: string;
+            subtotal: number;
+            vat: number;
+            total: number;
+            notes: string;
+            status: string;
+            custom_fields: object[];
+            invoice_items: object[];
+            created_at: Date;
+            updated_at: Date;
+        };
+    }>;
+    generate_ai_invoice(body: {
+        prompt: string;
+    }): Promise<{
+        message: string;
+        response: {
+            message: string;
+            data: import("openai/resources/index.js").ChatCompletionMessage;
+        };
     }>;
     user_invoices(user_id: string): Promise<any>;
+    get_prebuild_invoice_template(): Promise<{
+        message: string;
+        response: InvoiceEntity[];
+    }>;
     all_invoices(search?: string, status?: string, user_id?: string): Promise<InvoiceEntity[]>;
     single_invoice(id: string): Promise<any>;
     update_invoice(id: string, data: Partial<InvoiceEntity>): Promise<any>;
@@ -29,11 +65,19 @@ export declare class InvoicesController {
         total: number;
     }>;
     preview_invoice(body: any): Promise<{
-        response: any;
+        response: string;
         success: boolean;
         url: string;
+        result: any;
     }>;
-    send_invoice_to_email(body: any): Promise<{
+    send_invoice_to_email(body: {
+        invoiceId: string;
+        to: string;
+        cc: string;
+        subject: string;
+        message: string;
+        send_at: string;
+    }): Promise<{
         message: string;
         response: {
             success: boolean;

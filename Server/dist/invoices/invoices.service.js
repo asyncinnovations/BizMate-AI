@@ -17,14 +17,36 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const invoices_entity_1 = require("./invoices.entity");
+const PromptService_1 = require("../services/PromptService");
+const GPTService_1 = require("../services/GPTService");
 let InvoicesService = class InvoicesService {
     invoicesRepo;
-    constructor(invoicesRepo) {
+    openAIService;
+    promptservice;
+    constructor(invoicesRepo, openAIService, promptservice) {
         this.invoicesRepo = invoicesRepo;
+        this.openAIService = openAIService;
+        this.promptservice = promptservice;
     }
     async create_invoice_service(data) {
         const invoice = this.invoicesRepo.create(data);
         return await this.invoicesRepo.save(invoice);
+    }
+    async set_invoice_pdf_path_service(path, uuid) {
+        const RESULT = this.invoicesRepo.update(uuid, { invoice_pdf: path });
+        return RESULT;
+    }
+    async generate_ai_invoice_service(prompt) {
+        const system_prompt = this.promptservice.InvoiceGenerator();
+        const response = await this.openAIService.GPTChat(prompt, system_prompt);
+        return { message: "invoice generated", response };
+    }
+    async get_prebuild_invoice_template_service() {
+        return await this.invoicesRepo.find({
+            where: {
+                user_id: (0, typeorm_2.IsNull)(),
+            },
+        });
     }
     async all_invoices_service(query) {
         const where = {};
@@ -85,6 +107,8 @@ exports.InvoicesService = InvoicesService;
 exports.InvoicesService = InvoicesService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(invoices_entity_1.InvoiceEntity)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        GPTService_1.GPTService,
+        PromptService_1.PromptService])
 ], InvoicesService);
 //# sourceMappingURL=invoices.service.js.map

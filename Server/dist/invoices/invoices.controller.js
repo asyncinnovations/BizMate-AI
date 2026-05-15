@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.InvoicesController = void 0;
 const common_1 = require("@nestjs/common");
 const invoices_service_1 = require("./invoices.service");
-const auth_guard_1 = require("../guards/auth/auth.guard");
 const node_path_1 = require("node:path");
 const PdfService_1 = require("../services/PdfService");
 const EmailService_1 = require("../services/EmailService");
@@ -35,15 +34,15 @@ let InvoicesController = class InvoicesController {
         if (!data.customer_name || typeof data.customer_name !== "string") {
             throw new common_1.BadRequestException("Customer name is required and must be a string.");
         }
-        if (!data.user_id)
-            throw new common_1.BadRequestException("User ID is required.");
         if (!data.items || !Array.isArray(data.items) || data.items.length === 0) {
             throw new common_1.BadRequestException("Invoice items are required.");
         }
         await this.upgService.user_active_gateway_service(data.user_id, data.gateway_name);
         const invoiceData = {
-            user_id: data.user_id,
+            user_id: data.user_id || null,
             invoice_number: data.invoice_number,
+            invoice_name: data.invoice_name || null,
+            invoice_type: data.invoice_type || null,
             customer_name: data.customer_name,
             customer_email: data.customer_email,
             customer_address: data.customer_address,
@@ -59,13 +58,36 @@ let InvoicesController = class InvoicesController {
             invoice_items: data.invoice_items || data?.items,
         };
         const response = await this.invoicesService.create_invoice_service(invoiceData);
-        return { message: "Invoice created successfully", invoice: response };
+        const filename = `${Math.floor(Number(new Date()) * Math.random())}-invoice_preview.pdf`;
+        const filePath = (0, node_path_1.join)(__dirname, `../../public/uploads/${filename}`);
+        const result = await this.pdfService.InvoicePDFGenerator(invoiceData, filePath);
+        const url = `/public/uploads/${filename}`;
+        this.invoicesService.set_invoice_pdf_path_service(url, response.uuid);
+        return {
+            message: "Invoice created successfully",
+            invoice: { ...response, invoice_pdf: url },
+        };
+    }
+    async generate_ai_invoice(body) {
+        if (!body.prompt) {
+            throw new common_1.BadRequestException("Invoice prompt is required.");
+        }
+        return await this.invoicesService.generate_ai_invoice_service(body.prompt);
     }
     async user_invoices(user_id) {
         if (!user_id) {
             throw new common_1.BadRequestException("Invoice user id is required.");
         }
         return await this.invoicesService.user_invoices_service(user_id);
+    }
+    async get_prebuild_invoice_template() {
+        try {
+            const response = await this.invoicesService.get_prebuild_invoice_template_service();
+            return { message: "notification send success", response };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        }
     }
     async all_invoices(search, status, user_id) {
         if (status && typeof status !== "string") {
@@ -120,37 +142,11 @@ let InvoicesController = class InvoicesController {
         return await this.invoicesService.total_inovices_service(subtotal, vatRate);
     }
     async preview_invoice(body) {
-        const data = {
-            template_name: "employment Template",
-            description: "Standard invoice for clients",
-            fields_schema: {
-                company_name: "ABC Ltd.",
-                company_address: "123 Business St., City, Country",
-                company_email: "info@abcltd.com",
-                company_phone: "+1 234 567 890",
-                client_name: "John Doe",
-                client_email: "john.doe@example.com",
-                client_phone: "+1 987 654 321",
-                invoice_number: "INV-001",
-                invoice_date: "2025-10-31",
-                due_date: "2025-11-15",
-                payment_terms: "Net 15",
-                agreement_duration: [{ name: "1 year" }],
-                position: "Software Engineer",
-                salary: "USD 60,000",
-                benefits: ["Health insurance", "Paid leave", "Retirement plan"],
-                notes: "Thank you for your business.",
-            },
-            user_id: "e3a77190-e83a-4a7a-a3b9-965fda4ec888",
-            is_prebuilt: false,
-            version: 1,
-            is_active: true,
-        };
         const filename = `${Math.floor(Number(new Date()) * Math.random())}-invoice_preview.pdf`;
         const filePath = (0, node_path_1.join)(__dirname, `../../public/uploads/${filename}`);
-        const result = await this.pdfService.InvoicePDFGenerator(data, filePath);
+        const result = await this.pdfService.InvoicePDFGenerator(body, filePath);
         const url = `/public/uploads/${filename}`;
-        return { response: result.message, success: result.success, url };
+        return { response: "Invoice PDF Generated", success: true, url, result };
     }
     async send_invoice_to_email(body) {
         const response = await this.emailService.send_email(body);
@@ -167,6 +163,14 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], InvoicesController.prototype, "create_invoice", null);
 __decorate([
+    (0, common_1.Post)("generate_invoice"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], InvoicesController.prototype, "generate_ai_invoice", null);
+__decorate([
     (0, common_1.Get)("user/:user_id"),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("user_id")),
@@ -174,6 +178,13 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], InvoicesController.prototype, "user_invoices", null);
+__decorate([
+    (0, common_1.Get)("prebuild"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], InvoicesController.prototype, "get_prebuild_invoice_template", null);
 __decorate([
     (0, common_1.Get)("all"),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
@@ -237,7 +248,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], InvoicesController.prototype, "compute_totals", null);
 __decorate([
-    (0, common_1.Get)("preview"),
+    (0, common_1.Post)("preview"),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -254,7 +265,6 @@ __decorate([
 ], InvoicesController.prototype, "send_invoice_to_email", null);
 exports.InvoicesController = InvoicesController = __decorate([
     (0, common_1.Controller)("invoices"),
-    (0, common_1.UseGuards)(auth_guard_1.JwtGuard),
     __metadata("design:paramtypes", [invoices_service_1.InvoicesService,
         PdfService_1.PdfService,
         EmailService_1.EmailService,

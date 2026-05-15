@@ -21,28 +21,24 @@ let SubscriptionUsageController = class SubscriptionUsageController {
         this.usageService = usageService;
     }
     async incrementUsage(body) {
-        const { subscriptionId, usageKey, amount = 1 } = body;
-        return this.usageService.increment_usage_service(subscriptionId, usageKey, amount);
+        const { subscriptionId, usageKey, amount = 1, ...options } = body;
+        return this.usageService.increment_usage_service(subscriptionId, usageKey, amount, options);
     }
-    async getUsage(subscriptionId, usageKey) {
-        return this.usageService.get_subscription_usage_serice(subscriptionId, usageKey);
+    async getUsage(subscriptionId, usageKey, periodType) {
+        return this.usageService.get_subscription_usage_service(subscriptionId, usageKey, periodType || "monthly");
     }
-    async checkLimit(subscriptionId, usageKey) {
-        const exceeded = await this.usageService.check_usage_limit_service(subscriptionId, usageKey);
-        return exceeded;
+    async checkLimit(subscriptionId, usageKey, periodType) {
+        return this.usageService.check_usage_limit_service(subscriptionId, usageKey, periodType || "monthly");
     }
     async resetUsage(body) {
-        const { subscriptionId, usageKey } = body;
-        await this.usageService.reset_usage_service(subscriptionId, usageKey);
+        const { subscriptionId, usageKey, periodType = "monthly" } = body;
+        await this.usageService.reset_usage_service(subscriptionId, usageKey, periodType);
         return { success: true };
     }
-    async getAllUsage(subscriptionId) {
-        return this.usageService.all_usage_for_subscription_service(subscriptionId);
-    }
     async enforceLimit(body) {
-        const { subscriptionId, usageKey, limit, amount = 1 } = body;
+        const { subscriptionId, usageKey, limit, amount = 1, periodType = "monthly", policyType = "strict", } = body;
         try {
-            await this.usageService.enforce_limit_service(subscriptionId, usageKey, limit, amount);
+            await this.usageService.enforce_limit_service(subscriptionId, usageKey, limit, amount, { periodType, policyType });
             return { success: true };
         }
         catch (err) {
@@ -51,6 +47,9 @@ let SubscriptionUsageController = class SubscriptionUsageController {
             }
             throw new common_1.BadRequestException(err.message);
         }
+    }
+    async getAllUsage(subscriptionId) {
+        return this.usageService.all_usage_for_subscription_service(subscriptionId);
     }
 };
 exports.SubscriptionUsageController = SubscriptionUsageController;
@@ -65,16 +64,18 @@ __decorate([
     (0, common_1.Get)("feature_usage/:subscriptionId/:usageKey"),
     __param(0, (0, common_1.Param)("subscriptionId")),
     __param(1, (0, common_1.Param)("usageKey")),
+    __param(2, (0, common_1.Query)("periodType")),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", Promise)
 ], SubscriptionUsageController.prototype, "getUsage", null);
 __decorate([
     (0, common_1.Get)("check_usage_limit/:subscriptionId/:usageKey"),
     __param(0, (0, common_1.Param)("subscriptionId")),
     __param(1, (0, common_1.Param)("usageKey")),
+    __param(2, (0, common_1.Query)("periodType")),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", Promise)
 ], SubscriptionUsageController.prototype, "checkLimit", null);
 __decorate([
@@ -85,19 +86,19 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], SubscriptionUsageController.prototype, "resetUsage", null);
 __decorate([
-    (0, common_1.Get)("all_subscription/:subscriptionId"),
-    __param(0, (0, common_1.Param)("subscriptionId")),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", Promise)
-], SubscriptionUsageController.prototype, "getAllUsage", null);
-__decorate([
     (0, common_1.Post)("enforce_limit"),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], SubscriptionUsageController.prototype, "enforceLimit", null);
+__decorate([
+    (0, common_1.Get)("all_subscription/:subscriptionId"),
+    __param(0, (0, common_1.Param)("subscriptionId")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], SubscriptionUsageController.prototype, "getAllUsage", null);
 exports.SubscriptionUsageController = SubscriptionUsageController = __decorate([
     (0, common_1.Controller)("subscription-usage"),
     __metadata("design:paramtypes", [subscription_usage_service_1.SubscriptionUsageService])

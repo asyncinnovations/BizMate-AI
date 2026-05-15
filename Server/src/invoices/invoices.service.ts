@@ -4,14 +4,18 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, ILike } from "typeorm";
+import { Repository, ILike, IsNull } from "typeorm";
 import { InvoiceEntity } from "./invoices.entity";
+import { PromptService } from "src/services/PromptService";
+import { GPTService } from "src/services/GPTService";
 
 @Injectable()
 export class InvoicesService {
   constructor(
     @InjectRepository(InvoiceEntity)
-    private readonly invoicesRepo: Repository<InvoiceEntity>
+    private readonly invoicesRepo: Repository<InvoiceEntity>,
+    private readonly openAIService: GPTService,
+    private readonly promptservice: PromptService,
   ) {}
 
   ///////////////////////////////////////////
@@ -20,6 +24,33 @@ export class InvoicesService {
   async create_invoice_service(data: Partial<InvoiceEntity>) {
     const invoice = this.invoicesRepo.create(data);
     return await this.invoicesRepo.save(invoice);
+  }
+  //============================
+  // UPDATE INVOICE PDF PATH
+  //============================
+  async set_invoice_pdf_path_service(path: string, uuid: string) {
+    const RESULT = this.invoicesRepo.update(uuid, { invoice_pdf: path });
+    return RESULT;
+  }
+
+  //==========================
+  // GENERATE AI  INVOICE
+  //==========================
+  async generate_ai_invoice_service(prompt: string) {
+    const system_prompt = this.promptservice.InvoiceGenerator();
+    const response = await this.openAIService.GPTChat(prompt, system_prompt);
+    return { message: "invoice generated", response };
+  }
+
+  //=============================
+  // GET PREBUILD TEMPLATE
+  //=============================
+  async get_prebuild_invoice_template_service() {
+    return await this.invoicesRepo.find({
+      where: {
+        user_id: IsNull(),
+      },
+    });
   }
 
   ///////////////////////////////////////////
@@ -57,7 +88,7 @@ JOIN users u ON i.user_id::UUID = u.uuid
 WHERE i.user_id = $1
 GROUP BY i.uuid, u.full_name
 `,
-      [user_id]
+      [user_id],
     );
     return response;
   }
@@ -68,7 +99,7 @@ GROUP BY i.uuid, u.full_name
   async single_invoice_service(idOrUuid: number | string) {
     const invoice = await this.invoicesRepo.query(
       ` SELECT * FROM invoices WHERE uuid=$1`,
-      [idOrUuid]
+      [idOrUuid],
     );
     if (!invoice || invoice.length === 0)
       throw new NotFoundException("Invoice not found");
@@ -80,7 +111,7 @@ GROUP BY i.uuid, u.full_name
   ///////////////////////////////////////////////////
   async update_invoice_service(
     idOrUuid: number | string,
-    data: Partial<InvoiceEntity>
+    data: Partial<InvoiceEntity>,
   ) {
     const invoice = await this.single_invoice_service(idOrUuid);
     Object.assign(invoice, data);
@@ -92,7 +123,7 @@ GROUP BY i.uuid, u.full_name
   //////////////////////////////////////////////////////////////
   async update_custom_field_service(
     idOrUuid: number | string,
-    customFields: Record<string, any>
+    customFields: Record<string, any>,
   ) {
     const invoice = await this.single_invoice_service(idOrUuid);
     invoice.custom_fields = { ...invoice.custom_fields, ...customFields };
@@ -113,7 +144,7 @@ GROUP BY i.uuid, u.full_name
   ////////////////////////////////////////////////////////
   async update_invoice_status_service(
     idOrUuid: number | string,
-    status: string
+    status: string,
   ) {
     const invoice = await this.single_invoice_service(idOrUuid);
     invoice.status = status;
@@ -125,7 +156,7 @@ GROUP BY i.uuid, u.full_name
   /////////////////////////////////////////////
   async total_inovices_service(
     subtotal: number,
-    vatRate: number
+    vatRate: number,
   ): Promise<{ vat: number; total: number }> {
     let vat = parseFloat(((subtotal * vatRate) / 100).toFixed(2));
     let total = parseFloat((subtotal + vat).toFixed(2));

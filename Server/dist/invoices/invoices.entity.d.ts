@@ -1,7 +1,9 @@
 export declare class InvoiceEntity {
     id: number;
     uuid: string;
-    user_id: string;
+    invoice_name: string;
+    invoice_type: string;
+    user_id: string | null;
     invoice_number: string;
     customer_name: string;
     customer_email: string;
@@ -16,6 +18,7 @@ export declare class InvoiceEntity {
     status: string;
     custom_fields: object[];
     invoice_items: object[];
+    invoice_pdf: string;
     created_at: Date;
     updated_at: Date;
 }
