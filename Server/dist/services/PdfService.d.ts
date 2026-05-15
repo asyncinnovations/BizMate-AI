@@ -1,11 +1,12 @@
 export declare class PdfService {
+    private launchBrowser;
     TemplatePDFGenerator(data: any, filePath: string): Promise<{
         success: boolean;
-        message: any;
+        message: string;
     }>;
     InvoicePDFGenerator(data: any, filePath: string): Promise<{
         success: boolean;
-        message: any;
+        message: string;
     }>;
     PDFToTextConverter(pdfPath: any): Promise<string>;
 }

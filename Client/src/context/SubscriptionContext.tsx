@@ -275,18 +275,83 @@ import { useAuth } from "@/context/AuthContext";
 // ALL CONTEXT DATA TYPES
 //=================================
 
+// export interface SubscriptionFeatures {
+//   capabilities?: any;
+//   tiers?: any;
+//   quota?: any;
+//   ai_advisory: number | boolean;
+//   corporate_tax: number | boolean;
+//   ai_assistant: number | boolean;
+//   ai_invoicing: number | boolean;
+//   analytics_reports: number | boolean;
+//   auto_reply_hub: number | boolean;
+//   compliance: number | boolean;
+//   documents: number | boolean;
+//   invoicing: number | boolean;
+//   payroll: number | boolean;
+//   reminders: number | boolean;
+// }
+export interface QuotaDetail {
+  limit: number;
+  period:
+    | "daily"
+    | "monthly"
+    | "total"
+    | "unlimited"
+    | "fair_use"
+    | "active_slots";
+  description?: string;
+}
+
+export interface InvoicingQuota {
+  standard: QuotaDetail;
+  ai_generation: QuotaDetail;
+  ai_prompts: QuotaDetail;
+  ai_regenerate: QuotaDetail;
+  templates: QuotaDetail;
+  clients?: QuotaDetail;
+  downloads?: QuotaDetail;
+}
+
+export interface SchedulingQuota {
+  one_time: QuotaDetail;
+  recurring: QuotaDetail;
+}
+
 export interface SubscriptionFeatures {
-  ai_advisory: number | boolean;
-  corporate_tax: number | boolean;
-  ai_assistant: number | boolean;
-  ai_invoicing: number | boolean;
-  analytics_reports: number | boolean;
-  auto_reply_hub: number | boolean;
-  compliance: number | boolean;
-  documents: number | boolean;
-  invoicing: number | boolean;
-  payroll: number | boolean;
-  reminders: number | boolean;
+  quota: {
+    documents: QuotaDetail;
+    analytics_reports: QuotaDetail;
+    reminders: QuotaDetail;
+    invoicing: InvoicingQuota;
+    scheduling: SchedulingQuota;
+    collaboration?: {
+      multi_team_workflows: {
+        limit: number;
+        enabled: boolean;
+        description?: string;
+      };
+    };
+  };
+  tiers: {
+    ai_advisory: { level: string };
+    ai_assistant: { level: string };
+    ai_forecasting?: { level: string };
+  };
+  capabilities: {
+    payroll: { enabled: boolean };
+    analytics: { enabled: boolean };
+    documents: { enabled: boolean };
+    reminders: { enabled: boolean };
+    ai_invoice: { enabled: boolean };
+    compliance: { enabled: boolean };
+    ai_advisory: { enabled: boolean };
+    ai_assistant: { enabled: boolean };
+    corporate_tax: { enabled: boolean };
+    auto_reply_hub: { enabled: boolean };
+    ai_forecasting?: { enabled: boolean };
+    multi_team?: { enabled: boolean };
+  };
 }
 
 export interface SubscriptionPlan {

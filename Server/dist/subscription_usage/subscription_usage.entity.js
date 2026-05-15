@@ -16,8 +16,12 @@ let SubscriptionUsage = class SubscriptionUsage {
     subscriptionId;
     usageKey;
     used;
+    periodType;
     periodStart;
     periodEnd;
+    limitSnapshot;
+    resetKey;
+    policyType;
     lastUsedAt;
     createdAt;
     updatedAt;
@@ -28,11 +32,11 @@ __decorate([
     __metadata("design:type", String)
 ], SubscriptionUsage.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "uuid", name: "subscription_id" }),
+    (0, typeorm_1.Column)({ type: "uuid", nullable: true }),
     __metadata("design:type", String)
 ], SubscriptionUsage.prototype, "subscriptionId", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "varchar", length: 100, name: "usage_key" }),
+    (0, typeorm_1.Column)({ type: "varchar", length: 100, nullable: true }),
     __metadata("design:type", String)
 ], SubscriptionUsage.prototype, "usageKey", void 0);
 __decorate([
@@ -40,38 +44,51 @@ __decorate([
     __metadata("design:type", Number)
 ], SubscriptionUsage.prototype, "used", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "timestamp", name: "period_start" }),
+    (0, typeorm_1.Column)({ type: "varchar", length: 20, nullable: true, default: "daily" }),
+    __metadata("design:type", String)
+], SubscriptionUsage.prototype, "periodType", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "timestamp", nullable: true }),
     __metadata("design:type", Date)
 ], SubscriptionUsage.prototype, "periodStart", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "timestamp", name: "period_end" }),
+    (0, typeorm_1.Column)({ type: "timestamp", nullable: true }),
     __metadata("design:type", Date)
 ], SubscriptionUsage.prototype, "periodEnd", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "timestamp", name: "last_used_at", nullable: true }),
+    (0, typeorm_1.Column)({ type: "int", nullable: true }),
+    __metadata("design:type", Number)
+], SubscriptionUsage.prototype, "limitSnapshot", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", length: 50, nullable: true }),
+    __metadata("design:type", String)
+], SubscriptionUsage.prototype, "resetKey", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", length: 30, nullable: true }),
+    __metadata("design:type", String)
+], SubscriptionUsage.prototype, "policyType", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "timestamp", nullable: true }),
     __metadata("design:type", Date)
 ], SubscriptionUsage.prototype, "lastUsedAt", void 0);
 __decorate([
-    (0, typeorm_1.CreateDateColumn)({ type: "timestamp", name: "created_at" }),
+    (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], SubscriptionUsage.prototype, "createdAt", void 0);
 __decorate([
-    (0, typeorm_1.UpdateDateColumn)({ type: "timestamp", name: "updated_at" }),
+    (0, typeorm_1.UpdateDateColumn)(),
     __metadata("design:type", Date)
 ], SubscriptionUsage.prototype, "updatedAt", void 0);
 exports.SubscriptionUsage = SubscriptionUsage = __decorate([
     (0, typeorm_1.Entity)("subscription_usage"),
-    (0, typeorm_1.Unique)("uq_subscription_usage", [
-        "subscriptionId",
-        "usageKey",
-        "periodStart",
-    ]),
+    (0, typeorm_1.Unique)("uq_subscription_usage", ["subscriptionId", "usageKey", "periodStart"]),
     (0, typeorm_1.Index)("idx_subscription_usage_sub", ["subscriptionId"]),
     (0, typeorm_1.Index)("idx_subscription_usage_key", ["usageKey"]),
     (0, typeorm_1.Index)("idx_subscription_usage_period", [
         "subscriptionId",
         "periodStart",
         "periodEnd",
-    ])
+    ]),
+    (0, typeorm_1.Entity)("subscription_usage")
 ], SubscriptionUsage);
 //# sourceMappingURL=subscription_usage.entity.js.map

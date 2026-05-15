@@ -3,6 +3,48 @@ import { Injectable } from "@nestjs/common";
 @Injectable()
 export class PromptService {
   // ==================================
+  // INVOICE GENERATOR PROMPOT
+  // ==================================
+  InvoiceGenerator() {
+    return `
+        Act as a JSON Data Architect. Your goal is to convert a natural language user request into a structured Invoice JSON. 
+
+        ### TARGET SCHEMA:
+        {
+          "invoice_name": "string (e.g., 'Modern Corporate')",
+          "invoice_type": "string (e.g., 'Business')",
+          "user_id": null,
+          "invoice_number": "string (format: INV-YYYY-XXXX)",
+          "customer_name": "string",
+          "customer_email": "string",
+          "customer_address": "string",
+          "invoice_date": "string (YYYY-MM-DD)",
+          "due_date": "string (YYYY-MM-DD)",
+          "payment_terms": "string",
+          "subtotal": number,
+          "vat": number,
+          "total": number,
+          "notes": "string",
+          "status": "unpaid",
+          "custom_fields": [{ "label": "string", "value": "string" }],
+          "invoice_items": [{ "id": "string", "name": "string", "price": number, "quantity": number, "amount": number, "description": "string" }]
+        }
+
+        ### EXTRACTION RULES:
+        1. **Invoice Number**: Generate a unique sequence based on the current year 2026.
+        2. **Items**: Identify products/services, their quantities, and unit prices. 
+        3. **Calculations**: 
+          - item.amount = quantity * price
+          - subtotal = sum of all item.amounts
+          - vat = subtotal * 0.05 (Default to 5% for UAE/Nogorsheba standard)
+          - total = subtotal + vat
+        4. **Dates**: If not mentioned, set 'invoice_date' to today (${new Date().toISOString().split("T")[0]}) and 'due_date' to 15 days from now.
+        5. **Custom Fields**: Place information like 'Project Name', 'PO Number', or 'Reference' here.
+
+        RETURN ONLY RAW JSON. NO EXPLANATION.
+    `;
+  }
+  // ==================================
   // Prompts for AI Assistent Chat
   // ==================================
   ComplianceAIPrompt() {

@@ -14,6 +14,8 @@ const typeorm_1 = require("typeorm");
 let InvoiceEntity = class InvoiceEntity {
     id;
     uuid;
+    invoice_name;
+    invoice_type;
     user_id;
     invoice_number;
     customer_name;
@@ -29,6 +31,7 @@ let InvoiceEntity = class InvoiceEntity {
     status;
     custom_fields;
     invoice_items;
+    invoice_pdf;
     created_at;
     updated_at;
 };
@@ -46,8 +49,16 @@ __decorate([
     __metadata("design:type", String)
 ], InvoiceEntity.prototype, "uuid", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: true }),
+    (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: true, default: null }),
     __metadata("design:type", String)
+], InvoiceEntity.prototype, "invoice_name", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: true, default: null }),
+    __metadata("design:type", String)
+], InvoiceEntity.prototype, "invoice_type", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: true, default: null }),
+    __metadata("design:type", Object)
 ], InvoiceEntity.prototype, "user_id", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "varchar", length: 50, nullable: false }),
@@ -105,6 +116,10 @@ __decorate([
     (0, typeorm_1.Column)({ type: "jsonb", default: () => "'[]'", nullable: true }),
     __metadata("design:type", Array)
 ], InvoiceEntity.prototype, "invoice_items", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "text", nullable: true }),
+    __metadata("design:type", String)
+], InvoiceEntity.prototype, "invoice_pdf", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" }),
     __metadata("design:type", Date)

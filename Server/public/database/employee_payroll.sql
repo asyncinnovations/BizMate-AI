@@ -70,7 +70,7 @@ CREATE TABLE payroll_run_items (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- npx sequelize-cli migration:generate --name document_history-table
+-- npx sequelize-cli migration:generate --name invoice_schedule-table
 CREATE TABLE payroll_adjustments (
     id SERIAL PRIMARY KEY,
     uuid UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,

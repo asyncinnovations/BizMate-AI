@@ -117,9 +117,33 @@ export class ChatgptService {
     }
   }
 
-  ///////////////////////////////////////////////////////////////////////////
+  //===========================
+  // GENERATE AI INVOICE
+  //===========================
+  async generate_invoice_service(prompt: any, systemPrompt: string) {
+    try {
+      const messages: any = [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: prompt },
+      ];
+      const model = "gpt-4o-mini";
+      const temperature = 0.7;
+      const completion = await this.openai.chat.completions.create({
+        model,
+        messages,
+        temperature,
+      });
+
+      const response = completion.choices[0]?.message?.content?.trim();
+      return response;
+    } catch (error) {
+      console.error("Error creating embedding:", error);
+      return [];
+    }
+  }
+  //==============================================
   // CREATE EMBEDING THE BUSINESS DATA
-  ///////////////////////////////////////////////////////////////////////////
+  //==============================================
   async create_embedding_service(text: string): Promise<number[]> {
     try {
       const res = await this.openai.embeddings.create({

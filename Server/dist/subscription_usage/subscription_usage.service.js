@@ -22,11 +22,23 @@ let SubscriptionUsageService = class SubscriptionUsageService {
     constructor(subscriptionUsageRepo) {
         this.subscriptionUsageRepo = subscriptionUsageRepo;
     }
-    async increment_usage_service(subscriptionId, usageKey, amount = 1, periodStart, periodEnd) {
+    getPeriodDates(type) {
         const now = new Date();
-        const start = periodStart || new Date(now.getFullYear(), now.getMonth(), 1);
-        const end = periodEnd ||
-            new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+        if (type === "daily") {
+            const start = new Date(now.setHours(0, 0, 0, 0));
+            const end = new Date(now.setHours(23, 59, 59, 999));
+            return { start, end };
+        }
+        if (type === "monthly") {
+            const start = new Date(now.getFullYear(), now.getMonth(), 1);
+            const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+            return { start, end };
+        }
+        return { start: new Date(0), end: new Date(2099, 11, 31) };
+    }
+    async increment_usage_service(subscriptionId, usageKey, amount = 1, options) {
+        const pType = options?.periodType || "monthly";
+        const { start, end } = this.getPeriodDates(pType);
         const existing = await this.subscriptionUsageRepo.findOne({
             where: {
                 subscriptionId,
@@ -37,6 +49,8 @@ let SubscriptionUsageService = class SubscriptionUsageService {
         if (existing) {
             existing.used += amount;
             existing.lastUsedAt = new Date();
+            if (options?.limitSnapshot)
+                existing.limitSnapshot = options.limitSnapshot;
             return this.subscriptionUsageRepo.save(existing);
         }
         else {
@@ -44,67 +58,75 @@ let SubscriptionUsageService = class SubscriptionUsageService {
                 subscriptionId,
                 usageKey,
                 used: amount,
+                periodType: pType,
                 periodStart: start,
                 periodEnd: end,
+                limitSnapshot: options?.limitSnapshot,
+                policyType: options?.policyType || "strict",
                 lastUsedAt: new Date(),
             });
             return this.subscriptionUsageRepo.save(usage);
         }
     }
-    async get_subscription_usage_serice(subscriptionId, usageKey, periodStart, periodEnd) {
-        const now = new Date();
-        const start = periodStart || new Date(now.getFullYear(), now.getMonth(), 1);
-        const end = periodEnd ||
-            new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    async get_subscription_usage_service(subscriptionId, usageKey, periodType = "monthly") {
+        const { start } = this.getPeriodDates(periodType);
         return this.subscriptionUsageRepo.findOne({
             where: {
                 subscriptionId,
                 usageKey,
                 periodStart: start,
-                periodEnd: end,
             },
         });
     }
-    async check_usage_limit_service(subscriptionId, usageKey) {
-        const usage = await this.get_subscription_usage_serice(subscriptionId, usageKey);
-        return { usage: usage?.used || 0 };
+    async check_usage_limit_service(subscriptionId, usageKey, periodType = "monthly") {
+        const usage = await this.get_subscription_usage_service(subscriptionId, usageKey, periodType);
+        return {
+            used: usage?.used || 0,
+            policy: usage?.policyType || "strict",
+        };
     }
-    async reset_usage_service(subscriptionId, usageKey, periodStart, periodEnd) {
-        const now = new Date();
-        const start = periodStart || new Date(now.getFullYear(), now.getMonth(), 1);
-        const end = periodEnd ||
-            new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    async enforce_limit_service(subscriptionId, usageKey, limit, amount = 1, options) {
+        const pType = options?.periodType || "monthly";
+        const policy = options?.policyType || "strict";
+        const usage = await this.get_subscription_usage_service(subscriptionId, usageKey, pType);
+        const currentUsed = usage?.used || 0;
+        if (limit === -1 || policy === "unlimited") {
+            await this.increment_usage_service(subscriptionId, usageKey, amount, {
+                ...options,
+                limitSnapshot: limit,
+            });
+            return;
+        }
+        if (policy === "strict" && currentUsed + amount > limit) {
+            throw new common_1.BadRequestException(`Usage limit exceeded for ${usageKey}: ${currentUsed}/${limit}. Please upgrade your plan.`);
+        }
+        await this.increment_usage_service(subscriptionId, usageKey, amount, {
+            ...options,
+            limitSnapshot: limit,
+        });
+    }
+    async reset_usage_service(subscriptionId, usageKey, periodType = "monthly") {
+        const { start, end } = this.getPeriodDates(periodType);
         const query = this.subscriptionUsageRepo
             .createQueryBuilder()
             .update(subscription_usage_entity_1.SubscriptionUsage)
-            .set({ used: 0 })
-            .where("subscription_id = :subscriptionId", { subscriptionId })
-            .andWhere("period_start = :start", { start })
-            .andWhere("period_end = :end", { end });
+            .set({ used: 0, resetKey: `reset_${new Date().getTime()}` })
+            .where("subscriptionId = :subscriptionId", { subscriptionId })
+            .andWhere("periodStart = :start", { start })
+            .andWhere("periodEnd = :end", { end });
         if (usageKey) {
-            query.andWhere("usage_key = :usageKey", { usageKey });
+            query.andWhere("usageKey = :usageKey", { usageKey });
         }
         await query.execute();
     }
-    async all_usage_for_subscription_service(subscriptionId) {
-        const now = new Date();
-        const start = new Date(now.getFullYear(), now.getMonth(), 1);
-        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    async all_usage_for_subscription_service(subscriptionId, periodType = "monthly") {
+        const { start } = this.getPeriodDates(periodType);
         return this.subscriptionUsageRepo.find({
             where: {
                 subscriptionId,
                 periodStart: start,
-                periodEnd: end,
             },
         });
-    }
-    async enforce_limit_service(subscriptionId, usageKey, limit, amount = 1) {
-        const usage = await this.get_subscription_usage_serice(subscriptionId, usageKey);
-        const currentUsed = usage?.used || 0;
-        if (currentUsed + amount > limit) {
-            throw new common_1.BadRequestException(`Usage limit exceeded for ${usageKey}: ${currentUsed}/${limit}`);
-        }
-        await this.increment_usage_service(subscriptionId, usageKey, amount);
     }
 };
 exports.SubscriptionUsageService = SubscriptionUsageService;

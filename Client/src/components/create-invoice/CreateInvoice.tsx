@@ -1,7 +1,7 @@
 "use client";
 
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
 import {
@@ -96,11 +96,13 @@ const CreateInvoicePage: React.FC = () => {
   const { user, loading } = useAuth();
   const searchParams = useSearchParams();
   const invoice_id = searchParams.get("id");
+
   const [isLoading, setIsLoading] = useState(false);
   const isEditingMode = !!invoice_id;
   const router = useRouter();
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [selectedMethod, setSelectedMethod] = useState("");
+
   const [currentInvoice, setCurrentInvoice] = useState<Invoice>({
     user_id: user?.user?.user_id,
     invoice_number:
@@ -130,6 +132,17 @@ const CreateInvoicePage: React.FC = () => {
     notes: "",
     status: "unpaid",
   });
+
+  const prebuild_invoice = useMemo(() => {
+    const data = searchParams.get("data");
+    if (!data) return null;
+    try {
+      return JSON.parse(decodeURIComponent(data));
+    } catch (e) {
+      console.error("Failed to parse prebuild invoice data", e);
+      return null;
+    }
+  }, [searchParams]);
 
   const [aiSuggestions, setAiSuggestions] = useState({
     items: [] as string[],
@@ -534,7 +547,9 @@ const CreateInvoicePage: React.FC = () => {
     });
     toast.success("Field deleted!");
   };
-
+  useEffect(() => {
+    setCurrentInvoice(prebuild_invoice || currentInvoice);
+  }, [invoice_id]);
   // const handleUpdateField = () => {
   //   // No functionality - just close modal
   //   setIsEditFieldModalOpen(false);
@@ -578,20 +593,58 @@ const CreateInvoicePage: React.FC = () => {
   ///////////////////////////////////////////
   //Handle Save and Preview Invoice Function
   //////////////////////////////////////////
-  const handleSaveandPreviewInvoice = async () => {
-    const exceeded = await checkUsageLimit("invoice");
-    const limit: any = currentPlan?.features?.ai_invoicing;
+  // const handleSaveandPreviewInvoice = async () => {
+  //   if (!selectedMethod) {
+  //     toast.error("Select payment method first!");
+  //     return;
+  //   }
 
+  //   await incrementUsage({ usageKey: "invoicing", amount: 1 });
+  //   try {
+  //     if (isEditingMode) {
+  //       const response = await axiosInstance.put(
+  //         `/invoices/update/${invoice_id}`,
+  //         {
+  //           ...currentInvoice,
+  //           items: currentInvoice.invoice_items,
+  //         },
+  //       );
+  //       // Backend returns status 201
+  //       if (response.status === 200) {
+  //         toast.success("Invoice updated successfully!");
+  //         // Navigate to preview
+  //         router.push(`/dashboard/invoicing/preview/${invoice_id}`);
+  //       }
+  //     } else {
+  //       const response = await axiosInstance.post(`/invoices/create`, {
+  //         ...currentInvoice,
+  //         items: currentInvoice.invoice_items,
+  //       });
+
+  //       // Backend returns status 201
+  //       if (response.status === 201) {
+  //         toast.success("Invoice saved successfully!");
+  //         const invoice_id = response.data.invoice.uuid;
+
+  //         // Navigate to preview
+  //         router.push(`/dashboard/invoicing/preview/${invoice_id}`);
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error("Error saving or updating invoice:", error);
+  //     toast.error("Error saving or updating invoice");
+  //   }
+  // };
+
+  const handleSaveandPreviewInvoice = async () => {
     if (!selectedMethod) {
       toast.error("Select payment method first!");
       return;
     }
-
-    if (exceeded >= limit) {
-      return toast.error(
-        "Your Invoice Limit Was exceeded. Kindly upgrade to Pro or Enterprise",
-      );
-    }
+    const data = {
+      ...currentInvoice,
+      items: currentInvoice.invoice_items,
+    };
     try {
       if (isEditingMode) {
         const response = await axiosInstance.put(
@@ -601,33 +654,37 @@ const CreateInvoicePage: React.FC = () => {
             items: currentInvoice.invoice_items,
           },
         );
-        // Backend returns status 201
         if (response.status === 200) {
           toast.success("Invoice updated successfully!");
-          // Navigate to preview
-          router.push(`/dashboard/invoicing/preview/${invoice_id}`);
+          // router.push(`/dashboard/invoicing/preview/${invoice_id}`,);
+          router.push(
+            `/dashboard/invoicing/preview/${invoice_id}?data=${encodeURIComponent(
+              JSON.stringify(data),
+            )}`,
+          );
         }
       } else {
+        await incrementUsage({ usageKey: "invoicing", amount: 1 });
         const response = await axiosInstance.post(`/invoices/create`, {
           ...currentInvoice,
           items: currentInvoice.invoice_items,
         });
-
-        // Backend returns status 201
         if (response.status === 201) {
           toast.success("Invoice saved successfully!");
-          const invoice_id = response.data.invoice.uuid;
-          await incrementUsage({
-            usageKey: "invoice",
-            count: 1,
-          });
-          // Navigate to preview
-          router.push(`/dashboard/invoicing/preview/${invoice_id}`);
+          const new_invoice_id = response.data.invoice.uuid;
+          // router.push(`/dashboard/invoicing/preview/${new_invoice_id}`);
+          router.push(
+            `/dashboard/invoicing/preview/${new_invoice_id}?data=${encodeURIComponent(
+              JSON.stringify(data),
+            )}`,
+          );
         }
       }
-    } catch (error) {
-      console.error("Error saving or updating invoice:", error);
-      toast.error("Error saving or updating invoice");
+    } catch (error: any) {
+      console.error("Operation failed:", error);
+      if (!error.response || error.response.status !== 400) {
+        toast.error("Error saving or updating invoice");
+      }
     }
   };
 
@@ -736,29 +793,32 @@ const CreateInvoicePage: React.FC = () => {
                   </p>
                 </div>
               </div>
-              <Button
-                onClick={generateAiSuggestions}
-                disabled={currentPlan?.name == "Starter" || isGenerating}
-                className="bg-surface text-text-heading hover:bg-bg-base shadow-card"
-                startIcon={
-                  isGenerating ? (
-                    <Clock className="w-4 h-4 animate-pulse" />
-                  ) : (
-                    <Zap className="w-4 h-4" />
-                  )
-                }
-              >
-                {isGenerating
-                  ? "AI Thinking..."
-                  : currentPlan?.name == "Starter" && (
-                      <OverlayTooltip
-                        id="suggestion"
-                        title="This feature is not included in your current plan."
-                      >
-                        <span>Get AI Suggestions</span>
-                      </OverlayTooltip>
-                    )}
-              </Button>
+              <div className="button_wrapper flex gap-2">
+                <Button
+                  onClick={generateAiSuggestions}
+                  disabled={currentPlan?.name == "Starter" || isGenerating}
+                  className="bg-surface text-text-heading hover:bg-bg-base shadow-card"
+                  startIcon={
+                    isGenerating ? (
+                      <Clock className="w-4 h-4 animate-pulse" />
+                    ) : (
+                      <Zap className="w-4 h-4" />
+                    )
+                  }
+                >
+                  {isGenerating
+                    ? "AI Thinking..."
+                    : currentPlan?.name == "Starter" && (
+                        <OverlayTooltip
+                          id="suggestion"
+                          title="This feature is not included in your current plan."
+                        >
+                          <span>Get AI Suggestions</span>
+                        </OverlayTooltip>
+                      )}
+                  <span>Get AI Suggestions</span>
+                </Button>
+              </div>
             </div>
           </Card>
 
@@ -979,88 +1039,90 @@ const CreateInvoicePage: React.FC = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {currentInvoice.invoice_items?.map((item) => (
-                            <tr
-                              key={item.id}
-                              className="border-b border-border hover:bg-brand-light/30 transition-colors duration-200"
-                            >
-                              <td className="px-4 py-3">
-                                <input
-                                  type="text"
-                                  className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary text-text-secondary bg-bg-base text-sm"
-                                  value={item.name}
-                                  onChange={(e) =>
-                                    handleItemChange(
-                                      item.id,
-                                      "name",
-                                      e.target.value,
-                                    )
-                                  }
-                                  placeholder="AI Service Name"
-                                />
-                              </td>
-                              <td className="px-4 py-3">
-                                <input
-                                  type="text"
-                                  className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary text-text-secondary bg-bg-base text-sm"
-                                  value={item.description}
-                                  onChange={(e) =>
-                                    handleItemChange(
-                                      item.id,
-                                      "description",
-                                      e.target.value,
-                                    )
-                                  }
-                                  placeholder="Service description"
-                                />
-                              </td>
-                              <td className="px-4 py-3">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  className="w-20 px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary text-text-secondary bg-bg-base text-sm"
-                                  value={item.quantity}
-                                  onChange={(e) =>
-                                    handleItemChange(
-                                      item.id,
-                                      "quantity",
-                                      e.target.value || 0,
-                                    )
-                                  }
-                                />
-                              </td>
-                              <td className="px-4 py-3">
-                                <input
-                                  type="number"
-                                  step="0.01"
-                                  className="w-32 px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary text-text-secondary bg-bg-base text-sm"
-                                  value={item.price}
-                                  onChange={(e) =>
-                                    handleItemChange(
-                                      item.id,
-                                      "price",
-                                      parseFloat(e.target.value) || 0,
-                                    )
-                                  }
-                                  placeholder="0.00"
-                                />
-                              </td>
-                              <td className="px-4 py-3 text-sm font-semibold text-text-heading">
-                                AED {item.amount.toFixed(2)}
-                              </td>
-                              <td className="px-4 py-3">
-                                <button
-                                  onClick={() => handleRemoveItem(item.id)}
-                                  className="text-status-error hover:text-status-error/80 text-sm font-medium transition-colors duration-200 disabled:text-text-muted disabled:cursor-not-allowed px-3 py-1 rounded-lg hover:bg-status-error-bg"
-                                  disabled={
-                                    currentInvoice.invoice_items.length === 1
-                                  }
-                                >
-                                  Remove
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
+                          {currentInvoice.invoice_items?.map(
+                            (item, index: number) => (
+                              <tr
+                                key={index + item.id}
+                                className="border-b border-border hover:bg-brand-light/30 transition-colors duration-200"
+                              >
+                                <td className="px-4 py-3">
+                                  <input
+                                    type="text"
+                                    className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary text-text-secondary bg-bg-base text-sm"
+                                    value={item.name}
+                                    onChange={(e) =>
+                                      handleItemChange(
+                                        item.id,
+                                        "name",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="AI Service Name"
+                                  />
+                                </td>
+                                <td className="px-4 py-3">
+                                  <input
+                                    type="text"
+                                    className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary text-text-secondary bg-bg-base text-sm"
+                                    value={item.description}
+                                    onChange={(e) =>
+                                      handleItemChange(
+                                        item.id,
+                                        "description",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="Service description"
+                                  />
+                                </td>
+                                <td className="px-4 py-3">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    className="w-20 px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary text-text-secondary bg-bg-base text-sm"
+                                    value={item.quantity}
+                                    onChange={(e) =>
+                                      handleItemChange(
+                                        item.id,
+                                        "quantity",
+                                        e.target.value || 0,
+                                      )
+                                    }
+                                  />
+                                </td>
+                                <td className="px-4 py-3">
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    className="w-32 px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary text-text-secondary bg-bg-base text-sm"
+                                    value={item.price}
+                                    onChange={(e) =>
+                                      handleItemChange(
+                                        item.id,
+                                        "price",
+                                        parseFloat(e.target.value) || 0,
+                                      )
+                                    }
+                                    placeholder="0.00"
+                                  />
+                                </td>
+                                <td className="px-4 py-3 text-sm font-semibold text-text-heading">
+                                  AED {item.amount.toFixed(2)}
+                                </td>
+                                <td className="px-4 py-3">
+                                  <button
+                                    onClick={() => handleRemoveItem(item.id)}
+                                    className="text-status-error hover:text-status-error/80 text-sm font-medium transition-colors duration-200 disabled:text-text-muted disabled:cursor-not-allowed px-3 py-1 rounded-lg hover:bg-status-error-bg"
+                                    disabled={
+                                      currentInvoice.invoice_items.length === 1
+                                    }
+                                  >
+                                    Remove
+                                  </button>
+                                </td>
+                              </tr>
+                            ),
+                          )}
                         </tbody>
                       </table>
                     </div>

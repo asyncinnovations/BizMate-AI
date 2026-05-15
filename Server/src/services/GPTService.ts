@@ -6,10 +6,10 @@ import { gtp_config } from "src/config/gpt_config";
 export class GPTService {
   async GPTChat(user_prompt: string, system_prompt: string) {
     const response = await gtp_config.chat.completions.create({
-      //   model: "openai/gpt-oss-120b:cerebras",
+        model: "openai/gpt-oss-120b:cerebras",
       //   model: "Qwen/Qwen2.5-72B-Instruct",
-      model: "Qwen/Qwen2.5-7B-Instruct",
-      max_completion_tokens: 300,
+      // model: "Qwen/Qwen2.5-7B-Instruct",
+      max_completion_tokens: 1000,
       messages: [
         {
           role: "system",

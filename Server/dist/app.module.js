@@ -66,6 +66,9 @@ const employee_payroll_module_1 = require("./employee_payroll/employee_payroll.m
 const employee_payroll_entity_1 = require("./employee_payroll/employee_payroll.entity");
 const document_history_module_1 = require("./document_history/document_history.module");
 const document_history_entity_1 = require("./document_history/document_history.entity");
+const invoice_schedules_module_1 = require("./invoice_schedules/invoice_schedules.module");
+const invoice_schedules_entity_1 = require("./invoice_schedules/invoice_schedules.entity");
+const schedule_1 = require("@nestjs/schedule");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -75,6 +78,7 @@ exports.AppModule = AppModule = __decorate([
         providers: [import_service_1.ImportService],
         exports: [],
         imports: [
+            schedule_1.ScheduleModule.forRoot(),
             config_1.ConfigModule.forRoot({ isGlobal: true }),
             jwt_1.JwtModule.register({
                 secret: process.env.JWT_SECRET || "BizMateAI",
@@ -115,6 +119,7 @@ exports.AppModule = AppModule = __decorate([
                     subscription_payments_entity_1.SubscriptionPayment,
                     user_sessions_entity_1.UserSession,
                     subscription_usage_entity_1.SubscriptionUsage,
+                    invoice_schedules_entity_1.InvoiceSchedule
                 ],
             }),
             auth_module_1.AuthModule,
@@ -145,6 +150,7 @@ exports.AppModule = AppModule = __decorate([
             subscription_usage_module_1.SubscriptionUsageModule,
             employee_payroll_module_1.EmployeePayrollModule,
             document_history_module_1.DocumentHistoryModule,
+            invoice_schedules_module_1.InvoiceSchedulesModule,
         ],
     })
 ], AppModule);

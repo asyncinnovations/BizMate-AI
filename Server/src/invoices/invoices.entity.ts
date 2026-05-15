@@ -9,64 +9,73 @@ import {
 @Entity("invoices")
 export class InvoiceEntity {
   @Column({ type: "integer", generated: "increment" })
-  id: number;
+  id!: number;
 
   @PrimaryColumn({
     type: "uuid",
     default: () => "gen_random_uuid()",
     unique: true,
   })
-  uuid: string;
+  uuid!: string;
 
-  @Column({ type: "varchar", length: 255, nullable: true })
-  user_id: string;
+  @Column({ type: "varchar", length: 255, nullable: true, default: null })
+  invoice_name!: string;
+
+  @Column({ type: "varchar", length: 255, nullable: true, default: null })
+  invoice_type!: string;
+
+  @Column({ type: "varchar", length: 255, nullable: true, default: null })
+  user_id!: string | null;
 
   @Column({ type: "varchar", length: 50, nullable: false })
-  invoice_number: string;
+  invoice_number!: string;
 
   @Column({ type: "varchar", length: 255, nullable: true })
-  customer_name: string;
+  customer_name!: string;
 
   @Column({ type: "varchar", length: 255, nullable: true })
-  customer_email: string;
+  customer_email!: string;
 
   @Column({ type: "text", nullable: true })
-  customer_address: string;
+  customer_address!: string;
 
   @Column({ type: "date", nullable: false })
-  invoice_date: Date;
+  invoice_date!: Date;
 
   @Column({ type: "date", nullable: false })
-  due_date: Date;
+  due_date!: Date;
 
   @Column({ type: "varchar", length: 100, nullable: true })
-  payment_terms: string;
+  payment_terms!: string;
 
   @Column({ type: "numeric", precision: 12, scale: 2, default: 0 })
-  subtotal: number;
+  subtotal!: number;
 
   @Column({ type: "numeric", precision: 12, scale: 2, default: 0 })
-  vat: number;
+  vat!: number;
 
   @Column({ type: "numeric", precision: 12, scale: 2, default: 0 })
-  total: number;
+  total!: number;
 
   @Column({ type: "text", nullable: true })
-  notes: string;
+  notes!: string;
 
   @Column({ type: "varchar", length: 50, default: "draft" })
-  status: string;
+  status!: string;
 
   //  USER DEFINED EXTRA FILED STORED AS JSON
   @Column({ type: "jsonb", default: () => "'[]'", nullable: true })
-  custom_fields: object[];
+  custom_fields!: object[];
 
   @Column({ type: "jsonb", default: () => "'[]'", nullable: true })
-  invoice_items: object[];
+  invoice_items!: object[];
+
+  @Column({ type: "text", nullable: true })
+  invoice_pdf!: string;
 
   @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
-  created_at: Date;
+  created_at!: Date;
 
   @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
-  updated_at: Date;
+  updated_at!: Date;
 }
