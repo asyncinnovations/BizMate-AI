@@ -195,6 +195,7 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout>
+      {/* {JSON.stringify(currentPlan)} */}
       <div className="min-h-screen p-4 mb-8">
         {/* Header */}
         <PageHeader
@@ -216,7 +217,6 @@ const Dashboard = () => {
             },
           ]}
         />
-
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {statsData.map((item, index) => {
@@ -309,3 +309,35 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+[
+  {
+    id: 9,
+    uuid: "41932a31-619b-4e7d-b3f5-162abc5eb50e",
+    name: "Starter",
+    description: "Basic access for individuals to test the platform.",
+    features: {
+      quota: {
+        documents: { limit: 5, period: "monthly" },
+        invoicing: { limit: 3, period: "monthly" },
+        reminders: { limit: 3, period: "monthly" },
+        ai_invoicing: { limit: 3, period: "monthly" },
+        analytics_reports: { limit: 1, period: "monthly" },
+      },
+      tiers: {
+        ai_advisory: { level: "none" },
+        ai_assistant: { level: "none" },
+      },
+      capabilities: {
+        payroll: { enabled: false },
+        ai_invoice: { enabled: true },
+        compliance: { enabled: false },
+        auto_reply_hub: { enabled: false },
+      },
+    },
+    price: "0.00",
+    duration_days: 30,
+    is_active: true,
+    created_at: "2026-05-02T11:06:12.737Z",
+    updated_at: "2026-05-02T11:06:12.737Z",
+  },
+];

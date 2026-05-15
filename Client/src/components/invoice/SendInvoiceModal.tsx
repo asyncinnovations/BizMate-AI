@@ -3,17 +3,20 @@ import { Send, FileText } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import InputField from "@/components/ui/InputField";
 import Button from "@/components/ui/Button";
+import { Form } from "react-bootstrap";
 
 interface EmailFormData {
   to: string;
   cc: string;
   subject: string;
   message: string;
+  send_at: any;
 }
 
 interface SendInvoiceModalProps {
   isOpen: boolean;
   onClose: () => void;
+  is_scheduled?: boolean;
   invoiceNumber: string;
   emailFormData: EmailFormData;
   onEmailFormChange: (
@@ -26,6 +29,7 @@ interface SendInvoiceModalProps {
 const SendInvoiceModal: React.FC<SendInvoiceModalProps> = ({
   isOpen,
   onClose,
+  is_scheduled,
   invoiceNumber,
   emailFormData,
   onEmailFormChange,
@@ -82,6 +86,17 @@ const SendInvoiceModal: React.FC<SendInvoiceModalProps> = ({
             placeholder="Invoice subject"
             required={true}
           />
+          {is_scheduled && (
+            <InputField
+              label="Send At"
+              name="send_at"
+              type="datetime-local"
+              value={emailFormData.send_at}
+              onChange={onEmailFormChange}
+              placeholder="Invoice date"
+              required={false}
+            />
+          )}
 
           {/* Message */}
           <InputField

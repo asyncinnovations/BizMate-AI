@@ -2,7 +2,7 @@
 
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   Download,
   Send,
@@ -18,6 +18,8 @@ import LoadingSpinner from "@/components/loading-spinner/LoadingSpinner";
 import toast from "react-hot-toast";
 import InvoicePreviewCard from "@/components/invoice/InvoicePreviewCard";
 import SendInvoiceModal from "@/components/invoice/SendInvoiceModal";
+import { useAuth } from "@/context/AuthContext";
+import InvoicePdfViewer from "@/components/invoice/InvoicePdfViewer";
 
 interface FormField {
   id: string;
@@ -42,6 +44,7 @@ interface InvoiceItem {
 
 interface Invoice {
   user_id: string;
+  uuid: string;
   invoice_number: string;
   customer_name: string;
   customer_email: string;
@@ -63,6 +66,7 @@ interface EmailFormData {
   cc: string;
   subject: string;
   message: string;
+  send_at: any;
 }
 
 // ─── Payment link helper ──────────────────────────────────────────────────────
@@ -76,7 +80,9 @@ const buildPaymentLink = (invoiceId: string): string => {
 const InvoicePreviewPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const invoiceId = params.id as string;
+  const searchParams = useSearchParams();
   const [currentInvoice, setCurrentInvoice] = useState<Invoice | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -85,8 +91,11 @@ const InvoicePreviewPage: React.FC = () => {
     cc: "",
     subject: "",
     message: "",
+    send_at: "",
   });
-
+  const invoice_data = JSON.parse(
+    decodeURIComponent(searchParams.get("data") || "{}"),
+  );
   ///////////////////////////////
   // Fetch Single Invoice Data
   /////////////////////////////////////////
@@ -128,13 +137,13 @@ Business Solutions Inc.`,
   // Download Invoice PDF
   ///////////////////////////////////
   const handleDownloadPDF = async (invoice: Invoice) => {
+    console.log(invoice);
     try {
       // Currently we are no passing any id in api request ,  because backend to accept yet , need to update bacakend api
-      const response = await axiosInstance(`/invoices/preview`);
-
+      const response = await axiosInstance.post(`/invoices/preview`, invoice);
+      console.log(response.data);
       if (response.status === 200 && response.data?.url) {
         const fileUrl = `${process.env.NEXT_PUBLIC_ASSET_URL}${response.data.url}`;
-
         const link = document.createElement("a");
         link.href = fileUrl;
         link.download = `invoice-${invoice.invoice_number}`;
@@ -151,28 +160,115 @@ Business Solutions Inc.`,
   ////////////////////////////////
   // Send Invoice To Customer/Client
   /////////////////////////////////
-  const handleSendEmail = async (e: React.FormEvent) => {
+  // const handleSendInvoice = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setIsSending(true);
+  //   // console.log({ invoiceId: invoiceId, ...emailFormData });
+  //   try {
+  //     const data = {
+  //       user_id: "",
+  //       invoice_id: currentInvoice.uuid,
+  //       recipient_email: emailFormData.to,
+  //       type: "one_time",
+  //       scheduled_at: emailFormData.send_at,
+  //     };
+  //     if (emailFormData.send_at) {
+  //       const response = await axiosInstance.post(
+  //         "/invoice-schedules/create",
+  //         data,
+  //       );
+  //       if (response.status == 200) {
+  //         toast.success(
+  //           `Invoice ${currentInvoice?.invoice_number} sent successfully to ${emailFormData.to}`,
+  //         );
+  //       }
+  //     } else {
+  //       const response = await axiosInstance.post("/invoices/send_to_email", {
+  //         invoiceId: invoiceId,
+  //         ...emailFormData,
+  //       });
+
+  //       if (response.status == 200) {
+  //         toast.success(
+  //           `Invoice ${currentInvoice?.invoice_number} sent successfully to ${emailFormData.to}`,
+  //         );
+  //       }
+  //     }
+
+  //     // closeSendEmailModal();
+  //   } catch (error) {
+  //     console.log("Error sending email:", error);
+  //     toast.error("Failed to send invoice email. Please try again.");
+  //   } finally {
+  //     setIsSending(false);
+  //   }
+  // };
+
+  const handleSendInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Basic Validation
+    if (!emailFormData.to) {
+      toast.error("Recipient email is required");
+      return;
+    }
+
     setIsSending(true);
 
     try {
-      const response = await axiosInstance.post("/invoices/send_to_email", {
-        invoiceId: invoiceId,
-        ...emailFormData,
-      });
+      const isScheduling = !!emailFormData.send_at;
 
-      toast.success(
-        `Invoice ${currentInvoice?.invoice_number} sent successfully to ${emailFormData.to}`,
-      );
-      closeSendEmailModal();
-    } catch (error) {
-      console.log("Error sending email:", error);
-      toast.error("Failed to send invoice email. Please try again.");
+      if (isScheduling) {
+        // 1. Check & Enforce Subscription Quota for Scheduling
+        // This ensures they don't exceed their 3 slots (Starter) or 50 slots (Pro)
+        // await incrementUsage({ usageKey: "scheduling.one_time" });
+
+        const scheduleData = {
+          invoice_id: currentInvoice.uuid,
+          recipient_email: emailFormData.to,
+          type: "one_time",
+          scheduled_at: emailFormData.send_at,
+        };
+
+        const response = await axiosInstance.post(
+          "/invoice-schedules/create",
+          scheduleData,
+        );
+
+        if (response.status === 201 || response.status === 200) {
+          toast.success(
+            `Invoice scheduled for ${new Date(emailFormData.send_at).toLocaleString()}`,
+          );
+          closeSendEmailModal(); // Close on success
+        }
+      } else {
+        // 2. Direct Send (Standard Invoicing)
+        const response = await axiosInstance.post("/invoices/send_to_email", {
+          invoiceId: currentInvoice.uuid,
+          ...emailFormData,
+        });
+
+        if (response.status === 200) {
+          toast.success(
+            `Invoice ${currentInvoice?.invoice_number} sent to ${emailFormData.to}`,
+          );
+          closeSendEmailModal();
+        }
+      }
+    } catch (error: any) {
+      // Error is handled: If incrementUsage fails, it throws a toast
+      // If the API fails, we handle it here
+      const errorMsg =
+        error.response?.data?.message || "Failed to process request";
+      console.error("Error in handleSendInvoice:", error);
+      if (error.response?.status !== 403) {
+        // Avoid double-toasting if usage hook already toasted
+        toast.error(errorMsg);
+      }
     } finally {
       setIsSending(false);
     }
   };
-
   //////////////////////////////////
   // Handle Print Invoice
   /////////////////////////////////
@@ -247,7 +343,9 @@ Business Solutions Inc.`,
                     </p>
                   </div>
                 </div>
-                <span className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-full ${getStatusBadge(currentInvoice.status)}`}>
+                <span
+                  className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-full ${getStatusBadge(currentInvoice.status)}`}
+                >
                   {(currentInvoice.status === "paid" || "saved") && (
                     <CheckCircle className="w-3 h-3" />
                   )}
@@ -265,7 +363,7 @@ Business Solutions Inc.`,
                   Print
                 </Button>
                 <Button
-                  onClick={() => handleDownloadPDF(currentInvoice)}
+                  onClick={() => handleDownloadPDF(invoice_data)}
                   className="bg-status-warning text-on-brand hover:bg-status-warning/90"
                   startIcon={<Download className="w-4 h-4" />}
                 >
@@ -289,9 +387,14 @@ Business Solutions Inc.`,
             of the invoice itself, so it is visible in both the screen view
             and the downloaded PDF.
           */}
-          <InvoicePreviewCard
+
+          {/* <InvoicePreviewCard
             invoice={currentInvoice}
             paymentLink={buildPaymentLink(invoiceId)}
+          /> */}
+          <InvoicePdfViewer
+            data={currentInvoice}
+            paymentLink={""}
           />
 
           {/* Quick Actions */}
@@ -324,10 +427,11 @@ Business Solutions Inc.`,
       <SendInvoiceModal
         isOpen={isModalOpen}
         onClose={closeSendEmailModal}
+        is_scheduled={true}
         invoiceNumber={currentInvoice.invoice_number}
         emailFormData={emailFormData}
         onEmailFormChange={handleEmailFormChange}
-        onSubmit={handleSendEmail}
+        onSubmit={handleSendInvoice}
         isSending={isSending}
       />
     </DashboardLayout>

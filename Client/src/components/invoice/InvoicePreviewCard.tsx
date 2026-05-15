@@ -66,7 +66,7 @@ const InvoicePreviewCard: React.FC<InvoicePreviewCardProps> = ({
               <div className="space-y-1 text-sm text-text-secondary">
                 <div className="flex justify-between gap-4">
                   <span className="font-semibold">Invoice #:</span>
-                  <span>{invoice.invoice_number}</span>
+                  <span>{invoice?.invoice_number}</span>
                 </div>
                 <div className="flex justify-between gap-4">
                   <span className="font-semibold">Date:</span>
@@ -277,6 +277,8 @@ const InvoicePreviewCard: React.FC<InvoicePreviewCardProps> = ({
       </div>
     </div>
   );
+  
 };
 
 export default InvoicePreviewCard;
+

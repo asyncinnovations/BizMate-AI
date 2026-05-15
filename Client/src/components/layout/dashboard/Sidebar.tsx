@@ -324,6 +324,126 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
   const pathname = usePathname();
   const router = useRouter();
 
+  // const menuItems = [
+  //   {
+  //     id: 1,
+  //     label: "AI Dashboard",
+  //     icon: Bot,
+  //     color: "text-blue-400",
+  //     href: "/dashboard",
+  //     locked: false,
+  //   },
+  //   {
+  //     id: 2,
+  //     label: "Compliance Assistant",
+  //     icon: MessageSquare,
+  //     color: "text-green-400",
+  //     href: "/dashboard/ai-chat",
+  //     locked: !currentPlan?.features.ai_assistant,
+  //   },
+  //   {
+  //     id: 3,
+  //     label: "Smart Invoicing",
+  //     icon: FileText,
+  //     color: "text-purple-400",
+  //     href: "/dashboard/invoicing",
+  //     locked: !currentPlan?.features.ai_invoicing,
+  //   },
+  //   {
+  //     id: 4,
+  //     label: "AI Reminders",
+  //     icon: Calendar,
+  //     color: "text-orange-400",
+  //     href: "/dashboard/reminders",
+  //     locked: !currentPlan?.features.reminders,
+  //   },
+  //   {
+  //     id: 5,
+  //     label: "Payroll Management",
+  //     icon: Banknote,
+  //     color: "text-emerald-400",
+  //     href: "/dashboard/payroll",
+  //     locked: !currentPlan?.features.payroll,
+  //   },
+  //   {
+  //     id: 6,
+  //     label: "Compliance & Licensing",
+  //     icon: ShieldBan,
+  //     color: "text-indigo-500",
+  //     href: "/dashboard/compliance-licensing",
+  //     locked: !currentPlan?.features.compliance,
+  //   },
+  //   {
+  //     id: 7,
+  //     label: "Client Management",
+  //     icon: Contact,
+  //     color: "text-teal-400",
+  //     href: "/dashboard/client-management",
+  //     locked: false,
+  //   },
+  //   // --- LOCKED ITEMS ---
+  //   {
+  //     id: 8,
+  //     label: "Auto-Reply Hub",
+  //     icon: Mail,
+  //     color: "text-pink-400",
+  //     href: "/dashboard/communication",
+  //     locked: !currentPlan?.features.auto_reply_hub,
+  //   },
+  //   {
+  //     id: 9,
+  //     label: "Document Generator",
+  //     icon: Zap,
+  //     color: "text-yellow-400",
+  //     href: "/dashboard/documents",
+  //     locked: !currentPlan?.features.documents,
+  //   },
+  //   // --- END LOCKED ITEMS ---
+  //   {
+  //     id: 10,
+  //     label: "Business Analytics",
+  //     icon: BarChart,
+  //     color: "text-cyan-400",
+  //     href: "/dashboard/analytics",
+  //     locked: !currentPlan?.features.analytics_reports,
+  //   },
+  //   {
+  //     id: 11,
+  //     label: "Team Management",
+  //     icon: Users,
+  //     color: "text-indigo-400",
+  //     href: "/dashboard/team-management",
+  //     locked: true,
+  //   },
+  //   {
+  //     id: 12,
+  //     label: "Corporate Tax Management",
+  //     icon: Wallet,
+  //     color: "text-indigo-400",
+  //     href: "/dashboard/corporate-tax-management",
+  //     locked: !currentPlan?.features.corporate_tax,
+  //   },
+  //   {
+  //     id: 13,
+  //     label: "Ai Advisory",
+  //     icon: Users,
+  //     color: "text-indigo-400",
+  //     href: "/dashboard/ai_advisory",
+  //     locked: !currentPlan?.features.ai_advisory,
+  //   },
+  // ];
+
+  const hasCapability = (key: string) => {
+    const capability = currentPlan?.features?.capabilities?.[key];
+    return capability?.enabled === true || capability?.enabled === "true";
+  };
+
+  const hasTierAccess = (key: any, requiredLevel: any) => {
+    const level = currentPlan?.features?.tiers?.[key]?.level;
+    const levels = ["none", "basic", "full"];
+    return levels.indexOf(level) >= levels.indexOf(requiredLevel);
+  };
+
   const menuItems = [
     {
       id: 1,
@@ -333,46 +453,52 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       href: "/dashboard",
       locked: false,
     },
+
     {
       id: 2,
       label: "Compliance Assistant",
       icon: MessageSquare,
       color: "text-green-400",
       href: "/dashboard/ai-chat",
-      locked: !currentPlan?.features.ai_assistant,
+      locked: !hasTierAccess("ai_assistant", "basic"),
     },
+
     {
       id: 3,
       label: "Smart Invoicing",
       icon: FileText,
       color: "text-purple-400",
       href: "/dashboard/invoicing",
-      locked: !currentPlan?.features.ai_invoicing,
+      locked: !hasCapability("ai_invoice"),
     },
+
     {
       id: 4,
       label: "AI Reminders",
       icon: Calendar,
       color: "text-orange-400",
       href: "/dashboard/reminders",
-      locked: !currentPlan?.features.reminders,
+      locked: !hasCapability("reminders"),
     },
+
     {
       id: 5,
       label: "Payroll Management",
       icon: Banknote,
       color: "text-emerald-400",
       href: "/dashboard/payroll",
-      locked: !currentPlan?.features.payroll,
+      locked: !hasCapability("payroll"),
     },
+
     {
       id: 6,
       label: "Compliance & Licensing",
       icon: ShieldBan,
       color: "text-indigo-500",
       href: "/dashboard/compliance-licensing",
-      locked: !currentPlan?.features.compliance,
+      locked: !hasCapability("compliance"),
     },
+
     {
       id: 7,
       label: "Client Management",
@@ -381,32 +507,34 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       href: "/dashboard/client-management",
       locked: false,
     },
-    // --- LOCKED ITEMS ---
+
     {
       id: 8,
       label: "Auto-Reply Hub",
       icon: Mail,
       color: "text-pink-400",
       href: "/dashboard/communication",
-      locked: !currentPlan?.features.auto_reply_hub,
+      locked: !hasCapability("auto_reply_hub"),
     },
+
     {
       id: 9,
       label: "Document Generator",
       icon: Zap,
       color: "text-yellow-400",
       href: "/dashboard/documents",
-      locked: !currentPlan?.features.documents,
+      locked: !hasCapability("documents"),
     },
-    // --- END LOCKED ITEMS ---
+
     {
       id: 10,
       label: "Business Analytics",
       icon: BarChart,
       color: "text-cyan-400",
       href: "/dashboard/analytics",
-      locked: !currentPlan?.features.analytics_reports,
+      locked: !hasCapability("analytics_reports"),
     },
+
     {
       id: 11,
       label: "Team Management",
@@ -415,24 +543,25 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       href: "/dashboard/team-management",
       locked: true,
     },
+
     {
       id: 12,
       label: "Corporate Tax Management",
       icon: Wallet,
       color: "text-indigo-400",
       href: "/dashboard/corporate-tax-management",
-      locked: !currentPlan?.features.corporate_tax,
+      locked: !hasCapability("corporate_tax"),
     },
+
     {
       id: 13,
-      label: "Ai Advisory",
+      label: "AI Advisory",
       icon: Users,
       color: "text-indigo-400",
       href: "/dashboard/ai_advisory",
-      locked: !currentPlan?.features.ai_advisory,
+      locked: !hasTierAccess("ai_advisory", "basic"),
     },
   ];
-
   const secondaryItems = [
     {
       id: 11,

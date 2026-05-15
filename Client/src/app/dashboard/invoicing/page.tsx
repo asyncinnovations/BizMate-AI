@@ -1,5 +1,4 @@
 "use client";
-
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import React, { useEffect, useState } from "react";
 import {
@@ -20,6 +19,9 @@ import {
   Trash2,
   Edit,
   RefreshCw,
+  Check,
+  LockKeyhole,
+  Zap,
 } from "lucide-react";
 import StatCard from "@/components/stat-card/StatCard";
 import Link from "next/link";
@@ -36,6 +38,10 @@ import EmptyState from "@/components/empty-state/EmptyState";
 import Card from "@/components/ui/Card";
 import OverlayTooltip from "@/components/overlay_tooltip/OverlayTooltip";
 import { useSubscription } from "@/context/SubscriptionContext";
+import "./styles.css";
+import { Button } from "react-bootstrap";
+import Modal from "@/components/ui/Modal";
+import { useSubscriptionUsage } from "@/hooks/useSubscriptionUsage";
 
 interface FormField {
   id: string;
@@ -86,7 +92,15 @@ interface EmailFormData {
 
 const InvoiceListPage: React.FC = () => {
   const { currentPlan } = useSubscription();
+  const { checkUsage, incrementUsage } = useSubscriptionUsage();
+  const [usageStats, setUsageStats] = useState<{
+    used: number;
+    limit: number;
+  } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [ActiveTabs, setActiveTabs] = useState<"invoices" | "templates">(
+    "templates",
+  );
   const [statusFilter, setStatusFilter] = useState<"all" | "paid" | "unpaid">(
     "all",
   );
@@ -95,6 +109,14 @@ const InvoiceListPage: React.FC = () => {
   const router = useRouter();
   const { user, loading } = useAuth();
   const userId = !loading ? user?.user.user_id : "";
+
+  const [AllPrebuildInvoice, setAllPrebuildInvoice] = useState([]);
+  const [PrebuildTemplateLoader, setPrebuildTemplateLoader] = useState(false);
+
+  const [OpenAinvoiceModal, setOpenAinvoiceModal] = useState(false);
+  const [AiPrompt, setAiPrompt] = useState("");
+  const [AIinvoiceGenLoader, setAIinvoiceGenLoader] = useState(false);
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentInvoice, setCurrentInvoice] = useState<Invoice | null>(null);
   const [userInvoices, setUserInvoices] = useState<Invoice[]>([]);
@@ -185,10 +207,36 @@ const InvoiceListPage: React.FC = () => {
       fetchUserInvoices();
     }
   }, [user, loading]);
-
-  ///////////////////////////////////
+  useEffect(() => {
+    const fetchStatus = async () => {
+      const data = await checkUsage("invoicing.ai_prompts");
+      setUsageStats(data);
+    };
+    fetchStatus();
+  }, []);
+  //==========================
   // Download Invoice PDF
-  ///////////////////////////////////
+  //==========================
+  const fetch_prebuild_invoice = async () => {
+    try {
+      setPrebuildTemplateLoader(true);
+      const response = await axiosInstance.get(`/invoices/prebuild`);
+      if (response.status == 200) {
+        setPrebuildTemplateLoader(false);
+        console.log("fetch_prebuild_invoice", response.data);
+        setAllPrebuildInvoice(response.data.response);
+      }
+    } catch (error) {
+      setPrebuildTemplateLoader(false);
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    fetch_prebuild_invoice();
+  }, []);
+  //===========================
+  // Download Invoice PDF
+  //===========================
   const handleDownloadPDF = async (invoice: Invoice) => {
     try {
       // Currently we are no passing any id in api request ,  because backend to accept yet , need to update bacakend api
@@ -353,11 +401,79 @@ Business Solutions Inc.`,
     setCurrentInvoice(null);
     setIsModalOpen(false);
   };
+  //=======================
+  // CALCULATE THE LIMIT
+  //=======================
+  const limit =
+    currentPlan?.name === "Starter"
+      ? 3
+      : currentPlan?.name === "Startup"
+        ? 15
+        : currentPlan?.name === "Pro"
+          ? 50
+          : Infinity;
+
+  //=======================
+  // GENERATE AI INVOCIE
+  //=======================
+  async function handleAiGenerate() {
+    const plan = currentPlan;
+
+    //Safety Guard: Check local limit before doing anything
+    if (isLimitReached) {
+      toast.error("Daily AI prompt limit reached. Please try again tomorrow.");
+      return;
+    }
+
+    try {
+      setAIinvoiceGenLoader(true);
+
+      //Increment & Enforce Usage (Backend check)
+      // We await this first. If the backend says "Limit Exceeded",
+      // it throws an error and jumps to catch, stopping the AI call.
+      await incrementUsage({ usageKey: "invoicing.ai_prompts" });
+
+      const data = { prompt: AiPrompt };
+      const response = await axiosInstance.post(
+        `/invoices/generate_invoice`,
+        data,
+      );
+
+      if (response.status === 201) {
+        //Success Sequence
+        setAIinvoiceGenLoader(false);
+        setOpenAinvoiceModal(false);
+        setAiPrompt("");
+
+        // Update local usage counter on success
+        setUsageStats((prev) =>
+          prev ? { ...prev, used: prev.used + 1 } : null,
+        );
+
+        const rawContent = response.data.response.data.content;
+        const gen_data = JSON.parse(rawContent);
+
+        toast.success("Invoice Draft Generated");
+
+        //Navigation
+        router.push(
+          `/dashboard/invoicing/new?data=${encodeURIComponent(JSON.stringify(gen_data))}`,
+        );
+      }
+    } catch (error) {
+      setAIinvoiceGenLoader(false);
+      // If error is from incrementUsage, toast is already handled in the hook
+      console.error("AI Generation Error:", error);
+    }
+  }
+  const isLimitReached =
+    usageStats &&
+    usageStats.limit !== -1 && // -1 is unlimited
+    Number(usageStats.used) >= Number(usageStats.limit);
 
   if (isLoading) {
     return <LoadingSpinner fullScreen={true} />;
   }
-
   return (
     <DashboardLayout>
       <div className="min-h-screen p-4 mb-8">
@@ -376,16 +492,21 @@ Business Solutions Inc.`,
                 icon: <Plus size={20} />,
               },
               {
-                disabled: currentPlan?.name == "Starter",
-                text: (
-                  <OverlayTooltip
-                    id="btn-1"
-                    title="This feature is not included in your current plan."
-                  >
-                    <span>AI Insights</span>
-                  </OverlayTooltip>
-                ),
-                onClick: () => {},
+                // disabled: currentPlan?.name == "Starter",
+                text:
+                  currentPlan?.name == "Starter" ? (
+                    <OverlayTooltip
+                      id="btn-1"
+                      title="This feature is not included in your current plan."
+                    >
+                      <span>AI-Assisted Invoicing</span>
+                    </OverlayTooltip>
+                  ) : (
+                    <span>AI-Assisted Invoicing</span>
+                  ),
+                onClick() {
+                  setOpenAinvoiceModal(true);
+                },
                 icon: <Brain size={20} />,
                 className:
                   "bg-status-warning text-on-brand hover:bg-status-warning/90",
@@ -399,9 +520,24 @@ Business Solutions Inc.`,
               <StatCard key={index} {...item} />
             ))}
           </div>
-
+          <div className="invoice_tabs">
+            <button
+              className={`${ActiveTabs === "templates" ? "active" : "inactive"}`}
+              onClick={() => setActiveTabs("templates")}
+            >
+              Templates
+            </button>
+            <button
+              className={`${ActiveTabs === "invoices" ? "active" : "inactive"}`}
+              onClick={() => setActiveTabs("invoices")}
+            >
+              My Invoices
+            </button>
+          </div>
           {/* Invoice List */}
-          <Card className="p-0 overflow-hidden">
+          <Card
+            className={`p-0 overflow-hidden ${ActiveTabs === "templates" && "hidden"} `}
+          >
             <div className="p-6 border-b border-border bg-surface">
               <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                 <div>
@@ -699,6 +835,103 @@ Business Solutions Inc.`,
               )}
             </div>
           </Card>
+          {/* invoice templates */}
+          <Card
+            className={`p-6 overflow-hidden ${ActiveTabs === "invoices" && "hidden"}`}
+          >
+            {PrebuildTemplateLoader && (
+              <h1 className="text-center ">Loading...</h1>
+            )}
+            <div className="mb-8 flex justify-between items-end">
+              <div>
+                <h2 className="text-xl font-bold text-text-heading flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-text-heading" />
+                  Choose Invoice Template
+                </h2>
+                <p className="text-text-secondary mt-1">
+                  Select a design to represent your brand professionally.
+                </p>
+              </div>
+
+              <div className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-wider">
+                {AllPrebuildInvoice.length} Designs Available
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {AllPrebuildInvoice.map((template: any, index: number) => {
+                // if this specific card is beyond the user's plan limit
+                const isLocked = index >= limit;
+
+                return (
+                  <div
+                    key={template.id}
+                    className={`group relative rounded-2xl transition-all duration-500 bg-white border-2 flex flex-col
+                      ${isLocked ? "opacity-80 grayscale-[0.5]" : "border-[#eee] hover:shadow-xl hover:-translate-y-1"}`}
+                  >
+                    {/* Premium Overlay for locked templates */}
+                    {isLocked && (
+                      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/60 backdrop-blur-[1px] rounded-2xl">
+                        <div className="bg-slate-900 text-white text-[10px] font-black px-3 py-1 rounded-full flex items-center gap-1 shadow-xl mb-2">
+                          <LockKeyhole />
+                          PREMIUM
+                        </div>
+                        <p className="text-[10px] font-bold text-slate-600 px-4 text-center">
+                          Upgrade to{" "}
+                          {currentPlan?.name === "Starter"
+                            ? "Startup Growth"
+                            : "Pro"}
+                          to unlock
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Details & Action Section */}
+                    <div className="p-6 flex flex-col flex-grow">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="space-y-1">
+                          <h3 className="font-bold text-slate-800 text-lg leading-none">
+                            {template.invoice_name}
+                          </h3>
+                          <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-500 uppercase tracking-widest">
+                            {template.invoice_type}
+                          </span>
+                        </div>
+                        <div
+                          className={`w-3 h-3 rounded-full ${template.color} ring-4 ring-slate-50`}
+                        />
+                      </div>
+
+                      <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed mb-6">
+                        {template.notes ||
+                          "Professional invoice template for your business."}
+                      </p>
+
+                      <div className="mt-auto">
+                        <Button
+                          disabled={isLocked}
+                          onClick={() => {
+                            if (isLocked) return;
+                            router.push(
+                              `/dashboard/invoicing/new?data=${encodeURIComponent(JSON.stringify(template))}`,
+                            );
+                          }}
+                          className={`w-full py-3 rounded-xl font-bold transition-all duration-300 
+                          ${
+                            isLocked
+                              ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+                              : "bg-slate-900 text-white hover:bg-slate-800 cursor-pointer shadow-sm"
+                          }`}
+                        >
+                          {isLocked ? "Plan Locked" : "Use This Template"}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
 
           {/* AI Assistant Footer */}
           <div className="mt-8 text-center">
@@ -708,7 +941,101 @@ Business Solutions Inc.`,
             </div>
           </div>
         </div>
+        {/* AI ASSISTED INVOICE MODAL */}
+        <Modal
+          isOpen={OpenAinvoiceModal}
+          onClose={() => setOpenAinvoiceModal(false)}
+          size={"md"}
+        >
+          <div className="p-6">
+            {/* Header with AI Icon */}
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg shadow-indigo-200">
+                <Sparkles className="text-white" size={24} />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-900 leading-tight">
+                  AI Invoice Generator
+                </h2>
+                <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">
+                  Powered by Bizmate-AI Intelligence
+                </p>
+              </div>
+              <p className="text-xs mb-2">
+                Daily Prompts: {usageStats?.used ?? 0} /{" "}
+                {usageStats?.limit === -1 ? "∞" : usageStats?.limit}
+              </p>
+            </div>
 
+            {/* Info Box */}
+            <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 mb-6">
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Describe your project in natural language. AI will extract
+                items, amounts, and client details to draft your invoice
+                instantly.
+              </p>
+            </div>
+
+            {/* Prompt Input Area */}
+            <div className="space-y-4">
+              <div className="relative">
+                <label className="text-xs font-bold text-slate-700 mb-1.5 block ml-1">
+                  Your Prompt
+                </label>
+                <textarea
+                  disabled={AIinvoiceGenLoader}
+                  className="w-full p-4 rounded-2xl border-2 border-slate-100 bg-white text-slate-800 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-0 transition-all resize-none min-h-[120px] shadow-sm"
+                  placeholder="e.g., 'Create invoice for website redesign for ABC company worth AED 4,500'"
+                  value={AiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                />
+                <div className="absolute bottom-3 right-3">
+                  <kbd className="px-2 py-1 text-[10px] font-semibold text-slate-400 bg-slate-50 border border-slate-200 rounded-md">
+                    Shift + Enter
+                  </kbd>
+                </div>
+              </div>
+
+              {/* Suggestion Chips */}
+              <div className="flex flex-wrap gap-2 pt-1">
+                <span className="text-[11px] font-bold text-slate-400 uppercase w-full mb-1">
+                  Quick Examples:
+                </span>
+                {[
+                  "Software consulting for 20 hours",
+                  "Logo design for StartUp Co",
+                ].map((chip) => (
+                  <button
+                    key={chip}
+                    className="text-xs bg-white border border-slate-200 text-slate-600 px-3 py-1.5 rounded-full hover:border-indigo-400 hover:text-indigo-600 transition-colors"
+                  >
+                    {chip}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 mt-8">
+              <Button
+                variant="ghost"
+                onClick={() => setOpenAinvoiceModal(false)}
+                className="flex-1 py-3 font-bold text-slate-500 hover:bg-slate-50 rounded-xl"
+              >
+                Cancel
+              </Button>
+              <Button
+                className={`${isLimitReached ? "bg-gray-400" : "bg-indigo-600"} flex-[2] py-3 bg-slate-900 hover:bg-indigo-600 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-xl shadow-indigo-100`}
+                onClick={handleAiGenerate}
+                disabled={AIinvoiceGenLoader || isLimitReached}
+              >
+                <Zap size={18} fill="currentColor" />
+                {/* {AIinvoiceGenLoader ? "Generating...." : "Generate Draft"} */}
+                {isLimitReached ? "Daily Limit Reached" : "Generate Invoice"}
+              </Button>
+            </div>
+          </div>
+        </Modal>
         {/* Send Invoice Modal Component */}
         <SendInvoiceModal
           isOpen={isModalOpen}
