@@ -1,0 +1,241 @@
+{
+  "info": {
+    "name": "BizMate — Smart Invoicing APIs",
+    "description": "Complete Postman collection for all invoice endpoints. Set the {{base_url}} variable to your server (e.g. http://localhost:3000) and {{user_id}} / {{invoice_id}} to real values from your DB.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url",   "value": "http://localhost:3000" },
+    { "key": "user_id",    "value": "REPLACE_WITH_REAL_USER_UUID" },
+    { "key": "invoice_id", "value": "REPLACE_WITH_REAL_INVOICE_UUID" }
+  ],
+  "item": [
+    {
+      "name": "── EXISTING (UPDATED) ──",
+      "item": [
+        {
+          "name": "Create Invoice",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/invoices/create" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"invoice_number\": \"INV-2026-0042\",\n  \"customer_name\": \"Acme Corporation\",\n  \"customer_email\": \"billing@acme.com\",\n  \"customer_address\": \"Dubai Internet City, Dubai, UAE\",\n  \"invoice_date\": \"2026-06-01\",\n  \"due_date\": \"2026-06-16\",\n  \"payment_terms\": \"Net 15\",\n  \"subtotal\": 4500,\n  \"vat\": 225,\n  \"total\": 4725,\n  \"notes\": \"Thank you for your business.\",\n  \"status\": \"draft\",\n  \"source\": \"manual\",\n  \"invoice_items\": [\n    { \"id\": \"item-1\", \"name\": \"Website Redesign\", \"description\": \"3-page responsive site\", \"quantity\": 1, \"price\": 4000, \"amount\": 4000 },\n    { \"id\": \"item-2\", \"name\": \"Logo Design\", \"description\": \"Primary logo\", \"quantity\": 1, \"price\": 500, \"amount\": 500 }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Generate AI Invoice",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/invoices/generate_invoice" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Create invoice for website redesign for ABC Company, AED 4,500 including logo and 3 pages, due in 15 days\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All User Invoices",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/invoices/user/{{user_id}}" }
+          }
+        },
+        {
+          "name": "Get Single Invoice",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/invoices/single/{{invoice_id}}" }
+          }
+        },
+        {
+          "name": "Get Prebuild Templates",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/invoices/prebuild" }
+          }
+        },
+        {
+          "name": "Get All Invoices (with filters)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/invoices/all?user_id={{user_id}}&status=sent&search=Acme",
+              "query": [
+                { "key": "user_id", "value": "{{user_id}}" },
+                { "key": "status",  "value": "sent",  "description": "Any lifecycle status: draft|saved|sent|viewed|paid|unpaid|overdue|archived" },
+                { "key": "search",  "value": "Acme",  "description": "Search by customer name" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Invoice (full)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/invoices/update/{{invoice_id}}" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_name\": \"Acme Corporation (Updated)\",\n  \"notes\": \"Updated notes here.\",\n  \"total\": 5000\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Custom Fields",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/invoices/update/{{invoice_id}}/custom-fields" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"po_number\": \"PO-2026-001\",\n  \"project_name\": \"Website Redesign Q2\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Status — sent",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/invoices/update/status/{{invoice_id}}" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"sent\"\n}",
+              "_description": "Valid values: draft | saved | sent | viewed | paid | unpaid | overdue | archived"
+            }
+          }
+        },
+        {
+          "name": "Update Status — viewed",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/invoices/update/status/{{invoice_id}}" },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"viewed\"\n}" }
+          }
+        },
+        {
+          "name": "Update Status — paid",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/invoices/update/status/{{invoice_id}}" },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"paid\"\n}" }
+          }
+        },
+        {
+          "name": "Update Status — overdue",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/invoices/update/status/{{invoice_id}}" },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"overdue\"\n}" }
+          }
+        },
+        {
+          "name": "Update Status — archived",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/invoices/update/status/{{invoice_id}}" },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"archived\"\n}" }
+          }
+        },
+        {
+          "name": "Update Status — INVALID (should 400)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/invoices/update/status/{{invoice_id}}" },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"banana\"\n}" }
+          }
+        },
+        {
+          "name": "Compute Totals",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/invoices/compute-totals" },
+            "body": { "mode": "raw", "raw": "{\n  \"subtotal\": 4500,\n  \"vatRate\": 5\n}" }
+          }
+        },
+        {
+          "name": "Preview Invoice (generate PDF)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/invoices/preview" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invoice_number\": \"INV-2026-0042\",\n  \"customer_name\": \"Acme Corporation\",\n  \"customer_email\": \"billing@acme.com\",\n  \"invoice_date\": \"2026-06-01\",\n  \"due_date\": \"2026-06-16\",\n  \"subtotal\": 4500,\n  \"vat\": 225,\n  \"total\": 4725,\n  \"invoice_items\": [\n    { \"name\": \"Website Redesign\", \"quantity\": 1, \"price\": 4000, \"amount\": 4000 }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Send Invoice by Email",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/invoices/send_to_email" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invoiceId\": \"{{invoice_id}}\",\n  \"to\": \"client@example.com\",\n  \"cc\": \"\",\n  \"subject\": \"Invoice INV-2026-0042 from BizMate\",\n  \"message\": \"Please find your invoice attached.\"\n}"
+            },
+            "_description": "Also auto-updates invoice status to 'sent'"
+          }
+        },
+        {
+          "name": "Delete Invoice",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{base_url}}/invoices/delete/{{invoice_id}}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "── NEW ENDPOINTS ──",
+      "item": [
+        {
+          "name": "Duplicate Invoice",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/invoices/duplicate" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invoice_id\": \"{{invoice_id}}\",\n  \"user_id\": \"{{user_id}}\"\n}"
+            },
+            "_description": "Creates a copy of the invoice with: new invoice number, status=draft, source=duplicate, fresh activity_log, no PDF."
+          }
+        },
+        {
+          "name": "Get AI Insights (Pro)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/invoices/ai-insights/{{invoice_id}}" },
+            "_description": "Returns payment_prediction_days, late_payment_risk_percent, suggested_action, client_payment_pattern, reminder_date. Uses GPT + customer history."
+          }
+        },
+        {
+          "name": "Get AI Suggestions (Pro sidebar)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/invoices/ai-suggestions?user_id={{user_id}}&customer_name=Acme Corporation",
+              "query": [
+                { "key": "user_id",       "value": "{{user_id}}" },
+                { "key": "customer_name", "value": "Acme Corporation", "description": "Partial match supported" }
+              ]
+            },
+            "_description": "Returns top repeated services + pricing + payment pattern for the given customer. Used by the create-form AI sidebar."
+          }
+        }
+      ]
+    }
+  ]
+}

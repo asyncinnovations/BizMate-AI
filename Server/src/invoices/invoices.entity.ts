@@ -6,8 +6,35 @@ import {
   PrimaryColumn,
 } from "typeorm";
 
+/**
+ * All valid statuses an invoice can hold throughout its lifecycle.
+ * Order: draft → saved → sent → viewed → paid / overdue → archived
+ */
+export enum InvoiceStatus {
+  DRAFT    = "draft",
+  SAVED    = "saved",
+  SENT     = "sent",
+  VIEWED   = "viewed",
+  PAID     = "paid",
+  UNPAID   = "unpaid",
+  OVERDUE  = "overdue",
+  ARCHIVED = "archived",
+}
+
+/**
+ * Where the invoice originated — shown as a source tag in the UI.
+ */
+export enum InvoiceSource {
+  MANUAL    = "manual",
+  AI        = "ai",
+  DUPLICATE = "duplicate",
+  TEMPLATE  = "template",
+  RECURRING = "recurring",
+}
+
 @Entity("invoices")
 export class InvoiceEntity {
+
   @Column({ type: "integer", generated: "increment" })
   id!: number;
 
@@ -60,10 +87,29 @@ export class InvoiceEntity {
   @Column({ type: "text", nullable: true })
   notes!: string;
 
-  @Column({ type: "varchar", length: 50, default: "draft" })
-  status!: string;
+  // Full lifecycle status — now uses the InvoiceStatus enum
+  @Column({
+    type: "varchar",
+    length: 50,
+    default: InvoiceStatus.DRAFT,
+  })
+  status!: InvoiceStatus;
 
-  //  USER DEFINED EXTRA FILED STORED AS JSON
+  // Where this invoice came from (manual, ai, duplicate, template, recurring)
+  @Column({
+    type: "varchar",
+    length: 50,
+    nullable: true,
+    default: InvoiceSource.MANUAL,
+  })
+  source!: InvoiceSource;
+
+  // Timestamped log of every status transition — stored as JSONB array
+  // Each entry: { status: string, timestamp: ISO string }
+  @Column({ type: "jsonb", default: () => "'[]'", nullable: true })
+  activity_log!: { status: string; timestamp: string }[];
+
+  // User-defined extra fields stored as JSON
   @Column({ type: "jsonb", default: () => "'[]'", nullable: true })
   custom_fields!: object[];
 
