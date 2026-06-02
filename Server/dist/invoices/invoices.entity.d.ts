@@ -1,3 +1,20 @@
+export declare enum InvoiceStatus {
+    DRAFT = "draft",
+    SAVED = "saved",
+    SENT = "sent",
+    VIEWED = "viewed",
+    PAID = "paid",
+    UNPAID = "unpaid",
+    OVERDUE = "overdue",
+    ARCHIVED = "archived"
+}
+export declare enum InvoiceSource {
+    MANUAL = "manual",
+    AI = "ai",
+    DUPLICATE = "duplicate",
+    TEMPLATE = "template",
+    RECURRING = "recurring"
+}
 export declare class InvoiceEntity {
     id: number;
     uuid: string;
@@ -15,7 +32,12 @@ export declare class InvoiceEntity {
     vat: number;
     total: number;
     notes: string;
-    status: string;
+    status: InvoiceStatus;
+    source: InvoiceSource;
+    activity_log: {
+        status: string;
+        timestamp: string;
+    }[];
     custom_fields: object[];
     invoice_items: object[];
     invoice_pdf: string;

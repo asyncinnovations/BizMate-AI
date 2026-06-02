@@ -8,11 +8,11 @@ export declare class ComplianceAssistantController {
     constructor(AssistantChatService: ComplianceAssistantChatService, gpt_service: GPTService, reminderService: AiReminderService);
     chat_gpt(body: any): Promise<{
         message: string;
-        response: string | null;
+        response: any;
     }>;
     askAI(body: any): Promise<{
         message: string;
-        reminder: Promise<import("../ai_reminder/ai_reminder.entity").AiReminder>;
+        reminder: Promise<any>;
         response: any;
         answer?: undefined;
     } | {
@@ -27,13 +27,13 @@ export declare class ComplianceAssistantController {
     }>;
     deleteChat(chat_id: string, user_id: string): Promise<{
         message: string;
-        response: import("./compliance_assistant_chat.entity").ComplianceAssistantChat;
+        response: any;
     }>;
     clear_chat_history(user_id: string): Promise<{
         message: string;
     }>;
     searchChat(userId: string, keyword: string): Promise<{
         message: string;
-        response: import("./compliance_assistant_chat.entity").ComplianceAssistantChat[];
+        response: any;
     }>;
 }

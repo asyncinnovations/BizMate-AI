@@ -9,34 +9,12 @@ export declare class InvoicesController {
     private readonly emailService;
     private readonly upgService;
     constructor(invoicesService: InvoicesService, pdfService: PdfService, emailService: EmailService, upgService: UserPaymentGatewayService);
-    create_invoice(data: Partial<InvoiceEntity> | (any & {
+    create_invoice(data: Partial<InvoiceEntity> & {
         items?: any[];
-    })): Promise<{
+        gateway_name?: string;
+    }): Promise<{
         message: string;
-        invoice: {
-            invoice_pdf: string;
-            id: number;
-            uuid: string;
-            invoice_name: string;
-            invoice_type: string;
-            user_id: string | null;
-            invoice_number: string;
-            customer_name: string;
-            customer_email: string;
-            customer_address: string;
-            invoice_date: Date;
-            due_date: Date;
-            payment_terms: string;
-            subtotal: number;
-            vat: number;
-            total: number;
-            notes: string;
-            status: string;
-            custom_fields: object[];
-            invoice_items: object[];
-            created_at: Date;
-            updated_at: Date;
-        };
+        invoice: any;
     }>;
     generate_ai_invoice(body: {
         prompt: string;
@@ -44,22 +22,30 @@ export declare class InvoicesController {
         message: string;
         response: {
             message: string;
-            data: import("openai/resources/index.js").ChatCompletionMessage;
+            data: any;
         };
     }>;
     user_invoices(user_id: string): Promise<any>;
     get_prebuild_invoice_template(): Promise<{
         message: string;
-        response: InvoiceEntity[];
+        response: any;
     }>;
-    all_invoices(search?: string, status?: string, user_id?: string): Promise<InvoiceEntity[]>;
+    all_invoices(search?: string, status?: string, user_id?: string): Promise<any>;
     single_invoice(id: string): Promise<any>;
     update_invoice(id: string, data: Partial<InvoiceEntity>): Promise<any>;
     update_custom_fields(id: string, customFields: Record<string, any>): Promise<any>;
     delete_invoice(id: string): Promise<{
         message: string;
     }>;
-    update_status(id: string, status: string): Promise<any>;
+    update_status(id: string, status: string): Promise<{
+        message: string;
+        uuid: any;
+        status: string;
+        activity_log: {
+            status: string;
+            timestamp: string;
+        }[];
+    }>;
     compute_totals(subtotal: number, vatRate: number): Promise<{
         vat: number;
         total: number;
@@ -73,10 +59,10 @@ export declare class InvoicesController {
     send_invoice_to_email(body: {
         invoiceId: string;
         to: string;
-        cc: string;
+        cc?: string;
         subject: string;
         message: string;
-        send_at: string;
+        send_at?: string;
     }): Promise<{
         message: string;
         response: {
@@ -88,5 +74,37 @@ export declare class InvoicesController {
             error: any;
             response?: undefined;
         };
+    }>;
+    duplicate_invoice(body: {
+        invoice_id: string;
+        user_id: string;
+    }): Promise<{
+        message: string;
+        invoice: any;
+    }>;
+    get_ai_insights(invoice_id: string): Promise<{
+        message: string;
+        insights: any;
+    }>;
+    get_ai_suggestions(user_id: string, customer_name: string): Promise<{
+        message: string;
+        suggestions: never[];
+        payment_pattern: string;
+        pricing_tip: string;
+        professional_notes: string;
+        overdue_count?: undefined;
+        payment_rate?: undefined;
+    } | {
+        message: string;
+        suggestions: {
+            name: string;
+            suggested_price: number;
+            times_used: number;
+        }[];
+        payment_pattern: string;
+        overdue_count: number;
+        payment_rate: number;
+        pricing_tip: string;
+        professional_notes: string;
     }>;
 }

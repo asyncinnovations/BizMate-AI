@@ -32,12 +32,14 @@ let InvoicesController = class InvoicesController {
     }
     async create_invoice(data) {
         if (!data.customer_name || typeof data.customer_name !== "string") {
-            throw new common_1.BadRequestException("Customer name is required and must be a string.");
+            throw new common_1.BadRequestException("customer_name is required.");
         }
-        if (!data.items || !Array.isArray(data.items) || data.items.length === 0) {
-            throw new common_1.BadRequestException("Invoice items are required.");
+        if (!data.invoice_items && (!data.items || !Array.isArray(data.items) || data.items.length === 0)) {
+            throw new common_1.BadRequestException("invoice_items are required.");
         }
-        await this.upgService.user_active_gateway_service(data.user_id, data.gateway_name);
+        if (data.user_id && data.gateway_name) {
+            await this.upgService.user_active_gateway_service(data.user_id, data.gateway_name);
+        }
         const invoiceData = {
             user_id: data.user_id || null,
             invoice_number: data.invoice_number,
@@ -54,50 +56,46 @@ let InvoicesController = class InvoicesController {
             total: data.total,
             notes: data.notes,
             status: data.status,
+            source: data.source,
             custom_fields: data.custom_fields,
-            invoice_items: data.invoice_items || data?.items,
+            invoice_items: data.invoice_items || data.items,
         };
         const response = await this.invoicesService.create_invoice_service(invoiceData);
-        const filename = `${Math.floor(Number(new Date()) * Math.random())}-invoice_preview.pdf`;
+        const filename = `${Math.floor(Number(new Date()) * Math.random())}-invoice.pdf`;
         const filePath = (0, node_path_1.join)(__dirname, `../../public/uploads/${filename}`);
-        const result = await this.pdfService.InvoicePDFGenerator(invoiceData, filePath);
+        await this.pdfService.InvoicePDFGenerator(invoiceData, filePath);
         const url = `/public/uploads/${filename}`;
-        this.invoicesService.set_invoice_pdf_path_service(url, response.uuid);
+        await this.invoicesService.set_invoice_pdf_path_service(url, response.uuid);
         return {
             message: "Invoice created successfully",
             invoice: { ...response, invoice_pdf: url },
         };
     }
     async generate_ai_invoice(body) {
-        if (!body.prompt) {
-            throw new common_1.BadRequestException("Invoice prompt is required.");
+        if (!body.prompt || typeof body.prompt !== "string") {
+            throw new common_1.BadRequestException("prompt is required.");
         }
         return await this.invoicesService.generate_ai_invoice_service(body.prompt);
     }
     async user_invoices(user_id) {
-        if (!user_id) {
-            throw new common_1.BadRequestException("Invoice user id is required.");
-        }
+        if (!user_id)
+            throw new common_1.BadRequestException("user_id is required.");
         return await this.invoicesService.user_invoices_service(user_id);
     }
     async get_prebuild_invoice_template() {
         try {
             const response = await this.invoicesService.get_prebuild_invoice_template_service();
-            return { message: "notification send success", response };
+            return { message: "Templates retrieved successfully", response };
         }
         catch (error) {
-            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+            throw new common_1.HttpException(error.message, common_1.HttpStatus.BAD_REQUEST);
         }
     }
     async all_invoices(search, status, user_id) {
         if (status && typeof status !== "string") {
             throw new common_1.BadRequestException("Invalid status value.");
         }
-        return await this.invoicesService.all_invoices_service({
-            search,
-            status,
-            user_id,
-        });
+        return await this.invoicesService.all_invoices_service({ search, status, user_id });
     }
     async single_invoice(id) {
         if (!id)
@@ -107,7 +105,7 @@ let InvoicesController = class InvoicesController {
     }
     async update_invoice(id, data) {
         if (!data || Object.keys(data).length === 0) {
-            throw new common_1.BadRequestException("No data provided to update invoice.");
+            throw new common_1.BadRequestException("No data provided to update.");
         }
         const parsedId = isNaN(Number(id)) ? id : Number(id);
         return await this.invoicesService.update_invoice_service(parsedId, data);
@@ -121,23 +119,23 @@ let InvoicesController = class InvoicesController {
     }
     async delete_invoice(id) {
         if (!id)
-            throw new common_1.BadRequestException("Invoice ID or UUID is required.");
+            throw new common_1.BadRequestException("Invoice ID is required.");
         const parsedId = isNaN(Number(id)) ? id : Number(id);
         return await this.invoicesService.delete_invoices_service(parsedId);
     }
     async update_status(id, status) {
         if (!status || typeof status !== "string") {
-            throw new common_1.BadRequestException("Status is required and must be a string.");
+            throw new common_1.BadRequestException("status is required.");
         }
         const parsedId = isNaN(Number(id)) ? id : Number(id);
         return await this.invoicesService.update_invoice_status_service(parsedId, status);
     }
     async compute_totals(subtotal, vatRate) {
         if (subtotal === undefined || isNaN(Number(subtotal))) {
-            throw new common_1.BadRequestException("Subtotal is required and must be numeric.");
+            throw new common_1.BadRequestException("subtotal is required and must be numeric.");
         }
         if (vatRate === undefined || isNaN(Number(vatRate))) {
-            throw new common_1.BadRequestException("VAT rate is required and must be numeric.");
+            throw new common_1.BadRequestException("vatRate is required and must be numeric.");
         }
         return await this.invoicesService.total_inovices_service(subtotal, vatRate);
     }
@@ -149,8 +147,36 @@ let InvoicesController = class InvoicesController {
         return { response: "Invoice PDF Generated", success: true, url, result };
     }
     async send_invoice_to_email(body) {
+        if (!body.invoiceId)
+            throw new common_1.BadRequestException("invoiceId is required.");
+        if (!body.to)
+            throw new common_1.BadRequestException("Recipient email is required.");
         const response = await this.emailService.send_email(body);
-        return { message: "email send success", response };
+        try {
+            await this.invoicesService.update_invoice_status_service(body.invoiceId, "sent");
+        }
+        catch {
+        }
+        return { message: "Email sent successfully", response };
+    }
+    async duplicate_invoice(body) {
+        if (!body.invoice_id)
+            throw new common_1.BadRequestException("invoice_id is required.");
+        if (!body.user_id)
+            throw new common_1.BadRequestException("user_id is required.");
+        return await this.invoicesService.duplicate_invoice_service(body.invoice_id, body.user_id);
+    }
+    async get_ai_insights(invoice_id) {
+        if (!invoice_id)
+            throw new common_1.BadRequestException("invoice_id is required.");
+        return await this.invoicesService.get_ai_insights_service(invoice_id);
+    }
+    async get_ai_suggestions(user_id, customer_name) {
+        if (!user_id)
+            throw new common_1.BadRequestException("user_id is required.");
+        if (!customer_name)
+            throw new common_1.BadRequestException("customer_name is required.");
+        return await this.invoicesService.get_ai_suggestions_service(user_id, customer_name);
     }
 };
 exports.InvoicesController = InvoicesController;
@@ -263,6 +289,31 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], InvoicesController.prototype, "send_invoice_to_email", null);
+__decorate([
+    (0, common_1.Post)("duplicate"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], InvoicesController.prototype, "duplicate_invoice", null);
+__decorate([
+    (0, common_1.Get)("ai-insights/:invoice_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Param)("invoice_id")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], InvoicesController.prototype, "get_ai_insights", null);
+__decorate([
+    (0, common_1.Get)("ai-suggestions"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Query)("user_id")),
+    __param(1, (0, common_1.Query)("customer_name")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], InvoicesController.prototype, "get_ai_suggestions", null);
 exports.InvoicesController = InvoicesController = __decorate([
     (0, common_1.Controller)("invoices"),
     __metadata("design:paramtypes", [invoices_service_1.InvoicesService,

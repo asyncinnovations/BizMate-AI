@@ -10,31 +10,31 @@ export declare class UserPaymentGatewayController {
     };
     connect_gateway(body: any): Promise<{
         message: string;
-        response: import("./user_payment_gateway.entity").UserPaymentGatewayEntity;
+        response: any;
     }>;
     all_gateway(): Promise<{
         message: string;
-        response: import("./user_payment_gateway.entity").UserPaymentGatewayEntity[];
+        response: any;
     }>;
     single_gateway(id: string): Promise<{
         message: string;
-        response: import("./user_payment_gateway.entity").UserPaymentGatewayEntity[];
+        response: any;
     }>;
     user_gateways(user_id: string): Promise<{
         message: string;
-        response: import("./user_payment_gateway.entity").UserPaymentGatewayEntity[];
+        response: any;
     }>;
     user_active_gateway(user_id: string, gateway_name: string): Promise<{
         message: string;
-        response: import("./user_payment_gateway.entity").UserPaymentGatewayEntity;
+        response: any;
     }>;
     deactivate_gateway(user_id: string, gateway_name: string): Promise<{
         message: string;
-        response: import("./user_payment_gateway.entity").UserPaymentGatewayEntity;
+        response: any;
     }>;
     delete_user_gateway(user_id: string): Promise<{
         message: string;
-        response: import("typeorm").DeleteResult;
+        response: any;
     }>;
     payment_link(body: {
         user_id: string;

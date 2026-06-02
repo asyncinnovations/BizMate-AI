@@ -4,61 +4,61 @@ export declare class AiReplyHubChatController {
     constructor(aireplyHub: AiReplyHubChatService);
     create_message(body: any): Promise<{
         message: string;
-        result: import("./ai_reply_hub_chat.entity").AiReplyHubChat;
+        result: any;
     }>;
     get_single_message(id: string): Promise<{
         message: string;
-        result: import("./ai_reply_hub_chat.entity").AiReplyHubChat;
+        result: any;
     }>;
     get_all_messages(user_id: string, client_id?: string, platform?: string, direction?: string): Promise<{
         message: string;
-        result: import("./ai_reply_hub_chat.entity").AiReplyHubChat[];
+        result: any;
     }>;
     update_message(id: string, body: any): Promise<{
         message: string;
-        result: import("./ai_reply_hub_chat.entity").AiReplyHubChat;
+        result: any;
     }>;
     delete_message(id: string): Promise<{
         message: string;
-        result: import("typeorm").DeleteResult;
+        result: any;
     }>;
     toggle_ai_reply(id: string, enable: boolean): Promise<{
         message: string;
-        result: import("./ai_reply_hub_chat.entity").AiReplyHubChat;
+        result: any;
     }>;
     search_messages(user_id: string, query: string): Promise<{
         message: string;
-        result: import("./ai_reply_hub_chat.entity").AiReplyHubChat[];
+        result: any;
     }>;
     get_unanswered_ai_messages(user_id: string): Promise<{
         message: string;
-        result: import("./ai_reply_hub_chat.entity").AiReplyHubChat[];
+        result: any;
     }>;
     bulk_insert_messages(body: any[]): Promise<{
         message: string;
-        result: import("./ai_reply_hub_chat.entity").AiReplyHubChat[];
+        result: any;
     }>;
     update_status(id: string, body: {
         status: "sent" | "delivered" | "read" | "failed";
         error_message?: string;
     }): Promise<{
         message: string;
-        result: import("./ai_reply_hub_chat.entity").AiReplyHubChat;
+        result: any;
     }>;
     update_ai_reply(id: string, body: {
         ai_reply: string;
         model?: string;
     }): Promise<{
         message: string;
-        result: import("./ai_reply_hub_chat.entity").AiReplyHubChat;
+        result: any;
     }>;
     generate_ai_reply(id: string): Promise<{
         message: string;
-        result: import("./ai_reply_hub_chat.entity").AiReplyHubChat | undefined;
+        result: any;
     }>;
     chat_history(user_id: string, client_id: string): Promise<{
         message: string;
-        result: import("./ai_reply_hub_chat.entity").AiReplyHubChat[];
+        result: any;
     }>;
     user_message_partner(user_id: string): Promise<{
         message: string;
@@ -70,6 +70,6 @@ export declare class AiReplyHubChatController {
     }>;
     chat_mark_as_all_read_service(client_id: string): Promise<{
         message: string;
-        result: import("./ai_reply_hub_chat.entity").AiReplyHubChat | null;
+        result: any;
     }>;
 }

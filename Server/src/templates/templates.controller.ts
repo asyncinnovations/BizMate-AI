@@ -6,6 +6,8 @@ import {
   Param,
   Post,
   Put,
+  Patch,
+  Query,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -15,7 +17,9 @@ import {
 } from "@nestjs/common";
 import { TemplatesService } from "./templates.service";
 import { JwtGuard } from "src/guards/auth/auth.guard";
-import { PdfService } from "src/services/PdfService";
+import { PdfService }    from "src/services/PdfService";
+import { GPTService }    from "src/services/GPTService";
+import { PromptService } from "src/services/PromptService";
 import { join } from "path";
 import { EmailService } from "src/services/EmailService";
 
@@ -25,7 +29,9 @@ export class TemplatesController {
   constructor(
     private readonly templatesService: TemplatesService,
     private readonly pdfService: PdfService,
-    private readonly emailService: EmailService
+    private readonly emailService: EmailService,
+    private readonly gptService: GPTService,
+    private readonly promptService: PromptService,
   ) {}
   //////////////////////////////////////////////////////////
   // CREATE TEMPLATE
@@ -236,4 +242,107 @@ export class TemplatesController {
     const response = await this.emailService.send_email(body);
     return { message: "email send success", response };
   }
+  //////////////////////////////////////////////////////////
+  // GET TEMPLATES WITH CATEGORY / SEARCH FILTER
+  // GET /templates/filtered?category=Legal&is_prebuilt=true&search=NDA
+  //////////////////////////////////////////////////////////
+  @Get("filtered")
+  @HttpCode(HttpStatus.OK)
+  async get_templates_filtered(
+    @Query("category")    category?:    string,
+    @Query("is_prebuilt") is_prebuilt?: string,
+    @Query("search")      search?:      string,
+  ) {
+    const filters: any = {};
+    if (category)    filters.category    = category;
+    if (search)      filters.search      = search;
+    if (is_prebuilt !== undefined) {
+      filters.is_prebuilt = is_prebuilt === "true";
+    }
+    const templates = await this.templatesService.get_templates_filtered_service(filters);
+    return { message: "Filtered templates retrieved", data: templates };
+  }
+
+  //////////////////////////////////////////////////////////
+  // AI GENERATE TEMPLATE FROM PROMPT
+  // POST /templates/ai-generate
+  // Body: { prompt: string, template_name?: string, user_id: string }
+  // Generates field schema via AI then saves the template.
+  //////////////////////////////////////////////////////////
+  @Post("ai-generate")
+  @HttpCode(HttpStatus.CREATED)
+  async ai_generate_template(@Body() body: any, @Req() req: any) {
+    if (!body.prompt) {
+      throw new BadRequestException("prompt is required.");
+    }
+    if (!body.user_id && !req.user?.uuid) {
+      throw new BadRequestException("user_id is required.");
+    }
+
+    const user_id = body.user_id || req.user?.uuid;
+
+    // Build the AI prompt for template field extraction
+    const system_prompt = `
+      You are a form schema designer for a business document platform.
+      The user will describe a document they need. Your job is to extract
+      the fields required to fill in that document template and return them as a JSON array.
+
+      Return ONLY this JSON array — no markdown, no explanation, no code blocks:
+      [
+        {
+          "field_name": "string",
+          "field_type": "text|email|date|number|textarea|select",
+          "placeholder": "string",
+          "required": boolean,
+          "options": ["string"] // only include if field_type is "select"
+        }
+      ]
+
+      RULES:
+      1. Include all fields a user would need to complete this document.
+      2. Always include: Parties (names, addresses), Effective Date, Governing Law/Jurisdiction.
+      3. Return ONLY raw JSON array — no markdown fences, no preamble.
+    `;
+
+    const gpt_response = await this.gptService.GPTChat(body.prompt, system_prompt);
+
+    let fields: any[] = [];
+    let fields_schema: Record<string, string> = {};
+
+    try {
+      const raw     = gpt_response?.data?.content ?? "";
+      const cleaned = raw.replace(/```json|```/g, "").trim();
+      fields        = JSON.parse(cleaned);
+      // Build fields_schema from field names
+      fields_schema = fields.reduce((acc: any, f: any) => {
+        acc[f.field_name] = f.field_value ?? "";
+        return acc;
+      }, {});
+    } catch {
+      throw new BadRequestException(
+        "AI could not generate a template schema. Please try a more specific prompt."
+      );
+    }
+
+    // Save the template with AI-generated schema
+    const template_data = {
+      template_name: body.template_name?.trim() || body.prompt.slice(0, 50).trim(),
+      description:   body.prompt,
+      fields_schema,
+      user_id,
+      is_prebuilt:   false,
+      is_active:     true,
+      version:       1,
+      ai_prompt:     body.prompt,
+    };
+
+    const saved_template = await this.templatesService.create_template_service(template_data);
+
+    return {
+      message:  "AI template generated and saved successfully.",
+      template: saved_template,
+      fields,
+    };
+  }
+
 }

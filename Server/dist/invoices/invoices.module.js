@@ -16,9 +16,9 @@ const PdfService_1 = require("../services/PdfService");
 const EmailService_1 = require("../services/EmailService");
 const user_payment_gateway_service_1 = require("../user_payment_gateway/user_payment_gateway.service");
 const user_payment_gateway_entity_1 = require("../user_payment_gateway/user_payment_gateway.entity");
-const chatgpt_service_1 = require("../chatgpt/chatgpt.service");
 const PromptService_1 = require("../services/PromptService");
 const GPTService_1 = require("../services/GPTService");
+const chatgpt_service_1 = require("../chatgpt/chatgpt.service");
 let InvoicesModule = class InvoicesModule {
 };
 exports.InvoicesModule = InvoicesModule;
@@ -28,9 +28,11 @@ exports.InvoicesModule = InvoicesModule = __decorate([
             typeorm_1.TypeOrmModule.forFeature([invoices_entity_1.InvoiceEntity, user_payment_gateway_entity_1.UserPaymentGatewayEntity]),
         ],
         providers: [
-            invoices_service_1.InvoicesService, PromptService_1.PromptService,
+            invoices_service_1.InvoicesService,
+            PromptService_1.PromptService,
             PdfService_1.PdfService,
-            EmailService_1.EmailService, GPTService_1.GPTService,
+            EmailService_1.EmailService,
+            GPTService_1.GPTService,
             chatgpt_service_1.ChatgptService,
             user_payment_gateway_service_1.UserPaymentGatewayService,
         ],

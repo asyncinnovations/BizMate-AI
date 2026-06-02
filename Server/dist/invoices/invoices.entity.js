@@ -9,8 +9,27 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.InvoiceEntity = void 0;
+exports.InvoiceEntity = exports.InvoiceSource = exports.InvoiceStatus = void 0;
 const typeorm_1 = require("typeorm");
+var InvoiceStatus;
+(function (InvoiceStatus) {
+    InvoiceStatus["DRAFT"] = "draft";
+    InvoiceStatus["SAVED"] = "saved";
+    InvoiceStatus["SENT"] = "sent";
+    InvoiceStatus["VIEWED"] = "viewed";
+    InvoiceStatus["PAID"] = "paid";
+    InvoiceStatus["UNPAID"] = "unpaid";
+    InvoiceStatus["OVERDUE"] = "overdue";
+    InvoiceStatus["ARCHIVED"] = "archived";
+})(InvoiceStatus || (exports.InvoiceStatus = InvoiceStatus = {}));
+var InvoiceSource;
+(function (InvoiceSource) {
+    InvoiceSource["MANUAL"] = "manual";
+    InvoiceSource["AI"] = "ai";
+    InvoiceSource["DUPLICATE"] = "duplicate";
+    InvoiceSource["TEMPLATE"] = "template";
+    InvoiceSource["RECURRING"] = "recurring";
+})(InvoiceSource || (exports.InvoiceSource = InvoiceSource = {}));
 let InvoiceEntity = class InvoiceEntity {
     id;
     uuid;
@@ -29,6 +48,8 @@ let InvoiceEntity = class InvoiceEntity {
     total;
     notes;
     status;
+    source;
+    activity_log;
     custom_fields;
     invoice_items;
     invoice_pdf;
@@ -105,9 +126,26 @@ __decorate([
     __metadata("design:type", String)
 ], InvoiceEntity.prototype, "notes", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "varchar", length: 50, default: "draft" }),
+    (0, typeorm_1.Column)({
+        type: "varchar",
+        length: 50,
+        default: InvoiceStatus.DRAFT,
+    }),
     __metadata("design:type", String)
 ], InvoiceEntity.prototype, "status", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        type: "varchar",
+        length: 50,
+        nullable: true,
+        default: InvoiceSource.MANUAL,
+    }),
+    __metadata("design:type", String)
+], InvoiceEntity.prototype, "source", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "jsonb", default: () => "'[]'", nullable: true }),
+    __metadata("design:type", Array)
+], InvoiceEntity.prototype, "activity_log", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "jsonb", default: () => "'[]'", nullable: true }),
     __metadata("design:type", Array)

@@ -24,6 +24,14 @@ export class TemplateEntity {
   @Column({ type: "text", nullable: true })
   description: string;
 
+  // Category for filtering: Finance, HR, Legal, Operations, Business
+  @Column({ type: "varchar", length: 100, nullable: true, default: null })
+  category: string;
+
+  // AI-generated template prompt (if template was created via AI)
+  @Column({ type: "text", nullable: true, default: null })
+  ai_prompt: string;
+
   @Column({ type: "jsonb", nullable: false })
   fields_schema: object;
 

@@ -6,7 +6,7 @@ export declare class TemplateFieldController {
     private validateTemplateField;
     create_template_field(body: Partial<TemplateFieldEntity>): Promise<{
         message: string;
-        response: TemplateFieldEntity;
+        response: any;
     }>;
     create_many_template_fields(template_id: string, fields: Partial<TemplateFieldEntity>[]): Promise<{
         message: string;

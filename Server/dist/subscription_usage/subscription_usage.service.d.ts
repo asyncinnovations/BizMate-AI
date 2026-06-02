@@ -19,5 +19,5 @@ export declare class SubscriptionUsageService {
         policyType?: "strict" | "fair_use" | "unlimited";
     }): Promise<void>;
     reset_usage_service(subscriptionId: string, usageKey?: string, periodType?: "daily" | "monthly" | "lifetime"): Promise<void>;
-    all_usage_for_subscription_service(subscriptionId: string, periodType?: "daily" | "monthly" | "lifetime"): Promise<SubscriptionUsage[]>;
+    all_usage_for_subscription_service(subscriptionId: string, periodType?: "daily" | "monthly" | "lifetime"): Promise<any>;
 }

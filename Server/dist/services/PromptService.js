@@ -101,6 +101,28 @@ let PromptService = class PromptService {
         }
         `;
     }
+    InvoiceInsightsAnalyser() {
+        return `
+      You are a financial intelligence engine for a business invoicing platform.
+      You will receive a JSON object containing an invoice and the customer's past payment history.
+
+      Your job is to analyse this data and return a JSON object with the following fields:
+
+      {
+        "payment_prediction_days": number,        // How many days from now you predict payment will arrive
+        "late_payment_risk_percent": number,       // A 0-100 risk score. 0 = no risk, 100 = almost certain late
+        "suggested_action": "string",              // One clear, human-friendly action the business should take
+        "client_payment_pattern": "string",        // One sentence describing how this client typically pays
+        "reminder_date": "YYYY-MM-DD"              // Recommended date to send a payment reminder
+      }
+
+      RULES:
+      1. If there is no payment history, use conservative defaults (30% risk, 14 days, generic advice).
+      2. Keep suggested_action short — one sentence, professional, no jargon.
+      3. Keep client_payment_pattern under 20 words.
+      4. RETURN ONLY RAW JSON. No explanation, no markdown, no code blocks.
+    `;
+    }
 };
 exports.PromptService = PromptService;
 exports.PromptService = PromptService = __decorate([
