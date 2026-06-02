@@ -18,8 +18,8 @@ export declare enum InvoiceSource {
 export declare class InvoiceEntity {
     id: number;
     uuid: string;
-    invoice_name: string;
-    invoice_type: string;
+    invoice_name: string | null;
+    invoice_type: string | null;
     user_id: string | null;
     invoice_number: string;
     customer_name: string;
@@ -40,7 +40,7 @@ export declare class InvoiceEntity {
     }[];
     custom_fields: object[];
     invoice_items: object[];
-    invoice_pdf: string;
+    invoice_pdf: string | null;
     created_at: Date;
     updated_at: Date;
 }

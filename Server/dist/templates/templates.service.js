@@ -15,8 +15,9 @@ var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TemplatesService = void 0;
 const common_1 = require("@nestjs/common");
-const typeorm_1 = require("@nestjs/typeorm");
-const typeorm_2 = require("typeorm");
+const typeorm_1 = require("typeorm");
+const typeorm_2 = require("@nestjs/typeorm");
+const typeorm_3 = require("typeorm");
 const templates_entity_1 = require("./templates.entity");
 let TemplatesService = class TemplatesService {
     templatesRepo;
@@ -43,11 +44,30 @@ let TemplatesService = class TemplatesService {
     async delete_template_service(id) {
         return this.templatesRepo.delete(id);
     }
+    async get_templates_by_category_service(category) {
+        return this.templatesRepo.find({
+            where: { category: (0, typeorm_1.ILike)(`%${category}%`), is_active: true },
+            order: { created_at: "ASC" },
+        });
+    }
+    async get_templates_filtered_service(filters) {
+        const where = { is_active: true };
+        if (filters.category)
+            where.category = (0, typeorm_1.ILike)(`%${filters.category}%`);
+        if (filters.is_prebuilt !== undefined)
+            where.is_prebuilt = filters.is_prebuilt;
+        if (filters.search)
+            where.template_name = (0, typeorm_1.ILike)(`%${filters.search}%`);
+        return this.templatesRepo.find({ where, order: { created_at: "ASC" } });
+    }
+    async ai_generate_template_schema_service(prompt) {
+        return { prompt };
+    }
 };
 exports.TemplatesService = TemplatesService;
 exports.TemplatesService = TemplatesService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_1.InjectRepository)(templates_entity_1.TemplateEntity)),
-    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _a : Object])
+    __param(0, (0, typeorm_2.InjectRepository)(templates_entity_1.TemplateEntity)),
+    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_3.Repository !== "undefined" && typeorm_3.Repository) === "function" ? _a : Object])
 ], TemplatesService);
 //# sourceMappingURL=templates.service.js.map

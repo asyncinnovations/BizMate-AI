@@ -16,16 +16,22 @@ exports.TemplatesController = void 0;
 const common_1 = require("@nestjs/common");
 const templates_service_1 = require("./templates.service");
 const PdfService_1 = require("../services/PdfService");
+const GPTService_1 = require("../services/GPTService");
+const PromptService_1 = require("../services/PromptService");
 const path_1 = require("path");
 const EmailService_1 = require("../services/EmailService");
 let TemplatesController = class TemplatesController {
     templatesService;
     pdfService;
     emailService;
-    constructor(templatesService, pdfService, emailService) {
+    gptService;
+    promptService;
+    constructor(templatesService, pdfService, emailService, gptService, promptService) {
         this.templatesService = templatesService;
         this.pdfService = pdfService;
         this.emailService = emailService;
+        this.gptService = gptService;
+        this.promptService = promptService;
     }
     async createTemplate(data, req) {
         if (!data.template_name || typeof data.template_name !== "string") {
@@ -153,6 +159,79 @@ let TemplatesController = class TemplatesController {
         const response = await this.emailService.send_email(body);
         return { message: "email send success", response };
     }
+    async get_templates_filtered(category, is_prebuilt, search) {
+        const filters = {};
+        if (category)
+            filters.category = category;
+        if (search)
+            filters.search = search;
+        if (is_prebuilt !== undefined) {
+            filters.is_prebuilt = is_prebuilt === "true";
+        }
+        const templates = await this.templatesService.get_templates_filtered_service(filters);
+        return { message: "Filtered templates retrieved", data: templates };
+    }
+    async ai_generate_template(body, req) {
+        if (!body.prompt) {
+            throw new common_1.BadRequestException("prompt is required.");
+        }
+        if (!body.user_id && !req.user?.uuid) {
+            throw new common_1.BadRequestException("user_id is required.");
+        }
+        const user_id = body.user_id || req.user?.uuid;
+        const system_prompt = `
+      You are a form schema designer for a business document platform.
+      The user will describe a document they need. Your job is to extract
+      the fields required to fill in that document template and return them as a JSON array.
+
+      Return ONLY this JSON array — no markdown, no explanation, no code blocks:
+      [
+        {
+          "field_name": "string",
+          "field_type": "text|email|date|number|textarea|select",
+          "placeholder": "string",
+          "required": boolean,
+          "options": ["string"] // only include if field_type is "select"
+        }
+      ]
+
+      RULES:
+      1. Include all fields a user would need to complete this document.
+      2. Always include: Parties (names, addresses), Effective Date, Governing Law/Jurisdiction.
+      3. Return ONLY raw JSON array — no markdown fences, no preamble.
+    `;
+        const gpt_response = await this.gptService.GPTChat(body.prompt, system_prompt);
+        let fields = [];
+        let fields_schema = {};
+        try {
+            const raw = gpt_response?.data?.content ?? "";
+            const cleaned = raw.replace(/```json|```/g, "").trim();
+            fields = JSON.parse(cleaned);
+            fields_schema = fields.reduce((acc, f) => {
+                acc[f.field_name] = f.field_value ?? "";
+                return acc;
+            }, {});
+        }
+        catch {
+            throw new common_1.BadRequestException("AI could not generate a template schema. Please try a more specific prompt.");
+        }
+        const template_data = {
+            template_name: body.template_name?.trim() || body.prompt.slice(0, 50).trim(),
+            description: body.prompt,
+            fields_schema,
+            user_id,
+            is_prebuilt: false,
+            is_active: true,
+            version: 1,
+            ai_prompt: body.prompt,
+        };
+        const saved_template = await this.templatesService.create_template_service(template_data);
+        return {
+            message: "AI template generated and saved successfully.",
+            template: saved_template,
+            fields,
+        };
+    }
 };
 exports.TemplatesController = TemplatesController;
 __decorate([
@@ -220,10 +299,31 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], TemplatesController.prototype, "send_template_to_email", null);
+__decorate([
+    (0, common_1.Get)("filtered"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Query)("category")),
+    __param(1, (0, common_1.Query)("is_prebuilt")),
+    __param(2, (0, common_1.Query)("search")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", Promise)
+], TemplatesController.prototype, "get_templates_filtered", null);
+__decorate([
+    (0, common_1.Post)("ai-generate"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], TemplatesController.prototype, "ai_generate_template", null);
 exports.TemplatesController = TemplatesController = __decorate([
     (0, common_1.Controller)("templates"),
     __metadata("design:paramtypes", [templates_service_1.TemplatesService,
         PdfService_1.PdfService,
-        EmailService_1.EmailService])
+        EmailService_1.EmailService,
+        GPTService_1.GPTService,
+        PromptService_1.PromptService])
 ], TemplatesController);
 //# sourceMappingURL=templates.controller.js.map

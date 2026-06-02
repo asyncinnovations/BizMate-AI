@@ -16,6 +16,8 @@ let TemplateEntity = class TemplateEntity {
     id;
     template_name;
     description;
+    category;
+    ai_prompt;
     fields_schema;
     user_id;
     is_prebuilt;
@@ -45,6 +47,14 @@ __decorate([
     (0, typeorm_1.Column)({ type: "text", nullable: true }),
     __metadata("design:type", String)
 ], TemplateEntity.prototype, "description", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", length: 100, nullable: true, default: null }),
+    __metadata("design:type", String)
+], TemplateEntity.prototype, "category", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "text", nullable: true, default: null }),
+    __metadata("design:type", String)
+], TemplateEntity.prototype, "ai_prompt", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "jsonb", nullable: false }),
     __metadata("design:type", Object)

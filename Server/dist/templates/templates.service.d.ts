@@ -9,4 +9,13 @@ export declare class TemplatesService {
     update_template_service(id: string, data: any): Promise<any>;
     user_template_service(user_id: string): Promise<any>;
     delete_template_service(id: string): Promise<any>;
+    get_templates_by_category_service(category: string): Promise<TemplateEntity[]>;
+    get_templates_filtered_service(filters: {
+        category?: string;
+        is_prebuilt?: boolean;
+        search?: string;
+    }): Promise<TemplateEntity[]>;
+    ai_generate_template_schema_service(prompt: string): Promise<{
+        prompt: string;
+    }>;
 }

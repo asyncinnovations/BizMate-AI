@@ -46,10 +46,10 @@ export class InvoiceEntity {
   uuid!: string;
 
   @Column({ type: "varchar", length: 255, nullable: true, default: null })
-  invoice_name!: string;
+  invoice_name!: string | null;
 
   @Column({ type: "varchar", length: 255, nullable: true, default: null })
-  invoice_type!: string;
+  invoice_type!: string | null;
 
   @Column({ type: "varchar", length: 255, nullable: true, default: null })
   user_id!: string | null;
@@ -117,7 +117,7 @@ export class InvoiceEntity {
   invoice_items!: object[];
 
   @Column({ type: "text", nullable: true })
-  invoice_pdf!: string;
+  invoice_pdf!: string | null;
 
   @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
   created_at!: Date;

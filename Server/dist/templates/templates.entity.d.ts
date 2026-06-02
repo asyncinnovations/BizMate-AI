@@ -3,6 +3,8 @@ export declare class TemplateEntity {
     id: number;
     template_name: string;
     description: string;
+    category: string;
+    ai_prompt: string;
     fields_schema: object;
     user_id: string;
     is_prebuilt: boolean;

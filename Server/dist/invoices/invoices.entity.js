@@ -71,11 +71,11 @@ __decorate([
 ], InvoiceEntity.prototype, "uuid", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: true, default: null }),
-    __metadata("design:type", String)
+    __metadata("design:type", Object)
 ], InvoiceEntity.prototype, "invoice_name", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: true, default: null }),
-    __metadata("design:type", String)
+    __metadata("design:type", Object)
 ], InvoiceEntity.prototype, "invoice_type", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: true, default: null }),
@@ -156,7 +156,7 @@ __decorate([
 ], InvoiceEntity.prototype, "invoice_items", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "text", nullable: true }),
-    __metadata("design:type", String)
+    __metadata("design:type", Object)
 ], InvoiceEntity.prototype, "invoice_pdf", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" }),
