@@ -471,7 +471,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       href: "/dashboard/invoicing",
       locked: !hasCapability("ai_invoice"),
     },
-
+    {
+     id: 3.5,                           // Slots between invoicing (3) and payroll (4)
+     label: "Quotations",
+     icon: FileSignature,
+     color: "text-amber-400",
+     href: "/dashboard/quotations",
+     locked: false,                      
+   },
     {
       id: 4,
       label: "AI Reminders",
