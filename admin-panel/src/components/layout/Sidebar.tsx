@@ -3,244 +3,178 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ADMIN_BASE_PATH } from "@/constants/admin";
 import { NAV_GROUPS } from "@/constants/nav";
 import { useUIStore } from "@/store/ui.store";
 import NavIcon from "@/components/ui/NavIcon";
-import { cn } from "@/lib/cn";
 
-// ─── Badge ────────────────────────────────────────────────────────────
-function Badge({
-  value,
-  variant = "default",
-  collapsed,
-}: {
+/* ─── Nav Badge ───────────────────────────────────────────────── */
+function NavBadge({ value, variant = "default", dot }: {
   value: string | number;
-  variant?: "default" | "alert" | "info";
-  collapsed: boolean;
+  variant?: "default" | "alert" | "info" | "warning";
+  dot?: boolean;
 }) {
-  const colors = {
-    default: { bg: "rgba(26,111,255,0.15)", color: "#6699ff", border: "rgba(26,111,255,0.25)" },
-    alert: { bg: "rgba(255,69,96,0.13)", color: "#ff6b80", border: "rgba(255,69,96,0.3)" },
-    info: { bg: "rgba(0,200,232,0.13)", color: "#00c8e8", border: "rgba(0,200,232,0.3)" },
+  const map = {
+    default: { bg: "rgba(59,130,246,0.12)", color: "#3B82F6" },
+    alert:   { bg: "rgba(239,68,68,0.12)",  color: "#EF4444" },
+    info:    { bg: "rgba(6,182,212,0.12)",   color: "#06B6D4" },
+    warning: { bg: "rgba(245,158,11,0.12)",  color: "#F59E0B" },
   };
-  const c = colors[variant];
-
-  if (collapsed) {
-    return (
-      <span
-        className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full"
-        style={{ background: c.color }}
-      />
-    );
-  }
-
+  const c = map[variant];
+  if (dot) return <span style={{ width:6, height:6, borderRadius:"50%", background:c.color, flexShrink:0 }} />;
   return (
-    <span
-      className="ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded-full leading-none"
-      style={{
-        background: c.bg,
-        color: c.color,
-        border: `1px solid ${c.border}`,
-        fontFamily: "var(--font-body)",
-      }}
-    >
+    <span style={{ marginLeft:"auto", fontSize:10, fontWeight:700, fontFamily:"var(--font-body)", lineHeight:1.2,
+      padding:"2px 6px", borderRadius:100, background:c.bg, color:c.color, flexShrink:0 }}>
       {value}
     </span>
   );
 }
 
-// ─── Sidebar ──────────────────────────────────────────────────────────
+/* ─── Sidebar ─────────────────────────────────────────────────── */
 export default function Sidebar() {
   const pathname = usePathname();
   const { sidebarCollapsed, toggleSidebar } = useUIStore();
 
-  const isActive = (href: string) => {
-    if (href === ADMIN_BASE_PATH) {
-      return pathname === ADMIN_BASE_PATH || pathname === `${ADMIN_BASE_PATH}/`;
-    }
-    return pathname === href || pathname.startsWith(`${href}/`);
-  };
+  const isActive = (href: string) =>
+    href === "/admin" ? (pathname === "/admin" || pathname === "/") : pathname.startsWith(href);
+
+  const W = sidebarCollapsed ? "var(--sidebar-sm)" : "var(--sidebar-w)";
 
   return (
-    <aside
-      className="relative flex h-screen flex-shrink-0 flex-col border-r border-[rgba(26,111,255,0.08)] bg-[var(--bg-panel)] shadow-[4px_0_32px_rgba(0,0,0,0.2)] transition-[width] duration-300 ease-in-out sticky top-0"
-      style={{
-        width: sidebarCollapsed ? "68px" : "260px",
-        zIndex: 40,
-      }}
-    >
-      <div
-        className="pointer-events-none absolute inset-y-0 right-0 w-px bg-gradient-to-b from-[#1a6fff]/25 via-transparent to-[#00c8e8]/15"
-        aria-hidden
-      />
+    <aside style={{
+      width: W, minWidth: W, maxWidth: W,
+      height: "100vh", position: "sticky", top: 0,
+      background: "var(--bg-panel)",
+      borderRight: "1.5px solid var(--border)",
+      display: "flex", flexDirection: "column",
+      transition: "width 0.25s cubic-bezier(0.4,0,0.2,1), min-width 0.25s cubic-bezier(0.4,0,0.2,1), max-width 0.25s cubic-bezier(0.4,0,0.2,1)",
+      overflow: "hidden", flexShrink: 0, zIndex: 40,
+    }}>
 
       {/* ── Logo ── */}
-      <div
-        className="flex h-16 flex-shrink-0 items-center gap-3 overflow-hidden border-b border-[var(--border)] px-4"
-      >
-        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#1a6fff]">
-          <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden>
-            <rect x="2" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.9" />
-            <rect x="10" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.55" />
-            <rect x="2" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.55" />
-            <rect x="10" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.9" />
+      <div style={{
+        height: "var(--header-h)", display: "flex", alignItems: "center",
+        padding: "0 14px", borderBottom: "1.5px solid var(--border)",
+        gap: 10, overflow: "hidden", flexShrink: 0,
+      }}>
+        <div style={{
+          width: 32, height: 32, borderRadius: 9, background: "var(--accent)",
+          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+          boxShadow: "0 2px 8px rgba(232,105,10,0.30)",
+        }}>
+          <svg width="17" height="17" viewBox="0 0 18 18" fill="none">
+            <rect x="2" y="2" width="6" height="6" rx="1.8" fill="white" opacity="0.95"/>
+            <rect x="10" y="2" width="6" height="6" rx="1.8" fill="white" opacity="0.55"/>
+            <rect x="2" y="10" width="6" height="6" rx="1.8" fill="white" opacity="0.55"/>
+            <rect x="10" y="10" width="6" height="6" rx="1.8" fill="white" opacity="0.95"/>
           </svg>
         </div>
         {!sidebarCollapsed && (
-          <div className="min-w-0">
-            <span className="font-display block truncate text-sm font-bold uppercase tracking-[0.2em] text-[var(--text-primary)]">
-              BIZMATE
-            </span>
-            <span className="mt-0.5 block truncate text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
-              Admin Console
-            </span>
+          <div style={{ overflow: "hidden", lineHeight: 1.2 }}>
+            <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 14,
+              color: "var(--text-primary)", letterSpacing: "-0.02em", whiteSpace: "nowrap" }}>
+              BizMate AI
+            </div>
+            <div style={{ fontFamily: "var(--font-body)", fontSize: 10.5, color: "var(--text-muted)", whiteSpace: "nowrap" }}>
+              Admin Panel
+            </div>
           </div>
         )}
       </div>
 
-      {/* ── Nav Groups ── */}
-      <nav className="flex-1 overflow-y-auto overflow-x-hidden py-4 space-y-5 scrollbar-none">
+      {/* ── Nav ── */}
+      <nav style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: "10px 0" }}
+        className="scrollbar-none">
         {NAV_GROUPS.map((group) => (
-          <div key={group.group}>
-            {/* Group label */}
-            {!sidebarCollapsed && (
-              <p
-                className="px-4 mb-1.5 text-[10px] font-semibold uppercase tracking-widest"
-                style={{ color: "var(--text-muted)", letterSpacing: "0.14em" }}
-              >
-                {group.group}
-              </p>
-            )}
-            {sidebarCollapsed && (
-              <div
-                className="mx-auto mb-1.5"
-                style={{
-                  width: "28px",
-                  height: "1px",
-                  background: "var(--border)",
-                }}
-              />
-            )}
+          <div key={group.group} style={{ marginBottom: 4 }}>
+            {/* Group header */}
+            {sidebarCollapsed
+              ? <div style={{ height: 1, background: "var(--border)", margin: "8px 14px" }} />
+              : <div style={{ padding: "6px 16px 4px", fontSize: 9.5, fontWeight: 700,
+                  color: "var(--text-faint)", letterSpacing: "0.12em", textTransform: "uppercase",
+                  fontFamily: "var(--font-body)" }}>
+                  {group.group}
+                </div>
+            }
 
-            {/* Nav items */}
-            <ul className="space-y-0.5 px-2">
+            {/* Items — plain div loop, no ul/li bullets */}
+            <div style={{ padding: "0 8px", display: "flex", flexDirection: "column", gap: 1 }}>
               {group.items.map((item) => {
                 const active = isActive(item.href);
                 return (
-                  <li key={item.key}>
-                    <Link
-                      href={item.href}
-                      title={sidebarCollapsed ? item.label : undefined}
-                      className={cn(
-                        "relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 group",
-                        "text-sm font-medium select-none"
-                      )}
-                      style={{
-                        color: active ? "#eef4ff" : "var(--text-secondary)",
-                        background: active
-                          ? "rgba(26,111,255,0.12)"
-                          : "transparent",
-                        border: `1px solid ${active ? "rgba(26,111,255,0.2)" : "transparent"}`,
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!active) {
-                          e.currentTarget.style.background =
-                            "rgba(255,255,255,0.04)";
-                          e.currentTarget.style.color = "#c8d8f0";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!active) {
-                          e.currentTarget.style.background = "transparent";
-                          e.currentTarget.style.color = "var(--text-secondary)";
-                        }
-                      }}
-                    >
-                      {/* Active left-bar indicator */}
-                      {active && (
-                        <span
-                          className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full"
-                          style={{ background: "#1a6fff" }}
-                        />
-                      )}
+                  <Link key={item.key} href={item.href}
+                    title={sidebarCollapsed ? item.label : undefined}
+                    style={{
+                      display: "flex", alignItems: "center",
+                      gap: 9, padding: "7px 10px",
+                      borderRadius: 8, position: "relative",
+                      textDecoration: "none", userSelect: "none",
+                      background: active ? "var(--accent-dim)" : "transparent",
+                      color: active ? "var(--accent)" : "var(--text-secondary)",
+                      border: `1.5px solid ${active ? "var(--accent-border)" : "transparent"}`,
+                      fontFamily: "var(--font-body)", fontSize: 13, fontWeight: active ? 600 : 500,
+                      transition: "background 0.12s, color 0.12s, border-color 0.12s",
+                      whiteSpace: "nowrap", overflow: "hidden",
+                      minWidth: 0,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!active) {
+                        e.currentTarget.style.background = "var(--bg-hover)";
+                        e.currentTarget.style.color = "var(--text-primary)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!active) {
+                        e.currentTarget.style.background = "transparent";
+                        e.currentTarget.style.color = "var(--text-secondary)";
+                      }
+                    }}
+                  >
+                    {/* Active pill */}
+                    {active && (
+                      <span style={{
+                        position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)",
+                        width: 3, height: 18, borderRadius: "0 3px 3px 0",
+                        background: "var(--accent)",
+                      }} />
+                    )}
 
-                      {/* Icon */}
-                      <NavIcon
-                        name={item.icon}
-                        size={18}
-                        style={{
-                          color: active ? "#1a6fff" : "currentColor",
-                          flexShrink: 0,
-                        }}
-                      />
+                    <NavIcon name={item.icon} size={15}
+                      style={{ flexShrink: 0, color: "currentColor", opacity: active ? 1 : 0.75 }} />
 
-                      {/* Label */}
-                      {!sidebarCollapsed && (
-                        <span
-                          className="truncate"
-                          style={{ fontFamily: "var(--font-body)", fontSize: "13px" }}
-                        >
-                          {item.label}
-                        </span>
-                      )}
+                    {!sidebarCollapsed && (
+                      <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {item.label}
+                      </span>
+                    )}
 
-                      {/* Badge */}
-                      {item.badge !== undefined &&
-                        (sidebarCollapsed ? (
-                          <Badge
-                            value={item.badge}
-                            variant={item.badgeVariant}
-                            collapsed
-                          />
-                        ) : (
-                          <Badge
-                            value={item.badge}
-                            variant={item.badgeVariant}
-                            collapsed={false}
-                          />
-                        ))}
-                    </Link>
-                  </li>
+                    {item.badge !== undefined && (
+                      <NavBadge value={item.badge} variant={item.badgeVariant}
+                        dot={sidebarCollapsed} />
+                    )}
+                  </Link>
                 );
               })}
-            </ul>
+            </div>
           </div>
         ))}
       </nav>
 
-      {/* ── Collapse Toggle ── */}
-      <div
-        className="flex-shrink-0 px-2 py-3"
-        style={{ borderTop: "1px solid var(--border)" }}
-      >
-        <button
-          onClick={toggleSidebar}
-          className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg",
-            "text-sm transition-all duration-150"
-          )}
-          style={{ color: "var(--text-muted)" }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(255,255,255,0.04)";
-            e.currentTarget.style.color = "var(--text-secondary)";
+      {/* ── Collapse toggle ── */}
+      <div style={{ borderTop: "1.5px solid var(--border)", padding: "8px" }}>
+        <button onClick={toggleSidebar}
+          style={{
+            width: "100%", display: "flex", alignItems: "center", gap: 9,
+            padding: "7px 10px", borderRadius: 8, border: "none", background: "transparent",
+            cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 13, fontWeight: 500,
+            color: "var(--text-muted)", transition: "background 0.12s, color 0.12s",
           }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.color = "var(--text-muted)";
-          }}
-          title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-hover)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-muted)"; }}
+          title={sidebarCollapsed ? "Expand" : "Collapse"}
         >
-          <NavIcon
-            name={sidebarCollapsed ? "expand" : "collapse"}
-            size={17}
-            style={{ flexShrink: 0 }}
-          />
-          {!sidebarCollapsed && (
-            <span style={{ fontFamily: "var(--font-body)", fontSize: "13px" }}>
-              Collapse
-            </span>
-          )}
+          <NavIcon name={sidebarCollapsed ? "expand" : "collapse"} size={15}
+            style={{ flexShrink: 0, opacity: 0.65 }} />
+          {!sidebarCollapsed && <span>Collapse</span>}
         </button>
       </div>
     </aside>

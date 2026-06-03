@@ -1,126 +1,94 @@
-import { cn } from "@/lib/cn";
+"use client";
 
-const ORBIT_RINGS = [
-  { size: 300, duration: 52, reverse: true },
-  { size: 244, duration: 38, reverse: false },
-  { size: 188, duration: 30, reverse: true },
-  { size: 132, duration: 22, reverse: false },
-] as const;
+import React from "react";
 
-function OrbitGraphic() {
+export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="relative mx-auto h-[min(340px,38vh)] w-full max-w-[360px]"
-      aria-hidden="true"
+      className="min-h-screen flex"
+      style={{ background: "var(--bg-canvas)", fontFamily: "var(--font-body)" }}
     >
-      <div className="absolute inset-0 flex items-center justify-center">
-        {ORBIT_RINGS.map((ring, i) => (
-          <div
-            key={ring.size}
-            className="pointer-events-none absolute left-1/2 top-1/2 rounded-full border border-[#1a6fff]/22"
-            style={{
-              width: ring.size,
-              height: ring.size,
-              marginLeft: -(ring.size / 2),
-              marginTop: -(ring.size / 2),
-              animation: `${ring.reverse ? "orbit-spin-reverse" : "orbit-spin"} ${ring.duration}s linear infinite`,
-            }}
-          >
-            <span
-              className={cn(
-                "absolute left-1/2 top-0 block h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full",
-                i % 2 === 0
-                  ? "bg-[#1a6fff] shadow-[0_0_14px_rgba(26,111,255,0.95)]"
-                  : "bg-[#22d4ee] shadow-[0_0_12px_rgba(34,212,238,0.9)]"
-              )}
-            />
-          </div>
-        ))}
+      {/* Left Panel */}
+      <div
+        className="hidden lg:flex flex-col justify-between w-2/5 p-10 relative overflow-hidden"
+        style={{ background: "var(--accent)" }}
+      >
+        {/* Pattern */}
+        <div className="absolute inset-0" style={{
+          backgroundImage: "radial-gradient(circle at 20% 80%, rgba(255,255,255,0.08) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.06) 0%, transparent 40%)",
+        }} />
+        <div className="absolute bottom-0 right-0 w-64 h-64 rounded-full" style={{
+          background: "rgba(255,255,255,0.06)",
+          transform: "translate(30%, 30%)",
+        }} />
+        <div className="absolute top-1/4 -left-16 w-48 h-48 rounded-full" style={{
+          background: "rgba(255,255,255,0.05)",
+        }} />
 
-        <div className="pointer-events-none absolute left-1/2 top-1/2 z-[1] h-[5.5rem] w-[5.5rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#1a6fff]/20 blur-3xl" />
-        <div className="pointer-events-none absolute left-1/2 top-1/2 z-[2] h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#f0f6ff] shadow-[0_0_22px_8px_rgba(26,111,255,0.95)]" />
+        {/* Logo */}
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(255,255,255,0.2)", backdropFilter: "blur(10px)" }}>
+            <svg width="20" height="20" viewBox="0 0 18 18" fill="none">
+              <rect x="2" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.95" />
+              <rect x="10" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.55" />
+              <rect x="2" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.55" />
+              <rect x="10" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.95" />
+            </svg>
+          </div>
+          <div>
+            <p className="font-bold text-white text-sm" style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.01em" }}>BizMate AI</p>
+            <p className="text-xs" style={{ color: "rgba(255,255,255,0.65)" }}>Admin Panel</p>
+          </div>
+        </div>
+
+        {/* Tagline */}
+        <div className="relative z-10">
+          <h1 className="text-3xl font-bold text-white mb-3 leading-tight" style={{ fontFamily: "var(--font-display)" }}>
+            Your platform.<br />Your control.
+          </h1>
+          <p style={{ color: "rgba(255,255,255,0.75)", fontSize: "14px", lineHeight: 1.6 }}>
+            Manage users, monitor AI usage, control subscriptions and configure the entire BizMate platform from one place.
+          </p>
+
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-4 mt-8">
+            {[
+              { label: "Businesses",   value: "1,840+" },
+              { label: "Users",        value: "14k+"  },
+              { label: "AI Tokens/mo", value: "2.7M"  },
+            ].map((s) => (
+              <div key={s.label} className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.12)" }}>
+                <p className="text-lg font-bold text-white" style={{ fontFamily: "var(--font-display)" }}>{s.value}</p>
+                <p className="text-xs" style={{ color: "rgba(255,255,255,0.65)" }}>{s.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="relative z-10">
+          <p className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
+            © {new Date().getFullYear()} Async Innovations · BizMate AI
+          </p>
+        </div>
       </div>
-    </div>
-  );
-}
 
-const FEATURE_PILLS = [
-  "Workflow Automation",
-  "Compliance Engine",
-  "AI Advisory",
-] as const;
-
-export default function AuthLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="min-h-screen bg-black text-[var(--text-primary)]">
-      <div className="mx-auto grid min-h-screen w-full max-w-[1600px] grid-cols-1 lg:grid-cols-[minmax(0,1.14fr)_minmax(0,0.86fr)]">
-        <aside className="relative hidden min-h-screen flex-col bg-[#060b16] lg:flex">
-          <div className="absolute inset-0 bg-dot-grid opacity-[0.38]" />
-          <div className="pointer-events-none absolute left-[6%] top-[18%] h-[420px] w-[420px] rounded-full bg-[rgba(26,111,255,0.07)] blur-[110px]" />
-          <div className="pointer-events-none absolute bottom-[8%] right-[5%] h-[320px] w-[320px] rounded-full bg-[rgba(0,200,232,0.06)] blur-[100px]" />
-
-          <div className="relative z-10 flex min-h-0 flex-1 flex-col px-10 pb-12 pt-10 xl:px-14">
-            <div className="flex shrink-0 items-center gap-3">
-              <div className="grid h-10 w-10 grid-cols-2 gap-1 rounded-xl bg-[#1a6fff] p-2">
-                <span className="rounded-[3px] bg-white/95" />
-                <span className="rounded-[3px] bg-white/65" />
-                <span className="rounded-[3px] bg-white/65" />
-                <span className="rounded-[3px] bg-white/95" />
-              </div>
-              <span className="font-display text-xl font-bold tracking-[0.2em] text-white">
-                BIZMATE
-              </span>
+      {/* Right Panel — Form */}
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="w-full max-w-sm">
+          {/* Mobile logo */}
+          <div className="lg:hidden flex items-center gap-2.5 mb-8">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "var(--accent)" }}>
+              <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+                <rect x="2" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.95" />
+                <rect x="10" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.55" />
+                <rect x="2" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.55" />
+                <rect x="10" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.95" />
+              </svg>
             </div>
-
-            <div className="flex min-h-0 flex-1 flex-col justify-center py-10">
-              <OrbitGraphic />
-            </div>
-
-            <div className="mt-auto shrink-0 space-y-5">
-              <h1 className="font-display text-4xl font-bold leading-[1.1] tracking-tight text-white xl:text-[2.75rem]">
-                Intelligent Business
-                <br />
-                <span className="text-[#4da3ff]">at Scale.</span>
-              </h1>
-              <p className="max-w-lg text-base leading-relaxed text-[#8aa4c4]">
-                One operating system for workflow automation, compliance management,
-                and AI-powered advisory.
-              </p>
-              <div className="flex flex-wrap gap-3">
-                {FEATURE_PILLS.map((item) => (
-                  <span
-                    key={item}
-                    className="inline-flex items-center gap-2 rounded-full border border-[#1a6fff]/35 bg-[#050a14]/80 px-4 py-2 text-sm text-[#c6d9ff] backdrop-blur-sm"
-                  >
-                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#1a6fff] shadow-[0_0_8px_#1a6fff]" />
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
+            <span className="font-bold text-sm" style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)" }}>BizMate AI Admin</span>
           </div>
-        </aside>
-
-        <main className="relative flex min-h-screen items-center justify-center bg-black px-6 py-10 sm:px-10 lg:px-12 xl:px-16">
-          <div className="relative w-full max-w-[400px]">
-            <div className="mb-10 flex items-center gap-3 lg:hidden">
-              <div className="grid h-9 w-9 grid-cols-2 gap-1 rounded-xl bg-[#1a6fff] p-2">
-                <span className="rounded-[3px] bg-white/95" />
-                <span className="rounded-[3px] bg-white/65" />
-                <span className="rounded-[3px] bg-white/65" />
-                <span className="rounded-[3px] bg-white/95" />
-              </div>
-              <span className="font-display text-lg font-bold tracking-[0.18em] text-white">
-                BIZMATE
-              </span>
-            </div>
-            {children}
-          </div>
-        </main>
+          {children}
+        </div>
       </div>
     </div>
   );

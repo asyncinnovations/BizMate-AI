@@ -12,20 +12,28 @@ interface AdminShellProps {
 export default function AdminShell({ children }: AdminShellProps) {
   return (
     <div
-      className="flex h-screen min-h-0 overflow-hidden bg-[var(--bg-canvas)]"
-      style={{ fontFamily: "var(--font-body)" }}
+      className="flex h-screen overflow-hidden"
+      style={{ background: "var(--bg-canvas)", fontFamily: "var(--font-body)" }}
     >
+      {/* Sidebar */}
       <Sidebar />
 
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+      {/* Main column */}
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+        {/* Header */}
         <Header />
 
+        {/* Scrollable content area */}
         <main
-          className="relative min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-[var(--bg-canvas)]"
+          className="flex-1 overflow-y-auto overflow-x-hidden"
+          style={{ background: "var(--bg-canvas)" }}
           id="main-content"
         >
-          <div className="flex min-h-full flex-col">
-            <div className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</div>
+          <div className="min-h-full flex flex-col">
+            {/* Page content */}
+            <div className="flex-1 p-6">{children}</div>
+
+            {/* Footer pinned to bottom of scroll content */}
             <Footer />
           </div>
         </main>

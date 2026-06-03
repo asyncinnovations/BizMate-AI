@@ -1,309 +1,110 @@
-// "use client";
+"use client";
+import React, { useState, useEffect } from "react";
+import type { Plan, PlanTier, BillingCycle } from "@/modules/subscriptions/types";
 
-// import React, { useState, useEffect } from "react";
-// import type { Plan, PlanTier, BillingCycle } from "@/modules/subscriptions/types";
-// import { cn } from "@/lib/cn";
+interface Props { open:boolean; plan?:Plan|null; onClose:()=>void; onSave:(d:Partial<Plan>)=>void; }
 
-// interface PlanFormModalProps {
-//   open: boolean;
-//   plan?: Plan | null; // null = create new
-//   onClose: () => void;
-//   onSave: (data: Partial<Plan>) => void;
-// }
+const EMPTY = { name:"", tier:"pro" as PlanTier, monthlyPrice:0, annualPrice:0,
+  description:"", trialDays:14, limits:{ users:10, aiCredits:50000, documents:"unlimited" as number|"unlimited", businesses:1, storage:"10 GB" } };
 
-// const EMPTY_FORM = {
-//   name: "",
-//   tier: "pro" as PlanTier,
-//   monthlyPrice: 0,
-//   annualPrice: 0,
-//   description: "",
-//   trialDays: 14,
-//   limits: {
-//     users: 10,
-//     aiCredits: 50000,
-//     documents: "unlimited" as number | "unlimited",
-//     businesses: 1,
-//     storage: "10 GB",
-//   },
-// };
+export default function PlanFormModal({ open, plan, onClose, onSave }: Props) {
+  const [form, setForm] = useState(EMPTY);
+  const set = (k:string,v:unknown) => setForm(f=>({...f,[k]:v}));
+  const setLimit = (k:string,v:unknown) => setForm(f=>({...f,limits:{...f.limits,[k]:v}}));
 
-// export default function PlanFormModal({ open, plan, onClose, onSave }: PlanFormModalProps) {
-//   const [form, setForm] = useState(EMPTY_FORM);
-//   const [saving, setSaving] = useState(false);
+  useEffect(() => {
+    if (plan) setForm({ name:plan.name, tier:plan.tier, monthlyPrice:plan.monthlyPrice,
+      annualPrice:plan.annualPrice, description:plan.description, trialDays:plan.trialDays,
+      limits:{...plan.limits} as typeof EMPTY["limits"] });
+    else setForm(EMPTY);
+  }, [plan, open]);
 
-//   useEffect(() => {
-//     if (plan) {
-//       setForm({
-//         name: plan.name,
-//         tier: plan.tier,
-//         monthlyPrice: plan.monthlyPrice,
-//         annualPrice: plan.annualPrice,
-//         description: plan.description,
-//         trialDays: plan.trialDays,
-//         limits: { ...plan.limits } as typeof EMPTY_FORM["limits"],
-//       });
-//     } else {
-//       setForm(EMPTY_FORM);
-//     }
-//   }, [plan, open]);
+  if (!open) return null;
 
-//   async function handleSave() {
-//     setSaving(true);
-//     await new Promise((r) => setTimeout(r, 800)); // simulate API call
-//     onSave(form);
-//     setSaving(false);
-//     onClose();
-//   }
+  const labelSt: React.CSSProperties = {
+    display:"block",fontSize:11,fontWeight:700,color:"var(--text-secondary)",
+    marginBottom:5,textTransform:"uppercase",letterSpacing:"0.06em",
+  };
+  const TIER_COLORS: Record<PlanTier,string> = { starter:"#64748B",pro:"#3B82F6",enterprise:"var(--accent)",custom:"#8B5CF6" };
 
-//   if (!open) return null;
+  return (
+    <div style={{position:"fixed",inset:0,zIndex:50,display:"flex",alignItems:"center",justifyContent:"center",
+      background:"rgba(15,23,42,0.40)",backdropFilter:"blur(3px)",padding:16}} onClick={onClose}>
+      <div style={{width:"100%",maxWidth:560,background:"var(--bg-panel)",border:"1.5px solid var(--border)",
+        borderRadius:"var(--radius-xl)",boxShadow:"var(--shadow-xl)",maxHeight:"92vh",
+        display:"flex",flexDirection:"column"}} onClick={e=>e.stopPropagation()}>
 
-//   const isEdit = !!plan;
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",
+          padding:"18px 22px",borderBottom:"1.5px solid var(--border)",flexShrink:0}}>
+          <div style={{fontFamily:"var(--font-display)",fontWeight:700,fontSize:16,color:"var(--text-primary)"}}>
+            {plan ? "Edit Plan" : "Create New Plan"}
+          </div>
+          <button onClick={onClose} style={{width:30,height:30,borderRadius:8,border:"1.5px solid var(--border)",
+            background:"var(--bg-raised)",cursor:"pointer",fontSize:14,color:"var(--text-muted)"}}>✕</button>
+        </div>
 
-//   const inputStyle: React.CSSProperties = {
-//     background: "var(--bg-raised)",
-//     border: "1px solid var(--border)",
-//     borderRadius: "8px",
-//     color: "var(--text-primary)",
-//     padding: "8px 12px",
-//     fontSize: "12.5px",
-//     fontFamily: "var(--font-body)",
-//     outline: "none",
-//     width: "100%",
-//   };
+        <div style={{padding:"20px 22px",overflowY:"auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+          <div style={{gridColumn:"1/-1"}}>
+            <label style={labelSt}>Plan Name *</label>
+            <input value={form.name} onChange={e=>set("name",e.target.value)} className="input-base" placeholder="e.g. Professional"/>
+          </div>
+          <div>
+            <label style={labelSt}>Tier</label>
+            <div style={{display:"flex",gap:6}}>
+              {(["starter","pro","enterprise"] as PlanTier[]).map(t=>(
+                <button key={t} onClick={()=>set("tier",t)}
+                  style={{flex:1,padding:"8px",borderRadius:7,fontSize:12,fontWeight:600,cursor:"pointer",
+                    border:`1.5px solid ${form.tier===t?`${TIER_COLORS[t]}44`:"var(--border)"}`,
+                    background:form.tier===t?`${TIER_COLORS[t]}12`:"var(--bg-raised)",
+                    color:form.tier===t?TIER_COLORS[t]:"var(--text-secondary)",
+                    textTransform:"capitalize",transition:"all 0.12s"}}>
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label style={labelSt}>Trial Days</label>
+            <input type="number" min={0} value={form.trialDays} onChange={e=>set("trialDays",Number(e.target.value))} className="input-base"/>
+          </div>
+          <div>
+            <label style={labelSt}>Monthly Price ($)</label>
+            <input type="number" min={0} value={form.monthlyPrice} onChange={e=>set("monthlyPrice",Number(e.target.value))} className="input-base"/>
+          </div>
+          <div>
+            <label style={labelSt}>Annual Price ($/mo)</label>
+            <input type="number" min={0} value={form.annualPrice} onChange={e=>set("annualPrice",Number(e.target.value))} className="input-base"/>
+          </div>
+          <div style={{gridColumn:"1/-1"}}>
+            <label style={labelSt}>Description</label>
+            <textarea value={form.description} onChange={e=>set("description",e.target.value)}
+              className="input-base" style={{resize:"vertical",minHeight:60}} placeholder="Plan description…"/>
+          </div>
+          <div style={{gridColumn:"1/-1",borderTop:"1.5px solid var(--border)",paddingTop:14}}>
+            <div style={{fontSize:11,fontWeight:700,color:"var(--text-secondary)",textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:10}}>Usage Limits</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+              {[{label:"Max Users",key:"users"},{label:"AI Credits",key:"aiCredits"},
+                {label:"Documents",key:"documents"},{label:"Storage",key:"storage"}].map(f=>(
+                <div key={f.key}>
+                  <label style={labelSt}>{f.label}</label>
+                  <input value={(form.limits as Record<string,unknown>)[f.key] as string}
+                    onChange={e=>setLimit(f.key, f.key==="storage"?e.target.value:
+                      e.target.value==="unlimited"?"unlimited":Number(e.target.value))}
+                    className="input-base" placeholder="e.g. 10 or unlimited"/>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
-//   const labelStyle: React.CSSProperties = {
-//     fontSize: "11px",
-//     fontWeight: 600,
-//     color: "var(--text-secondary)",
-//     display: "block",
-//     marginBottom: "5px",
-//     fontFamily: "var(--font-body)",
-//     textTransform: "uppercase",
-//     letterSpacing: "0.06em",
-//   };
-
-//   return (
-//     <div
-//       className="fixed inset-0 z-50 flex"
-//       style={{ background: "rgba(4,9,18,0.75)", backdropFilter: "blur(8px)" }}
-//       onClick={onClose}
-//     >
-//       {/* Slide-over panel */}
-//       <div
-//         className="ml-auto h-full w-full max-w-lg flex flex-col shadow-2xl overflow-hidden"
-//         style={{ background: "var(--bg-panel)", borderLeft: "1px solid var(--border)" }}
-//         onClick={(e) => e.stopPropagation()}
-//       >
-//         {/* Header */}
-//         <div
-//           className="flex items-center justify-between px-6 py-4 flex-shrink-0"
-//           style={{ borderBottom: "1px solid var(--border)" }}
-//         >
-//           <div>
-//             <h2
-//               className="text-base font-bold"
-//               style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)" }}
-//             >
-//               {isEdit ? `Edit ${plan.name}` : "Create New Plan"}
-//             </h2>
-//             <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
-//               {isEdit ? "Update plan details and pricing." : "Configure and publish a new subscription plan."}
-//             </p>
-//           </div>
-//           <button
-//             onClick={onClose}
-//             className="w-8 h-8 rounded-lg flex items-center justify-center"
-//             style={{ background: "rgba(255,255,255,0.06)", border: "1px solid var(--border)", color: "var(--text-muted)" }}
-//           >
-//             <svg width="13" height="13" viewBox="0 0 12 12" fill="none">
-//               <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-//             </svg>
-//           </button>
-//         </div>
-
-//         {/* Scrollable body */}
-//         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-//           {/* Basic Info */}
-//           <div>
-//             <p
-//               className="text-xs font-semibold mb-3 uppercase tracking-wider"
-//               style={{ color: "var(--text-muted)" }}
-//             >
-//               Plan Details
-//             </p>
-//             <div className="space-y-3">
-//               <div>
-//                 <label style={labelStyle}>Plan Name</label>
-//                 <input
-//                   style={inputStyle}
-//                   value={form.name}
-//                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-//                   placeholder="e.g. Pro, Enterprise, Custom"
-//                 />
-//               </div>
-//               <div>
-//                 <label style={labelStyle}>Tier</label>
-//                 <select
-//                   style={{ ...inputStyle, cursor: "pointer" }}
-//                   value={form.tier}
-//                   onChange={(e) => setForm((f) => ({ ...f, tier: e.target.value as PlanTier }))}
-//                 >
-//                   <option value="starter">Starter</option>
-//                   <option value="pro">Pro</option>
-//                   <option value="enterprise">Enterprise</option>
-//                   <option value="custom">Custom</option>
-//                 </select>
-//               </div>
-//               <div>
-//                 <label style={labelStyle}>Description</label>
-//                 <textarea
-//                   style={{ ...inputStyle, resize: "vertical", minHeight: "72px" }}
-//                   value={form.description}
-//                   onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-//                   placeholder="Brief plan description shown to customers"
-//                 />
-//               </div>
-//             </div>
-//           </div>
-
-//           {/* Pricing */}
-//           <div>
-//             <p className="text-xs font-semibold mb-3 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-//               Pricing (USD)
-//             </p>
-//             <div className="grid grid-cols-2 gap-3">
-//               <div>
-//                 <label style={labelStyle}>Monthly Price</label>
-//                 <div className="relative">
-//                   <span
-//                     className="absolute left-3 top-1/2 -translate-y-1/2 text-sm"
-//                     style={{ color: "var(--text-muted)" }}
-//                   >
-//                     $
-//                   </span>
-//                   <input
-//                     type="number"
-//                     style={{ ...inputStyle, paddingLeft: "20px" }}
-//                     value={form.monthlyPrice}
-//                     onChange={(e) => setForm((f) => ({ ...f, monthlyPrice: Number(e.target.value) }))}
-//                   />
-//                 </div>
-//               </div>
-//               <div>
-//                 <label style={labelStyle}>Annual Price / mo</label>
-//                 <div className="relative">
-//                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: "var(--text-muted)" }}>$</span>
-//                   <input
-//                     type="number"
-//                     style={{ ...inputStyle, paddingLeft: "20px" }}
-//                     value={form.annualPrice}
-//                     onChange={(e) => setForm((f) => ({ ...f, annualPrice: Number(e.target.value) }))}
-//                   />
-//                 </div>
-//               </div>
-//             </div>
-//             <p className="text-[10.5px] mt-1.5" style={{ color: "var(--text-muted)" }}>
-//               Annual price is billed as {form.annualPrice > 0 ? `$${form.annualPrice * 12}/year` : "—"}.
-//               {form.monthlyPrice > 0 && form.annualPrice > 0 &&
-//                 ` Saves ${Math.round(((form.monthlyPrice - form.annualPrice) / form.monthlyPrice) * 100)}%.`}
-//             </p>
-//           </div>
-
-//           {/* Limits */}
-//           <div>
-//             <p className="text-xs font-semibold mb-3 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-//               Plan Limits
-//             </p>
-//             <div className="grid grid-cols-2 gap-3">
-//               {[
-//                 { key: "users", label: "Max Users" },
-//                 { key: "aiCredits", label: "AI Credits / mo" },
-//                 { key: "trialDays", label: "Trial Days" },
-//               ].map(({ key, label }) => (
-//                 <div key={key}>
-//                   <label style={labelStyle}>{label}</label>
-//                   <input
-//                     type="number"
-//                     style={inputStyle}
-//                     value={key === "trialDays" ? form.trialDays : (form.limits as Record<string, number | string>)[key]}
-//                     onChange={(e) => {
-//                       const val = Number(e.target.value);
-//                       if (key === "trialDays") {
-//                         setForm((f) => ({ ...f, trialDays: val }));
-//                       } else {
-//                         setForm((f) => ({
-//                           ...f,
-//                           limits: { ...f.limits, [key]: val },
-//                         }));
-//                       }
-//                     }}
-//                   />
-//                 </div>
-//               ))}
-//               <div>
-//                 <label style={labelStyle}>Storage</label>
-//                 <input
-//                   style={inputStyle}
-//                   value={form.limits.storage}
-//                   onChange={(e) =>
-//                     setForm((f) => ({ ...f, limits: { ...f.limits, storage: e.target.value } }))
-//                   }
-//                   placeholder="e.g. 10 GB"
-//                 />
-//               </div>
-//             </div>
-//           </div>
-
-//           {/* Discount info */}
-//           <div
-//             className="rounded-xl px-4 py-3 flex items-start gap-3"
-//             style={{ background: "rgba(26,111,255,0.06)", border: "1px solid rgba(26,111,255,0.16)" }}
-//           >
-//             <svg width="14" height="14" viewBox="0 0 20 20" fill="none" className="flex-shrink-0 mt-0.5">
-//               <circle cx="10" cy="10" r="7.5" stroke="#1a6fff" strokeWidth="1.5" />
-//               <path d="M10 9v4M10 7v.5" stroke="#1a6fff" strokeWidth="1.5" strokeLinecap="round" />
-//             </svg>
-//             <p className="text-[10.5px] leading-relaxed" style={{ color: "#6699ff" }}>
-//               Features and per-feature limits are configurable after saving. This form sets pricing, tier, and usage caps.
-//             </p>
-//           </div>
-//         </div>
-
-//         {/* Footer */}
-//         <div
-//           className="flex gap-3 px-6 py-4 flex-shrink-0"
-//           style={{ borderTop: "1px solid var(--border)" }}
-//         >
-//           <button
-//             onClick={onClose}
-//             className="flex-1 py-2.5 rounded-xl text-sm font-medium"
-//             style={{
-//               background: "var(--bg-raised)",
-//               border: "1px solid var(--border)",
-//               color: "var(--text-secondary)",
-//               fontFamily: "var(--font-body)",
-//             }}
-//           >
-//             Cancel
-//           </button>
-//           <button
-//             onClick={handleSave}
-//             disabled={saving || !form.name}
-//             className={cn(
-//               "flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all",
-//               (saving || !form.name) && "opacity-60 cursor-not-allowed"
-//             )}
-//             style={{
-//               background: "linear-gradient(135deg,#1a6fff,#0f52cc)",
-//               color: "#fff",
-//               fontFamily: "var(--font-body)",
-//               boxShadow: "0 4px 16px rgba(26,111,255,0.3)",
-//             }}
-//           >
-//             {saving ? "Saving…" : isEdit ? "Save Changes" : "Create Plan"}
-//           </button>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
+        <div style={{display:"flex",justifyContent:"flex-end",gap:10,padding:"14px 22px",
+          borderTop:"1.5px solid var(--border)",flexShrink:0}}>
+          <button onClick={onClose} className="btn btn-secondary">Cancel</button>
+          <button onClick={()=>{onSave(form);onClose();}} className="btn btn-primary">
+            {plan?"Save Changes":"Create Plan"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

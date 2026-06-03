@@ -124,6 +124,44 @@ const ICONS: Record<string, React.FC<{ size: number }>> = {
       <path d="M13 13l4-3-4-3M7 10h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
+  invoicing: ({ size }) => (
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
+      <path d="M4 3h12a1 1 0 011 1v13l-2.5-1.5L12 17l-2.5-1.5L7 17l-2.5-1.5L2 17V4a1 1 0 012-1z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M7 8h6M7 11h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  ),
+  filter: ({ size }) => (
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
+      <path d="M3 5h14M6 10h8M9 15h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  ),
+  export: ({ size }) => (
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
+      <path d="M10 3v9M7 9l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M4 14v2a1 1 0 001 1h10a1 1 0 001-1v-2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  ),
+  plus: ({ size }) => (
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
+      <path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  ),
+  edit: ({ size }) => (
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
+      <path d="M13 3l4 4-9.5 9.5H3v-4L13 3z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+    </svg>
+  ),
+  trash: ({ size }) => (
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
+      <path d="M4 6h12M8 6V4h4v2M7 6l1 10h4l1-10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  eye: ({ size }) => (
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
+      <path d="M2 10s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="10" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  ),
 };
 
 export default function NavIcon({ name, size = 18, className, style }: NavIconProps) {

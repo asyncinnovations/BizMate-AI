@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import "./globals.css";
+import "@/styles/globals.css";
 
 export const metadata: Metadata = {
   title: "Bizmate Admin",
@@ -12,10 +12,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark"> {/* default = dark */}
-      <body className="min-h-screen bg-[var(--bg-canvas)] text-[var(--text-primary)] antialiased">
-        {children}
-      </body>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/*
+          Fonts are loaded via @import in globals.css (Syne + Outfit from Google Fonts).
+          If you prefer next/font/google, remove the @import from globals.css and
+          add the font variables here via className on <body>.
+        */}
+      </head>
+      <body>{children}</body>
     </html>
   );
 }

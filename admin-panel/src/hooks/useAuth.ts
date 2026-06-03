@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ADMIN_BASE_PATH } from "@/constants/admin";
 import { useAuthStore } from "@/store/auth.store";
 import type { LoginCredentials } from "@/modules/auth/types";
 
@@ -31,7 +30,7 @@ export function useAuth() {
         permissions: ["*"],
       });
 
-      router.push(ADMIN_BASE_PATH);
+      router.push("/");
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Invalid credentials. Please try again.";

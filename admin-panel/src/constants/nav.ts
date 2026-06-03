@@ -1,12 +1,10 @@
-import { adminPath } from "@/constants/admin";
-
 export type NavItem = {
   key: string;
   label: string;
   href: string;
   icon: string;
   badge?: string | number;
-  badgeVariant?: "default" | "alert" | "info";
+  badgeVariant?: "default" | "alert" | "info" | "warning";
   children?: NavItem[];
 };
 
@@ -19,29 +17,14 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     group: "Overview",
     items: [
-      {
-        key: "dashboard",
-        label: "Dashboard",
-        href: adminPath("/"),
-        icon: "dashboard",
-      },
+      { key: "dashboard", label: "Dashboard", href: "/admin", icon: "dashboard" },
     ],
   },
   {
     group: "Management",
     items: [
-      {
-        key: "users",
-        label: "User Management",
-        href: adminPath("/users"),
-        icon: "users",
-      },
-      {
-        key: "businesses",
-        label: "Business Management",
-        href: adminPath("/businesses"),
-        icon: "businesses",
-      },
+      { key: "users",      label: "User Management",     href: "/admin/users",      icon: "users" },
+      { key: "businesses", label: "Business Management", href: "/admin/businesses", icon: "businesses" },
     ],
   },
   {
@@ -50,24 +33,30 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         key: "subscriptions",
         label: "Subscriptions & Billing",
-        href: adminPath("/subscriptions"),
+        href: "/admin/subscriptions",
         icon: "subscriptions",
       },
     ],
   },
   {
-    group: "Content",
+    group: "Features",
     items: [
+      {
+        key: "invoicing",
+        label: "Smart Invoicing",
+        href: "/admin/invoicing",
+        icon: "invoicing",
+      },
       {
         key: "documents",
         label: "Document Generator",
-        href: adminPath("/documents"),
+        href: "/admin/documents",
         icon: "documents",
       },
       {
         key: "compliance",
         label: "Compliance & Licensing",
-        href: adminPath("/compliance"),
+        href: "/admin/compliance",
         icon: "compliance",
       },
     ],
@@ -78,17 +67,12 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         key: "ai",
         label: "AI Control Panel",
-        href: adminPath("/ai"),
+        href: "/admin/ai-control",
         icon: "ai",
         badge: "Live",
         badgeVariant: "info",
       },
-      {
-        key: "analytics",
-        label: "Platform Analytics",
-        href: adminPath("/analytics"),
-        icon: "analytics",
-      },
+      { key: "analytics", label: "Platform Analytics", href: "/admin/analytics", icon: "analytics" },
     ],
   },
   {
@@ -97,17 +81,12 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         key: "support",
         label: "Support & Comms",
-        href: adminPath("/support"),
+        href: "/admin/support",
         icon: "support",
         badge: 12,
         badgeVariant: "alert",
       },
-      {
-        key: "roles",
-        label: "Roles & Permissions",
-        href: adminPath("/roles"),
-        icon: "roles",
-      },
+      { key: "roles",    label: "Roles & Permissions", href: "/admin/roles",    icon: "roles" },
     ],
   },
   {
@@ -116,17 +95,12 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         key: "notifications",
         label: "Notifications & Alerts",
-        href: adminPath("/notifications"),
+        href: "/admin/notifications",
         icon: "notifications",
         badge: 3,
         badgeVariant: "alert",
       },
-      {
-        key: "settings",
-        label: "System Settings",
-        href: adminPath("/settings"),
-        icon: "settings",
-      },
+      { key: "settings", label: "System Settings", href: "/admin/settings", icon: "settings" },
     ],
   },
 ];
