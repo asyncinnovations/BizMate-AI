@@ -4,7 +4,7 @@ export declare class SubscriptionPlanController {
     constructor(subscriptionService: SubscriptionPlanService);
     create_subscription_plan(body: any): Promise<{
         message: string;
-        response: any;
+        response: import("./subscription_plans.entity").SubscriptionPlan[];
     }>;
     all_subscription_plan(): Promise<{
         success: boolean;
@@ -12,7 +12,7 @@ export declare class SubscriptionPlanController {
     }>;
     subscribe_subscription_plan(userId: string, planId: string): Promise<{
         success: boolean;
-        subscription: any;
+        subscription: import("../user_subscription/user_subscription.entity").UserSubscription;
     }>;
     user_subscription_plan(userId: string): Promise<{
         success: boolean;

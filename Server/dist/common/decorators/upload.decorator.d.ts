@@ -4,5 +4,5 @@ interface UploadOptions {
     multiple?: boolean;
     maxCount?: number;
 }
-export declare function UploadFile(options: UploadOptions): any;
+export declare function UploadFile(options: UploadOptions): <TFunction extends Function, Y>(target: TFunction | object, propertyKey?: string | symbol, descriptor?: TypedPropertyDescriptor<Y>) => void;
 export {};

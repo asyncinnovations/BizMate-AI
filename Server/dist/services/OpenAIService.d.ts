@@ -2,13 +2,17 @@ import OpenAI from "openai";
 export declare class OpenAIService {
     private client;
     constructor();
-    summarize_document(text: string): Promise<any>;
+    summarize_document(text: string): Promise<string | null>;
     generateText(prompt: string): Promise<string>;
     chat(messages: Array<{
         role: "user" | "assistant";
         content: string;
-    }>): Promise<any>;
-    createEmbedding(text: string): Promise<any>;
-    processDocumentText(text: string): Promise<any>;
-    customCompletion(config: OpenAI.Chat.Completions.ChatCompletionCreateParams): Promise<any>;
+    }>): Promise<string | null>;
+    createEmbedding(text: string): Promise<number[]>;
+    processDocumentText(text: string): Promise<string | null>;
+    customCompletion(config: OpenAI.Chat.Completions.ChatCompletionCreateParams): Promise<(OpenAI.Chat.Completions.ChatCompletion & {
+        _request_id?: string | null;
+    }) | (import("openai/core/streaming.js").Stream<OpenAI.Chat.Completions.ChatCompletionChunk> & {
+        _request_id?: string | null;
+    })>;
 }

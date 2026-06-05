@@ -1,1 +1,2 @@
-export declare const gtp_config: any;
+import OpenAI from "openai";
+export declare const gtp_config: OpenAI;
