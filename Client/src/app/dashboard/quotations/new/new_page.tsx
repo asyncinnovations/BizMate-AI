@@ -2,7 +2,7 @@
 // src/app/dashboard/quotations/new/page.tsx
 // Create and Edit quotation form with AI pre-fill support and sidebar
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Plus, Trash2, ArrowLeft, Save, Send, Sparkles,
@@ -34,7 +34,7 @@ const EMPTY_ITEM = (): LineItem => ({
   line_total:   0,
 });
 
-export default function NewQuotationPage() {
+function NewQuotationInner() {
   const router       = useRouter();
   const searchParams = useSearchParams();
   const { user, loading } = useAuth();
@@ -398,5 +398,16 @@ export default function NewQuotationPage() {
         </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+// Next.js 15 requires useSearchParams() to be inside a Suspense boundary.
+// This wrapper is the actual default export — it suspends during prerender
+// and renders the form only on the client where searchParams are available.
+export default function NewQuotationPage() {
+  return (
+    <Suspense fallback={null}>
+      <NewQuotationInner />
+    </Suspense>
   );
 }
