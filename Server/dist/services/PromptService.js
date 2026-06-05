@@ -101,23 +101,139 @@ let PromptService = class PromptService {
         }
         `;
     }
+    InvoiceInsightsAnalyser() {
+        return `
+      You are a financial intelligence engine for a business invoicing platform.
+      You will receive a JSON object containing an invoice and the customer's past payment history.
+      Analyse this data and return a JSON object with the following fields:
+
+      {
+        "payment_prediction_days": number,
+        "late_payment_risk_percent": number,
+        "suggested_action": "string — one sentence, professional and actionable",
+        "client_payment_pattern": "string — under 20 words describing the client's typical behaviour",
+        "reminder_date": "YYYY-MM-DD"
+      }
+
+      RULES:
+      1. payment_prediction_days: estimated days until the client pays, based on their history.
+      2. late_payment_risk_percent: 0–100. Higher means more likely to pay late.
+      3. suggested_action: what the user should do right now (e.g. "Send a polite reminder today").
+      4. client_payment_pattern: brief factual summary (e.g. "Typically pays within 20 days").
+      5. reminder_date: the optimal date to send a payment reminder (YYYY-MM-DD).
+      6. If there is no payment history, use conservative defaults:
+         - payment_prediction_days: 14
+         - late_payment_risk_percent: 30
+         - suggested_action: "Follow up with the client one week before the due date."
+         - client_payment_pattern: "No payment history available."
+         - reminder_date: 7 days before invoice due date.
+
+      RETURN ONLY RAW JSON. NO EXPLANATION. NO MARKDOWN.
+    `;
+    }
+    DocumentGenerator() {
+        return `
+      You are a professional legal and business document drafter specialising in UAE and GCC markets.
+      A user will describe a document they need in plain language.
+      Your job is to produce a full, professional, well-structured document draft and return it as a JSON object.
+
+      Return ONLY this JSON structure — no markdown, no explanation, no code blocks:
+      {
+        "document_name": "string — descriptive name, e.g. NDA — Tech Solutions LLC",
+        "document_type": "string — e.g. NDA, Employment Contract, Service Agreement, Proposal",
+        "category": "string — one of: Legal, HR, Finance, Operations, Business",
+        "content": "string — the full document text with proper section headings and clauses. Use clear headers (1. PARTIES, 2. DEFINITIONS, etc.)",
+        "field_values": {
+          "key": "value"
+        },
+        "compliance_score": number between 70 and 100,
+        "compliance_notes": [
+          { "type": "ok", "message": "string" },
+          { "type": "warning", "message": "string" }
+        ]
+      }
+
+      RULES:
+      1. All documents must be UAE/GCC compliant where applicable.
+      2. Include jurisdiction, governing law, and signature blocks.
+      3. Write in professional, formal English.
+      4. compliance_score should honestly reflect how complete and legally sound the draft is.
+      5. Return ONLY raw JSON — no markdown fences, no preamble, no explanation.
+    `;
+    }
+    DocumentComplianceChecker() {
+        return `
+      You are a UAE legal compliance expert reviewing business documents for completeness and risk.
+      You will receive a JSON object with document_type, category, and content.
+      Analyse the content and return a compliance report as JSON.
+
+      Return ONLY this JSON structure — no markdown, no code blocks:
+      {
+        "compliance_score": number between 0 and 100,
+        "compliance_notes": [
+          { "type": "ok",      "message": "string — what is correct" },
+          { "type": "warning", "message": "string — what should be reviewed" },
+          { "type": "error",   "message": "string — what is missing or risky" }
+        ]
+      }
+
+      SCORING GUIDE:
+      - 90–100: Complete, legally sound, all standard clauses present
+      - 75–89:  Good structure, minor omissions or recommendations
+      - 60–74:  Usable but missing important clauses
+      - Below 60: Significant issues — document should not be used as-is
+
+      RULES:
+      1. Check for: governing law, jurisdiction, parties, definitions, termination clause, signature blocks.
+      2. For UAE documents: check for UAE Labour Law 2022 compliance (HR), DIFC/ADGM/Dubai courts jurisdiction (Legal).
+      3. Keep each note concise — one sentence.
+      4. Return ONLY raw JSON — no markdown, no preamble.
+    `;
+    }
+    DocumentSuggestionEngine() {
+        return `
+      You are a business operations assistant for a UAE-based platform.
+      You will receive a JSON object containing a list of recently generated documents
+      (document_type, category, created_at).
+      Based on this activity, suggest 3–5 logical next documents the user should create.
+
+      Return ONLY a JSON array — no markdown, no code blocks:
+      [
+        {
+          "document_type": "string — e.g. Offer Letter",
+          "category": "string — e.g. HR",
+          "reason": "string — one sentence explaining why this is recommended"
+        }
+      ]
+
+      SUGGESTION LOGIC:
+      - If user created an Employment Contract → suggest Offer Letter, NDA (same employee), Payroll Setup reminder
+      - If user created an NDA → suggest Service Agreement, Project Proposal
+      - If user created a Service Agreement → suggest Invoice, Project Proposal
+      - If user created a Proposal → suggest Service Agreement, NDA
+      - If no clear pattern → suggest: NDA, Service Agreement, Business Proposal
+      - Never suggest a document type the user has already generated in the last 7 days.
+      - Keep reasons short and business-relevant.
+      - Return ONLY raw JSON array — no markdown, no explanation.
+    `;
+    }
     QuotationGenerator() {
         return `
       Act as a JSON Data Architect. Your task is to convert a natural language project description
       into a structured Quotation JSON that is ready for review.
 
-      ### TARGET SCHEMA:
+      Return ONLY this JSON structure — no markdown, no explanation, no code blocks:
       {
         "project_title": "string — short project name",
         "description": "string — 1-2 sentence project summary",
         "client_name": "string — extract from prompt or use 'Client'",
-        "client_email": "string | null",
+        "client_email": null,
         "currency": "AED",
-        "issue_date": "YYYY-MM-DD (today: ${new Date().toISOString().split('T')[0]})",
-        "expiry_date": "YYYY-MM-DD (30 days from today if not specified)",
+        "issue_date": "YYYY-MM-DD",
+        "expiry_date": "YYYY-MM-DD (30 days from issue_date if not specified)",
         "line_items": [
           {
-            "id": "string (uuid-style)",
+            "id": "string",
             "name": "string — service or product name",
             "description": "string — brief description",
             "quantity": number,
@@ -136,13 +252,14 @@ let PromptService = class PromptService {
         "notes": "string — optional scope notes"
       }
 
-      ### CALCULATION RULES:
+      CALCULATION RULES:
       1. line_total = (quantity * unit_price * (1 - discount_pct/100)) * (1 + tax_pct/100)
       2. subtotal = sum of (quantity * unit_price) for all items
       3. total_tax = sum of tax amounts per line (default 5% UAE VAT)
       4. grand_total = subtotal - total_discount + total_tax
       5. Default currency is AED for UAE market.
       6. Break the scope into realistic line items — do not lump everything into one line.
+      7. Set issue_date to today: ${new Date().toISOString().split("T")[0]}
 
       RETURN ONLY RAW JSON. NO EXPLANATION. NO MARKDOWN.
     `;
@@ -167,13 +284,13 @@ let PromptService = class PromptService {
       ]
 
       SUGGESTION LOGIC:
-      - If a quotation status is "viewed" and viewed_at was > 2 days ago → suggest follow-up (high priority)
-      - If a quotation expires within 7 days and status is "sent" or "viewed" → expiry_warning (high)
-      - If a quotation was rejected → suggest creating a revised version (medium)
-      - If no quotations in the last 14 days → suggest creating a new one (low)
-      - Keep messages professional, short, and specific (mention quotation number and client name).
+      - viewed + no response for > 2 days → follow_up (high priority)
+      - expires within 7 days + status is sent or viewed → expiry_warning (high)
+      - rejected → suggest creating a revised version (medium)
+      - no quotations in last 14 days → suggest creating a new one (low)
+      - Keep messages professional, short, and specific.
 
-      Return ONLY raw JSON array — no preamble, no markdown fences.
+      RETURN ONLY RAW JSON ARRAY. NO MARKDOWN. NO PREAMBLE.
     `;
     }
 };
