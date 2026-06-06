@@ -24,6 +24,10 @@ let AiReminder = class AiReminder {
     notified;
     recurrence_rule;
     status;
+    source;
+    reference_id;
+    reference_type;
+    ai_prompt;
     created_at;
     updated_at;
 };
@@ -37,10 +41,7 @@ __decorate([
     __metadata("design:type", String)
 ], AiReminder.prototype, "uuid", void 0);
 __decorate([
-    (0, typeorm_1.Column)({
-        type: "integer",
-        generated: "increment",
-    }),
+    (0, typeorm_1.Column)({ type: "integer", generated: "increment" }),
     __metadata("design:type", Number)
 ], AiReminder.prototype, "id", void 0);
 __decorate([
@@ -58,7 +59,8 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)({
         type: "enum",
-        enum: ["VAT", "License", "Payroll", "Custom"],
+        enum: ["VAT", "License", "Payroll", "Invoice", "Quotation", "Document", "Custom"],
+        default: "Custom",
     }),
     __metadata("design:type", String)
 ], AiReminder.prototype, "type", void 0);
@@ -70,7 +72,7 @@ __decorate([
     (0, typeorm_1.Column)({
         type: "integer",
         default: 3,
-        comment: "Number of days before reminder_date to notify user",
+        comment: "Days before reminder_date to send the notification (1–30)",
     }),
     __metadata("design:type", Number)
 ], AiReminder.prototype, "notify_before", void 0);
@@ -82,10 +84,7 @@ __decorate([
     __metadata("design:type", Object)
 ], AiReminder.prototype, "notify_channels", void 0);
 __decorate([
-    (0, typeorm_1.Column)({
-        type: "boolean",
-        default: false,
-    }),
+    (0, typeorm_1.Column)({ type: "boolean", default: false }),
     __metadata("design:type", Boolean)
 ], AiReminder.prototype, "notified", void 0);
 __decorate([
@@ -105,17 +104,31 @@ __decorate([
     __metadata("design:type", String)
 ], AiReminder.prototype, "status", void 0);
 __decorate([
-    (0, typeorm_1.CreateDateColumn)({
-        type: "timestamp",
-        default: () => "CURRENT_TIMESTAMP",
+    (0, typeorm_1.Column)({
+        type: "enum",
+        enum: ["manual", "ai", "invoice", "quotation", "document", "compliance"],
+        default: "manual",
     }),
+    __metadata("design:type", String)
+], AiReminder.prototype, "source", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "uuid", nullable: true, default: null }),
+    __metadata("design:type", Object)
+], AiReminder.prototype, "reference_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", length: 100, nullable: true, default: null }),
+    __metadata("design:type", Object)
+], AiReminder.prototype, "reference_type", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "text", nullable: true, default: null }),
+    __metadata("design:type", Object)
+], AiReminder.prototype, "ai_prompt", void 0);
+__decorate([
+    (0, typeorm_1.CreateDateColumn)({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" }),
     __metadata("design:type", Date)
 ], AiReminder.prototype, "created_at", void 0);
 __decorate([
-    (0, typeorm_1.UpdateDateColumn)({
-        type: "timestamp",
-        default: () => "CURRENT_TIMESTAMP",
-    }),
+    (0, typeorm_1.UpdateDateColumn)({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" }),
     __metadata("design:type", Date)
 ], AiReminder.prototype, "updated_at", void 0);
 exports.AiReminder = AiReminder = __decorate([

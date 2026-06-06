@@ -43,4 +43,29 @@ export declare class AiReminderController {
         message: string;
         response: AiReminder;
     }>;
+    ai_generate_from_prompt(user_id: string, prompt: string): Promise<{
+        message: string;
+        ai_result: {
+            type: any;
+            title: any;
+            description: any;
+            reminder_date: any;
+            notify_before: number;
+            recurrence_rule: any;
+            notify_channels: any;
+            ai_prompt: string;
+            source: string;
+        };
+        user_id: string;
+    }>;
+    get_module_suggestions(user_id: string): Promise<{
+        message: string;
+        suggestions: any[];
+        total: number;
+    }>;
+    create_from_module(body: any): Promise<{
+        message: string;
+        reminder: AiReminder;
+        duplicate: boolean;
+    }>;
 }

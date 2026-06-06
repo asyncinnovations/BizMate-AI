@@ -32,26 +32,30 @@ let AiReminderController = class AiReminderController {
             notify_channels: body.notify_channels || {},
             recurrence_rule: body.recurrence_rule,
             status: body.status,
+            source: body.source ?? "manual",
+            reference_id: body.reference_id ?? null,
+            reference_type: body.reference_type ?? null,
+            ai_prompt: body.ai_prompt ?? null,
         };
         const response = await this.reminderService.create_reminder_service(data);
-        return { message: "reminder create success", response };
+        return { message: "Reminder created successfully.", response };
     }
     async all_reminders(req, status, type, from, to) {
         const filters = { status, type, from, to };
         const response = await this.reminderService.all_reminders_service(req.user?.uuid, filters);
-        return { message: "all reminders retrived", response };
+        return { message: "All reminders retrieved.", response };
     }
     async user_reminder(user_id) {
         const response = await this.reminderService.user_reminder_service(user_id);
         if (!response)
             throw new common_1.NotFoundException("Reminder not found");
-        return { message: "user reminder retrived", response };
+        return { message: "User reminders retrieved.", response };
     }
     async single_reminder(uuid) {
         const response = await this.reminderService.single_reminder_service(uuid);
         if (!response)
             throw new common_1.NotFoundException("Reminder not found");
-        return { message: "single reminder retrived", response };
+        return { message: "Reminder retrieved.", response };
     }
     async update_reminder(reminder_id, body) {
         const data = {
@@ -63,33 +67,57 @@ let AiReminderController = class AiReminderController {
             notify_channels: body.notify_channels || {},
             recurrence_rule: body.recurrence_rule,
             status: body.status,
+            source: body.source,
+            reference_id: body.reference_id,
+            reference_type: body.reference_type,
+            ai_prompt: body.ai_prompt,
         };
         const response = await this.reminderService.update_reminder_service(reminder_id, data);
-        return { message: "reminder update success", response };
+        return { message: "Reminder updated successfully.", response };
     }
     async update_reminder_status(reminder_id, status) {
         const response = await this.reminderService.update_reminder_status_service(reminder_id, status);
-        return { message: "reminder update success", response };
+        return { message: "Status updated successfully.", response };
     }
     async upcoming_reminders(daysAhead = 3) {
         const response = await this.reminderService.upcoming_reminder_service(Number(daysAhead));
-        return { message: "upcoming reminder retrived", response };
+        return { message: "Upcoming reminders retrieved.", response };
     }
     async recurring_reminders(user_id) {
         const response = await this.reminderService.recurring_reminder_servcie(user_id);
-        return { message: "recurring reminder retrived", response };
+        return { message: "Recurring reminders retrieved.", response };
     }
     async create_ai_generated(req, body) {
-        const data = {
-            ...body,
-            created_by_ai: true,
-        };
+        const data = { ...body, created_by_ai: true };
         const response = await this.reminderService.generate_ai_reminder_service(data);
-        return { message: "ai generated reminder", response };
+        return { message: "AI generated reminder created.", response };
     }
     async delete_reminder(uuid) {
         const response = await this.reminderService.delete_reminder_service(uuid);
-        return { message: "reminder delete success", response };
+        return { message: "Reminder deleted successfully.", response };
+    }
+    async ai_generate_from_prompt(user_id, prompt) {
+        if (!user_id)
+            throw new common_1.BadRequestException("user_id is required.");
+        if (!prompt)
+            throw new common_1.BadRequestException("prompt is required.");
+        return await this.reminderService.ai_generate_from_prompt_service(user_id, prompt);
+    }
+    async get_module_suggestions(user_id) {
+        if (!user_id)
+            throw new common_1.BadRequestException("user_id is required.");
+        return await this.reminderService.get_module_suggestions_service(user_id);
+    }
+    async create_from_module(body) {
+        if (!body.user_id)
+            throw new common_1.BadRequestException("user_id is required.");
+        if (!body.reference_id)
+            throw new common_1.BadRequestException("reference_id is required.");
+        if (!body.title)
+            throw new common_1.BadRequestException("title is required.");
+        if (!body.reminder_date)
+            throw new common_1.BadRequestException("reminder_date is required.");
+        return await this.reminderService.create_from_module_service(body);
     }
 };
 exports.AiReminderController = AiReminderController;
@@ -180,6 +208,31 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], AiReminderController.prototype, "delete_reminder", null);
+__decorate([
+    (0, common_1.Post)("ai-generate"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
+    __param(0, (0, common_1.Body)("user_id")),
+    __param(1, (0, common_1.Body)("prompt")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], AiReminderController.prototype, "ai_generate_from_prompt", null);
+__decorate([
+    (0, common_1.Get)("suggestions/:user_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Param)("user_id")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], AiReminderController.prototype, "get_module_suggestions", null);
+__decorate([
+    (0, common_1.Post)("from-module"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AiReminderController.prototype, "create_from_module", null);
 exports.AiReminderController = AiReminderController = __decorate([
     (0, common_1.Controller)("ai_reminder"),
     (0, common_1.UseGuards)(auth_guard_1.JwtGuard),
