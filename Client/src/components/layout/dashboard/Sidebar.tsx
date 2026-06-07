@@ -303,7 +303,8 @@ import {
   Contact,
   ShieldBan,
   Banknote,
-  Lock, // Added Lock icon
+  Lock,
+  FileSignature, // Added for Quotations nav item
 } from "lucide-react";
 import React, { useRef, useEffect } from "react";
 import { gsap } from "gsap";
