@@ -61,6 +61,8 @@ import { DocumentHistory } from "./document_history/document_history.entity";
 import { InvoiceSchedulesModule } from "./invoice_schedules/invoice_schedules.module";
 import { InvoiceSchedule } from "./invoice_schedules/invoice_schedules.entity";
 import { ScheduleModule } from "@nestjs/schedule";
+import { QuotationsModule } from "./quotations/quotations.module";
+import { QuotationEntity }  from "./quotations/quotations.entity";
 
 @Module({
   controllers: [],
@@ -108,7 +110,8 @@ import { ScheduleModule } from "@nestjs/schedule";
         SubscriptionPayment,
         UserSession,
         SubscriptionUsage,
-        InvoiceSchedule
+        InvoiceSchedule,
+        QuotationEntity
       ],
     }),
     AuthModule,
@@ -140,6 +143,7 @@ import { ScheduleModule } from "@nestjs/schedule";
     EmployeePayrollModule,
     DocumentHistoryModule,
     InvoiceSchedulesModule,
+    QuotationsModule,
   ],
 })
 export class AppModule {}
