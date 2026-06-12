@@ -69,6 +69,8 @@ const document_history_entity_1 = require("./document_history/document_history.e
 const invoice_schedules_module_1 = require("./invoice_schedules/invoice_schedules.module");
 const invoice_schedules_entity_1 = require("./invoice_schedules/invoice_schedules.entity");
 const schedule_1 = require("@nestjs/schedule");
+const quotations_module_1 = require("./quotations/quotations.module");
+const quotations_entity_1 = require("./quotations/quotations.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -119,7 +121,8 @@ exports.AppModule = AppModule = __decorate([
                     subscription_payments_entity_1.SubscriptionPayment,
                     user_sessions_entity_1.UserSession,
                     subscription_usage_entity_1.SubscriptionUsage,
-                    invoice_schedules_entity_1.InvoiceSchedule
+                    invoice_schedules_entity_1.InvoiceSchedule,
+                    quotations_entity_1.QuotationEntity
                 ],
             }),
             auth_module_1.AuthModule,
@@ -151,6 +154,7 @@ exports.AppModule = AppModule = __decorate([
             employee_payroll_module_1.EmployeePayrollModule,
             document_history_module_1.DocumentHistoryModule,
             invoice_schedules_module_1.InvoiceSchedulesModule,
+            quotations_module_1.QuotationsModule,
         ],
     })
 ], AppModule);
