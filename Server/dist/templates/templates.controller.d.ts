@@ -12,7 +12,7 @@ export declare class TemplatesController {
     constructor(templatesService: TemplatesService, pdfService: PdfService, emailService: EmailService, gptService: GPTService, promptService: PromptService);
     createTemplate(data: any, req: any): Promise<{
         message: string;
-        data: import("./templates.entity").TemplateEntity[];
+        data: any;
     }>;
     get_all_template(): Promise<{
         message: string;
@@ -29,12 +29,12 @@ export declare class TemplatesController {
         data: never[];
     } | {
         message: string;
-        data: import("./templates.entity").TemplateEntity;
+        data: any;
         status?: undefined;
     }>;
     update_template(id: string, data: any): Promise<{
         message: string;
-        data: import("./templates.entity").TemplateEntity | null;
+        data: any;
     }>;
     user_template(user_id: string): Promise<{
         message: string;
@@ -42,7 +42,7 @@ export declare class TemplatesController {
         data: never[];
     } | {
         message: string;
-        data: import("./templates.entity").TemplateEntity[];
+        data: any;
         status?: undefined;
     }>;
     preview_document(body: any): Promise<{
@@ -71,7 +71,7 @@ export declare class TemplatesController {
     }>;
     ai_generate_template(body: any, req: any): Promise<{
         message: string;
-        template: import("./templates.entity").TemplateEntity[];
+        template: any;
         fields: any[];
     }>;
 }

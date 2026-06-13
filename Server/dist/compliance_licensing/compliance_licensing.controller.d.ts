@@ -5,19 +5,19 @@ export declare class ComplianceLicensingController {
     constructor(licensingService: ComplianceLicensingService);
     create_license(body: any): Promise<{
         message: string;
-        response: ComplianceLicense;
+        response: any;
     }>;
     get_user_licences(user_id: string, company_id?: string): Promise<{
         message: string;
-        response: ComplianceLicense[];
+        response: any;
     }>;
     get_single_licences(license_id: string): Promise<{
         message: string;
-        response: ComplianceLicense;
+        response: any;
     }>;
     update_licences(license_id: string, updates: Partial<ComplianceLicense>): Promise<{
         message: string;
-        response: ComplianceLicense;
+        response: any;
     }>;
     delete_licences(license_id: string): Promise<{
         message: string;
@@ -27,22 +27,22 @@ export declare class ComplianceLicensingController {
     }>;
     verify_licences(license_id: string): Promise<{
         message: string;
-        response: ComplianceLicense;
+        response: any;
     }>;
     mark_expire_licences(license_id: string): Promise<{
         message: string;
-        response: ComplianceLicense;
+        response: any;
     }>;
     suspend_licences(license_id: string): Promise<{
         message: string;
-        response: ComplianceLicense;
+        response: any;
     }>;
     attach_licences_document(license_id: string, document_id: string): Promise<{
         message: string;
-        response: ComplianceLicense;
+        response: any;
     }>;
     get_expired_licences(user_id: string, daysBefore?: number): Promise<{
         message: string;
-        response: ComplianceLicense[];
+        response: any;
     }>;
 }

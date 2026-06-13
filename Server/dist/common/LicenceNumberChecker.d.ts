@@ -4,6 +4,6 @@ export declare const LicenceNumberChecker: (file: any, licenseNumber: string) =>
     licenseExists?: undefined;
 } | {
     success: boolean;
-    licenseExists: boolean;
+    licenseExists: any;
     message?: undefined;
 }>;

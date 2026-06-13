@@ -8,36 +8,34 @@ export declare class ComplianceDocumentsController {
     constructor(service: ComplianceDocumentsService, document_service: DocumentHistoryService, document_converter: DocumentConverter);
     upload_document(body: any, file?: Express.Multer.File): Promise<{
         message: string;
-        response: import("./compliance_documents.entity").ComplianceDocument;
+        response: any;
     }>;
     get_user_document(user_id: string, reminderId?: string): Promise<{
         message: string;
-        response: import("./compliance_documents.entity").ComplianceDocument[];
+        response: any;
     }>;
     get_single_document(doc_id: string): Promise<{
         message: string;
-        response: import("./compliance_documents.entity").ComplianceDocument;
+        response: any;
     }>;
     update_document(doc_id: string, updates: any): Promise<{
         message: string;
-        response: import("./compliance_documents.entity").ComplianceDocument;
+        response: any;
     }>;
     verify_document(doc_id: string): Promise<{
         message: string;
-        response: import("./compliance_documents.entity").ComplianceDocument;
+        response: any;
     }>;
     reject_document(doc_id: string): Promise<{
         message: string;
-        response: import("./compliance_documents.entity").ComplianceDocument;
+        response: any;
     }>;
     attach_ai_summary(doc_id: string): Promise<{
         message: string;
-        response: import("./compliance_documents.entity").ComplianceDocument | {
-            message: string;
-        };
+        response: any;
     }>;
     delete_document(doc_id: string): Promise<{
         message: string;
-        response: import("./compliance_documents.entity").ComplianceDocument;
+        response: any;
     }>;
 }

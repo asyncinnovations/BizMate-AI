@@ -13,15 +13,13 @@ export declare class NotificationsService {
         notification_type: NotificationType;
         title?: string;
         message: string;
-    }): Promise<Notification>;
-    send_notification_service(notification_id: string): Promise<Notification | {
-        message: string;
-    }>;
-    user_notification_service(user_id: string, company_id?: string): Promise<Notification[]>;
-    single_notification_service(notification_id: string): Promise<Notification>;
+    }): Promise<any>;
+    send_notification_service(notification_id: string): Promise<any>;
+    user_notification_service(user_id: string, company_id?: string): Promise<any>;
+    single_notification_service(notification_id: string): Promise<any>;
     delete_notification(notification_id: string): Promise<{
         message: string;
     }>;
-    mark_read_notification_service(notification_id: string): Promise<Notification>;
+    mark_read_notification_service(notification_id: string): Promise<any>;
     send_bulk_notification_service(notifications: any): Promise<any>;
 }

@@ -33,5 +33,5 @@ export declare class SubscriptionUsageController {
     }): Promise<{
         success: boolean;
     }>;
-    getAllUsage(subscriptionId: string): Promise<SubscriptionUsage[]>;
+    getAllUsage(subscriptionId: string): Promise<any>;
 }

@@ -4,30 +4,30 @@ export declare class UserBusinessInfoController {
     constructor(UserBusiness: UserBusinessInfoService);
     create_business_info(data: any): Promise<{
         message: string;
-        response: import("./user_business_info.entity").UserBusinessInfo;
+        response: any;
     }>;
     single_business_info(id: string): Promise<{
         message: string;
-        response: import("./user_business_info.entity").UserBusinessInfo;
+        response: any;
     }>;
     user_business_info(user_id: string): Promise<{
         message: string;
-        response: import("./user_business_info.entity").UserBusinessInfo[];
+        response: any;
     }>;
     update_business_info(id: string, data: any): Promise<{
         message: string;
-        response: import("./user_business_info.entity").UserBusinessInfo;
+        response: any;
     }>;
     delete_business_info(id: string): Promise<{
         message: string;
-        response: import("typeorm").DeleteResult | import("./user_business_info.entity").UserBusinessInfo;
+        response: any;
     }>;
     search_business_info(user_id: string, query: string): Promise<{
         message: string;
-        response: import("./user_business_info.entity").UserBusinessInfo[];
+        response: any;
     }>;
     bulk_insert_business_info(data: any[]): Promise<{
         message: string;
-        response: import("./user_business_info.entity").UserBusinessInfo[];
+        response: any;
     }>;
 }

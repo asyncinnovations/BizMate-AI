@@ -14,35 +14,7 @@ export declare class InvoicesController {
         gateway_name?: string;
     }): Promise<{
         message: string;
-        invoice: {
-            invoice_pdf: string;
-            id: number;
-            uuid: string;
-            invoice_name: string | null;
-            invoice_type: string | null;
-            user_id: string | null;
-            invoice_number: string;
-            customer_name: string;
-            customer_email: string;
-            customer_address: string;
-            invoice_date: Date;
-            due_date: Date;
-            payment_terms: string;
-            subtotal: number;
-            vat: number;
-            total: number;
-            notes: string;
-            status: import("./invoices.entity").InvoiceStatus;
-            source: import("./invoices.entity").InvoiceSource;
-            activity_log: {
-                status: string;
-                timestamp: string;
-            }[];
-            custom_fields: object[];
-            invoice_items: object[];
-            created_at: Date;
-            updated_at: Date;
-        };
+        invoice: any;
     }>;
     generate_ai_invoice(body: {
         prompt: string;
@@ -50,15 +22,15 @@ export declare class InvoicesController {
         message: string;
         response: {
             message: string;
-            data: import("openai/resources/index.js").ChatCompletionMessage;
+            data: any;
         };
     }>;
     user_invoices(user_id: string): Promise<any>;
     get_prebuild_invoice_template(): Promise<{
         message: string;
-        response: InvoiceEntity[];
+        response: any;
     }>;
-    all_invoices(search?: string, status?: string, user_id?: string): Promise<InvoiceEntity[]>;
+    all_invoices(search?: string, status?: string, user_id?: string): Promise<any>;
     single_invoice(id: string): Promise<any>;
     update_invoice(id: string, data: Partial<InvoiceEntity>): Promise<any>;
     update_custom_fields(id: string, customFields: Record<string, any>): Promise<any>;
@@ -108,7 +80,7 @@ export declare class InvoicesController {
         user_id: string;
     }): Promise<{
         message: string;
-        invoice: InvoiceEntity;
+        invoice: any;
     }>;
     get_ai_insights(invoice_id: string): Promise<{
         message: string;

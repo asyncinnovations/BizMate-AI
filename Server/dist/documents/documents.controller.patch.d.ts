@@ -1,0 +1,1 @@
+export declare const CONTROLLER_PATCH_NOTES = "\nADD the generate_docx endpoint to DocumentsController.\nFull method is shown in the comment block above.\nPlace it after the existing generate_pdf method (around line 155).\n";

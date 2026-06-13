@@ -1,38 +1,34 @@
-import { BadRequestException } from "@nestjs/common";
 import { UserIntegrationService } from "./user_integration.service";
 export declare class UserIntegrationController {
     private readonly Integrationservice;
     constructor(Integrationservice: UserIntegrationService);
-    create_userIntegration(body: any): Promise<BadRequestException | {
-        message: string;
-        response: import("./user_integration.entity").UserIntegration[];
-    }>;
+    create_userIntegration(body: any): Promise<any>;
     all_userIntegration(): Promise<{
         message: string;
-        response: import("./user_integration.entity").UserIntegration[];
+        response: any;
     }>;
     single_userIntegration(id: string): Promise<{
         message: string;
-        response: import("./user_integration.entity").UserIntegration;
+        response: any;
     }>;
     user_userIntegration(user_id: string): Promise<{
         message: string;
-        response: import("./user_integration.entity").UserIntegration[];
+        response: any;
     }>;
     update_userIntegration(id: string, body: any): Promise<{
         message: string;
-        response: import("./user_integration.entity").UserIntegration | null;
+        response: any;
     }>;
     delete_userIntegration(id: string): Promise<{
         message: string;
-        response: import("typeorm").DeleteResult;
+        response: any;
     }>;
     change_userIntegration_status(id: string, status: "connected" | "disconnected"): Promise<{
         message: string;
-        response: import("./user_integration.entity").UserIntegration;
+        response: any;
     }>;
     update_userIntegration_lastSync(id: string): Promise<{
         message: string;
-        response: import("./user_integration.entity").UserIntegration;
+        response: any;
     }>;
 }

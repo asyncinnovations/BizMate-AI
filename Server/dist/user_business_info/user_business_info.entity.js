@@ -26,6 +26,13 @@ let UserBusinessInfo = class UserBusinessInfo {
     tone_examples;
     snapshot;
     is_active;
+    business_location;
+    compliance_framework;
+    business_region;
+    trade_license_number;
+    trn;
+    address;
+    currency;
     created_at;
     updated_at;
 };
@@ -93,6 +100,52 @@ __decorate([
     (0, typeorm_1.Column)({ type: "boolean", default: true }),
     __metadata("design:type", Boolean)
 ], UserBusinessInfo.prototype, "is_active", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        type: "varchar",
+        length: 50,
+        nullable: true,
+        default: null,
+        comment: "free_zone | mainland | offshore — collected at signup",
+    }),
+    __metadata("design:type", Object)
+], UserBusinessInfo.prototype, "business_location", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        type: "varchar",
+        length: 50,
+        nullable: true,
+        default: null,
+        comment: "mainland | free_zone | offshore — set in Compliance tab",
+    }),
+    __metadata("design:type", Object)
+], UserBusinessInfo.prototype, "compliance_framework", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        type: "varchar",
+        length: 20,
+        nullable: true,
+        default: "uae",
+        comment: "GCC country: uae | saudi | qatar | kuwait | bahrain | oman",
+    }),
+    __metadata("design:type", Object)
+], UserBusinessInfo.prototype, "business_region", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", length: 100, nullable: true, default: null }),
+    __metadata("design:type", Object)
+], UserBusinessInfo.prototype, "trade_license_number", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", length: 50, nullable: true, default: null }),
+    __metadata("design:type", Object)
+], UserBusinessInfo.prototype, "trn", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "text", nullable: true, default: null }),
+    __metadata("design:type", Object)
+], UserBusinessInfo.prototype, "address", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", length: 10, nullable: true, default: "AED" }),
+    __metadata("design:type", Object)
+], UserBusinessInfo.prototype, "currency", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)({ type: "timestamp", default: () => "NOW()" }),
     __metadata("design:type", Date)

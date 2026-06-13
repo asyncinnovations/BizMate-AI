@@ -44,6 +44,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserTwoFactorSettingsService = void 0;
 const common_1 = require("@nestjs/common");
@@ -166,7 +167,6 @@ exports.UserTwoFactorSettingsService = UserTwoFactorSettingsService = __decorate
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_2.InjectRepository)(user_two_factor_settings_entity_1.UserTwoFactorSettings)),
     __param(1, (0, typeorm_2.InjectRepository)(user_entity_1.AuthUsers)),
-    __metadata("design:paramtypes", [typeorm_1.Repository,
-        typeorm_1.Repository])
+    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_1.Repository !== "undefined" && typeorm_1.Repository) === "function" ? _a : Object, typeof (_b = typeof typeorm_1.Repository !== "undefined" && typeorm_1.Repository) === "function" ? _b : Object])
 ], UserTwoFactorSettingsService);
 //# sourceMappingURL=user_two_factor_settings.service.js.map

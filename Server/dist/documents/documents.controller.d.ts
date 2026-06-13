@@ -7,7 +7,7 @@ export declare class DocumentsController {
     constructor(documentsService: DocumentsService, pdfService: PdfService);
     create_document(body: any): Promise<{
         message: string;
-        document: import("./documents.entity").GeneratedDocumentEntity;
+        document: any;
     }>;
     ai_generate_document(body: any): Promise<{
         message: string;
@@ -18,24 +18,24 @@ export declare class DocumentsController {
     }>;
     save_ai_document(body: any): Promise<{
         message: string;
-        document: import("./documents.entity").GeneratedDocumentEntity;
+        document: any;
     }>;
     user_documents(user_id: string, status?: string, category?: string, documentType?: string, search?: string): Promise<{
         message: string;
-        count: number;
-        data: import("./documents.entity").GeneratedDocumentEntity[];
+        count: any;
+        data: any;
     }>;
     recent_documents(user_id: string, limit?: number): Promise<{
         message: string;
-        data: import("./documents.entity").GeneratedDocumentEntity[];
+        data: any;
     }>;
     single_document(uuid: string): Promise<{
         message: string;
-        data: import("./documents.entity").GeneratedDocumentEntity;
+        data: any;
     }>;
     update_document(uuid: string, body: any): Promise<{
         message: string;
-        data: import("./documents.entity").GeneratedDocumentEntity;
+        data: any;
     }>;
     update_document_status(uuid: string, status: string): Promise<{
         message: string;
@@ -54,7 +54,7 @@ export declare class DocumentsController {
         user_id: string;
     }): Promise<{
         message: string;
-        document: import("./documents.entity").GeneratedDocumentEntity;
+        document: any;
     }>;
     run_compliance_check(uuid: string): Promise<{
         message: string;
@@ -72,7 +72,7 @@ export declare class DocumentsController {
     } | {
         message: string;
         suggestions: any[];
-        based_on: number;
+        based_on: any;
     }>;
     generate_pdf(uuid: string): Promise<{
         message: string;

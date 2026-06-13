@@ -4,23 +4,23 @@ export declare class EmployeePayrollController {
     constructor(payrollService: EmployeePayrollService);
     get_all_employees_by_user_id_controller(user_id: string): Promise<{
         message: string;
-        response: import("./employee_payroll.entity").EmployeePayroll[];
+        response: any;
     }>;
     get_single_employee_by_uuid_controller(id: string): Promise<{
         message: string;
-        response: import("./employee_payroll.entity").EmployeePayroll;
+        response: any;
     }>;
     create_employee_controller(dto: any): Promise<{
         message: string;
-        response: import("./employee_payroll.entity").EmployeePayroll[];
+        response: any;
     }>;
     update_employee_details_controller(id: string, dto: any): Promise<{
         message: string;
-        response: import("./employee_payroll.entity").EmployeePayroll;
+        response: any;
     }>;
     toggle_employee_status_controller(id: string): Promise<{
         message: string;
-        response: import("./employee_payroll.entity").EmployeePayroll;
+        response: any;
     }>;
     get_all_payroll_runs_by_user_id_controller(user_id: string): Promise<{
         message: string;
@@ -39,7 +39,7 @@ export declare class EmployeePayrollController {
         response: {
             message: string;
             run_uuid: any;
-            employee_count: number;
+            employee_count: any;
         };
     }>;
     approve_and_process_payroll_run_controller(id: string): Promise<{
@@ -71,6 +71,6 @@ export declare class EmployeePayrollController {
     }>;
     delete_employee_keep_history_controller(id: string): Promise<{
         message: string;
-        response: import("typeorm").UpdateResult;
+        response: any;
     }>;
 }

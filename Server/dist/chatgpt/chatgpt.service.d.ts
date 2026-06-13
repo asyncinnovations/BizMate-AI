@@ -12,6 +12,6 @@ export declare class ChatgptService {
     }): Promise<string>;
     generate_faq_service(businessSnapshot: any): Promise<any[]>;
     generate_exampletone_service(businessSnapshot: any): Promise<any[]>;
-    generate_invoice_service(prompt: any, systemPrompt: string): Promise<string | never[] | undefined>;
+    generate_invoice_service(prompt: any, systemPrompt: string): Promise<any>;
     create_embedding_service(text: string): Promise<number[]>;
 }

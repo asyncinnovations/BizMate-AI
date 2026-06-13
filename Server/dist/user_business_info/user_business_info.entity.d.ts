@@ -13,6 +13,13 @@ export declare class UserBusinessInfo {
     tone_examples: any;
     snapshot: any;
     is_active: boolean;
+    business_location: string | null;
+    compliance_framework: string | null;
+    business_region: string | null;
+    trade_license_number: string | null;
+    trn: string | null;
+    address: string | null;
+    currency: string | null;
     created_at: Date;
     updated_at: Date;
 }

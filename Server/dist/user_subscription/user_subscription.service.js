@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserSubscriptionService = void 0;
 const common_1 = require("@nestjs/common");
@@ -122,8 +123,6 @@ exports.UserSubscriptionService = UserSubscriptionService = __decorate([
     __param(0, (0, typeorm_2.InjectRepository)(user_subscription_entity_1.UserSubscription)),
     __param(1, (0, typeorm_2.InjectRepository)(user_entity_1.AuthUsers)),
     __param(2, (0, typeorm_2.InjectRepository)(subscription_plans_entity_1.SubscriptionPlan)),
-    __metadata("design:paramtypes", [typeorm_1.Repository,
-        typeorm_1.Repository,
-        typeorm_1.Repository])
+    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_1.Repository !== "undefined" && typeorm_1.Repository) === "function" ? _a : Object, typeof (_b = typeof typeorm_1.Repository !== "undefined" && typeorm_1.Repository) === "function" ? _b : Object, typeof (_c = typeof typeorm_1.Repository !== "undefined" && typeorm_1.Repository) === "function" ? _c : Object])
 ], UserSubscriptionService);
 //# sourceMappingURL=user_subscription.service.js.map

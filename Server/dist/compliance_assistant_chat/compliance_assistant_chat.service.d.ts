@@ -7,11 +7,11 @@ export declare class ComplianceAssistantChatService {
     private readonly gpt_service;
     private readonly prompt_service;
     constructor(compliance_assistant: Repository<ComplianceAssistantChat>, gpt_service: GPTService, prompt_service: PromptService);
-    askAI(data: any): Promise<ComplianceAssistantChat>;
+    askAI(data: any): Promise<any>;
     user_chat_history_service(userId: string): Promise<any>;
-    delete_chat_service(chatId: string, userId: string): Promise<ComplianceAssistantChat>;
+    delete_chat_service(chatId: string, userId: string): Promise<any>;
     clear_chat_history_service(userId: string): Promise<{
         message: string;
     }>;
-    searchChat(userId: string, keyword: string): Promise<ComplianceAssistantChat[]>;
+    searchChat(userId: string, keyword: string): Promise<any>;
 }

@@ -4,26 +4,26 @@ export declare class NotificationPreferencesController {
     constructor(preferencesService: NotificationPreferencesService);
     create_preference(body: any): Promise<{
         message: string;
-        response: import("./notification_preferences.entity").NotificationPreference;
+        response: any;
     }>;
     update_preference(preference_id: string, updates: any): Promise<{
         message: string;
-        response: import("./notification_preferences.entity").NotificationPreference[];
+        response: any;
     }>;
     single_preference(preference_id: string): Promise<{
         message: string;
-        response: import("./notification_preferences.entity").NotificationPreference;
+        response: any;
     }>;
     user_preference(user_id: string, company_id?: string): Promise<{
         message: string;
-        response: import("./notification_preferences.entity").NotificationPreference[];
+        response: any;
     }>;
     toggle_channel(preference_id: string, body: {
         channel: "email" | "sms" | "push" | "dashboard";
         enabled: boolean;
     }): Promise<{
         message: string;
-        response: import("./notification_preferences.entity").NotificationPreference;
+        response: any;
     }>;
     delete_preference(preference_id: string): Promise<{
         message: string;

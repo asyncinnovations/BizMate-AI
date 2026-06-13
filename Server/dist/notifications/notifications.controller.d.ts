@@ -5,25 +5,23 @@ export declare class NotificationsController {
     constructor(notificationsService: NotificationsService);
     create_notification(body: any): Promise<{
         message: string;
-        response: Notification;
+        response: any;
     }>;
     send_notification(notification_id: string): Promise<{
         message: string;
-        response: Notification | {
-            message: string;
-        };
+        response: any;
     }>;
     user_notification(user_id: string, company_id?: string): Promise<{
         message: string;
-        response: Notification[];
+        response: any;
     }>;
     single_notification(notification_id: string): Promise<{
         message: string;
-        response: Notification;
+        response: any;
     }>;
     mark_read_notification(notification_id: string): Promise<{
         message: string;
-        response: Notification;
+        response: any;
     }>;
     send_bulk_notification(notifications: Notification[]): Promise<{
         message: string;
