@@ -32,12 +32,22 @@ export type UsageKey =
   | "ai_messages" // → features.ai_messages_per_month
   | "document_templates"; // → features.document_templates
 
-/** Maps each UsageKey to its corresponding feature limit key */
-const USAGE_KEY_TO_LIMIT_KEY: Record<UsageKey, keyof SubscriptionFeatures> = {
-  invoices: "invoice_limit_per_month",
-  ai_messages: "ai_messages_per_month",
-  document_templates: "document_templates",
+// FIX: document_templates was mapped to a non-existent flat key.
+// features.quota.documents.limit is the real path.
+// Uses dot-notation; resolveFeaturePath handles traversal.
+const USAGE_KEY_TO_LIMIT_PATH: Record<UsageKey, string> = {
+  invoices:           "quota.invoicing.standard.limit",
+  ai_messages:        "quota.invoicing.ai_generation.limit",
+  document_templates: "quota.documents.limit",
 };
+
+function resolveFeaturePath(obj: any, path: string): number | string | undefined {
+  if (!obj) return undefined;
+  return path.split(".").reduce((cur, key) => (cur != null && typeof cur === "object" ? cur[key] : undefined), obj);
+}
+
+/** @deprecated kept for compat */
+const USAGE_KEY_TO_LIMIT_KEY: Record<UsageKey, string> = USAGE_KEY_TO_LIMIT_PATH;
 
 /** Human-readable label per usage key — used in error messages */
 const USAGE_KEY_LABELS: Record<UsageKey, string> = {
@@ -132,9 +142,9 @@ export function useSubscriptionGuard() {
         };
       }
 
-      const limitKey = USAGE_KEY_TO_LIMIT_KEY[usageKey];
-      const rawLimit = features?.[limitKey] as number | string | undefined;
-      const limit = resolveLimit(rawLimit);
+      // FIX: nested path resolution — features.document_templates doesn't exist flat
+      const rawLimit = resolveFeaturePath(features, USAGE_KEY_TO_LIMIT_PATH[usageKey]) as number | string | undefined;
+      const limit    = resolveLimit(rawLimit);
       const label = USAGE_KEY_LABELS[usageKey];
 
       // ── Feature not available on this plan ────────────────────────────
@@ -219,9 +229,9 @@ export function useSubscriptionGuard() {
     ): Promise<{ exceeded: boolean; used: number; limit: number }> => {
       if (!subscription?.uuid) return { exceeded: false, used: 0, limit: 0 };
 
-      const limitKey = USAGE_KEY_TO_LIMIT_KEY[usageKey];
-      const rawLimit = features?.[limitKey] as number | string | undefined;
-      const limit = resolveLimit(rawLimit);
+      // FIX: nested path resolution — features.document_templates doesn't exist flat
+      const rawLimit = resolveFeaturePath(features, USAGE_KEY_TO_LIMIT_PATH[usageKey]) as number | string | undefined;
+      const limit    = resolveLimit(rawLimit);
 
       // Unlimited — can never exceed
       if (isUnlimited(limit)) return { exceeded: false, used: 0, limit: -1 };

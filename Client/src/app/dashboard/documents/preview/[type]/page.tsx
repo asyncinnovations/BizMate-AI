@@ -135,6 +135,26 @@ export default function DocumentPreviewPage() {
 
   const handlePrint = () => window.print();
 
+  // NEW: DOCX export — POST /documents/generate-docx/:uuid
+  const [isDocxLoading, setIsDocxLoading] = useState(false);
+  const handleDownloadDocx = async () => {
+    if (!isRealDocument) return toast.error("Save the document first to export as DOCX.");
+    setIsDocxLoading(true);
+    try {
+      const res = await axiosInstance.post(`/documents/generate-docx/${documentType}`);
+      if (res.status === 200 && res.data?.url) {
+        const link = document.createElement("a");
+        link.href     = `${process.env.NEXT_PUBLIC_ASSET_URL}${res.data.url}`;
+        link.download = `${pageTitle}.docx`;
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        toast.success("DOCX downloaded.");
+      } else {
+        toast.error("DOCX generation failed.");
+      }
+    } catch { toast.error("Failed to generate DOCX. Ensure the docx package is installed."); }
+    finally { setIsDocxLoading(false); }
+  };
+
   const handleSendEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSending(true);
@@ -341,6 +361,13 @@ export default function DocumentPreviewPage() {
             <div className="flex flex-wrap gap-3">
               <Button onClick={handlePrint} className="bg-surface border border-border text-text-secondary hover:bg-bg-base" startIcon={<Printer className="w-4 h-4" />}>Print</Button>
               <Button onClick={handleDownload} className="bg-status-warning text-on-brand hover:bg-status-warning/90" startIcon={<Download className="w-4 h-4" />}>Download PDF</Button>
+              {isRealDocument && (
+                <Button onClick={handleDownloadDocx} disabled={isDocxLoading}
+                  className="bg-surface border border-border text-text-secondary hover:bg-bg-base"
+                  startIcon={<Download className="w-4 h-4" />}>
+                  {isDocxLoading ? "Generating…" : "DOCX"}
+                </Button>
+              )}
               <Button onClick={() => setIsModalOpen(true)} startIcon={<Send className="w-4 h-4" />}>Send</Button>
               {isRealDocument && document_?.status !== "finalised" && (
                 <Button onClick={handleFinalise} className="bg-green-600 text-white hover:bg-green-700" startIcon={<Stamp className="w-4 h-4" />}>Approve & Finalise</Button>
@@ -425,6 +452,11 @@ export default function DocumentPreviewPage() {
                 <button onClick={handleDownload} className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-base rounded-xl border border-border transition-all">
                   <Download className="w-4 h-4 text-text-muted" /> Download PDF
                 </button>
+                {isRealDocument && (
+                  <button onClick={handleDownloadDocx} disabled={isDocxLoading} className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-base rounded-xl border border-border transition-all disabled:opacity-50">
+                    <Download className="w-4 h-4 text-text-muted" /> {isDocxLoading ? "Generating…" : "Download DOCX"}
+                  </button>
+                )}
                 <button onClick={handleCopyLink} className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-base rounded-xl border border-border transition-all">
                   {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4 text-text-muted" />}
                   {copied ? "Link copied!" : "Copy share link"}

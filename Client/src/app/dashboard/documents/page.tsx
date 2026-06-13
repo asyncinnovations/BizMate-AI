@@ -62,7 +62,11 @@ export default function DocumentGeneratorMain() {
   const { checkLimit, enforceAndIncrement } = useSubscriptionGuard();
   const userId = !loading ? (user?.user?.user_id as string) : "";
 
-  const isPro = currentPlan?.name === "Pro" || currentPlan?.name === "Enterprise";
+  // FIX 3: check capabilities + common plan names (covers renamed plans)
+  const isPro = !!features?.capabilities?.documents?.enabled ||
+                currentPlan?.name === "Pro" ||
+                currentPlan?.name === "Growth" ||
+                currentPlan?.name === "Enterprise";
 
   // ── Template state ─────────────────────────────────────────────────────────
   const [customTemplates,   setCustomTemplates]   = useState<DocumentTemplate[]>([]);
@@ -189,18 +193,41 @@ export default function DocumentGeneratorMain() {
 
     const result = await generateAiDoc(userId, aiPrompt);
     if (result?.ai_result) {
-      toast.success("Document draft generated! Review it below.");
-      setShowAiModal(false);
-      setAiPrompt("");
-      // Navigate to preview with the AI result
-      router.push(
-        `/dashboard/documents/preview/ai-generated?data=${encodeURIComponent(JSON.stringify({
-          ...result.ai_result,
-          ai_prompt:  result.ai_prompt,
-          source:     "ai",
-          user_id:    userId,
-        }))}`,
-      );
+      try {
+        // FIX 2: Save AI doc to DB first so it has a UUID.
+        // Previously navigated with data in URL — doc was never persisted.
+        const saveRes = await axiosInstance.post("/documents/ai-save", {
+          user_id:          userId,
+          document_name:    result.ai_result.document_name ?? aiPrompt.slice(0, 80),
+          document_type:    result.ai_result.document_type ?? "Custom",
+          category:         result.ai_result.category      ?? "Business",
+          content:          result.ai_result.content       ?? "",
+          ai_prompt:        aiPrompt,
+          field_values:     result.ai_result.field_values  ?? {},
+          compliance_score: result.ai_result.compliance_score ?? null,
+          compliance_notes: result.ai_result.compliance_notes ?? [],
+        });
+        const savedUuid = saveRes.data?.data?.uuid ?? saveRes.data?.uuid;
+        toast.success("Document draft saved! Opening preview…");
+        setShowAiModal(false);
+        setAiPrompt("");
+        if (savedUuid) {
+          router.push(`/dashboard/documents/preview/${savedUuid}`);
+        } else {
+          // Fallback: URL param if API returned no UUID (should not happen)
+          router.push(
+            `/dashboard/documents/preview/ai-generated?data=${encodeURIComponent(JSON.stringify({
+              ...result.ai_result,
+              ai_prompt:  result.ai_prompt,
+              source:     "ai",
+              user_id:    userId,
+            }))}`,
+          );
+        }
+      } catch (saveErr) {
+        console.error("[doc-ai-save] failed:", saveErr);
+        toast.error("Document generated but failed to save. Please try again.");
+      }
     }
   };
 
@@ -244,7 +271,7 @@ export default function DocumentGeneratorMain() {
   };
 
   const handleTemplateClick = (templateId: string) => {
-    router.push(`/dashboard/invoicing/new/${templateId}`);
+    router.push(`/dashboard/documents/new/${templateId}`); // FIX 1: was /invoicing/new — wrong module
   };
 
   // ─────────────────────────────────────────────────────────────────────────
