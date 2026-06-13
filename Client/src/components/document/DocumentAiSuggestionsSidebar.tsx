@@ -10,12 +10,17 @@ import { useRouter }              from "next/navigation";
 
 interface Props {
   userId:    string;
-  isPro:     boolean;
+  /** @deprecated — pass nothing; the component now reads capabilities internally */
+  isPro?:    boolean;
   /** When user clicks a suggestion — navigates to new document flow */
   onSelect?: (documentType: string) => void;
 }
 
-export default function DocumentAiSuggestionsSidebar({ userId, isPro, onSelect }: Props) {
+export default function DocumentAiSuggestionsSidebar({ userId, isPro: isProProp, onSelect }: Props) {
+  // FIX 2: derive from capabilities, not plan name string.
+  // Falls back to prop for backward compat.
+  const { isPlanCapable } = useSubscriptionGuard();
+  const isPro = isPlanCapable("documents") || isProProp === true;
   const router = useRouter();
   const { suggestions, isLoading, fetch } = useDocumentSuggestions();
 

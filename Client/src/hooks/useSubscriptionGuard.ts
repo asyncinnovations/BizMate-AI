@@ -28,32 +28,43 @@ import { AxiosError } from "axios";
 
 /** Trackable usage keys — must match backend usage_key values exactly */
 export type UsageKey =
-  | "invoices" // → features.invoice_limit_per_month
-  | "ai_messages" // → features.ai_messages_per_month
-  | "document_templates"; // → features.document_templates
+  | "invoices"            // → features.quota.invoicing.standard.limit
+  | "ai_messages"         // → features.quota.invoicing.ai_generation.limit
+  | "document_templates"  // → features.quota.documents.limit  (FIX 1: was flat "document_templates")
+  | "reminders"           // → features.quota.reminders.limit
+  | "quotations";         // → features.quota.invoicing.templates.limit
 
-// FIX: document_templates was mapped to a non-existent flat key.
-// features.quota.documents.limit is the real path.
-// Uses dot-notation; resolveFeaturePath handles traversal.
+/**
+ * FIX 1: dot-notation paths into SubscriptionFeatures.
+ * The old flat map (features.document_templates) pointed to a field that does not
+ * exist. The real path is features.quota.documents.limit — a nested QuotaDetail object.
+ */
 const USAGE_KEY_TO_LIMIT_PATH: Record<UsageKey, string> = {
   invoices:           "quota.invoicing.standard.limit",
   ai_messages:        "quota.invoicing.ai_generation.limit",
   document_templates: "quota.documents.limit",
+  reminders:          "quota.reminders.limit",
+  quotations:         "quota.invoicing.templates.limit",
 };
 
+/** Traverses a dot-separated path through a nested object. Returns undefined on any miss. */
 function resolveFeaturePath(obj: any, path: string): number | string | undefined {
-  if (!obj) return undefined;
-  return path.split(".").reduce((cur, key) => (cur != null && typeof cur === "object" ? cur[key] : undefined), obj);
+  return path.split(".").reduce(
+    (cur: any, key: string) => (cur != null && typeof cur === "object" ? cur[key] : undefined),
+    obj,
+  ) as number | string | undefined;
 }
 
-/** @deprecated kept for compat */
-const USAGE_KEY_TO_LIMIT_KEY: Record<UsageKey, string> = USAGE_KEY_TO_LIMIT_PATH;
+/** @deprecated — alias for backward compat */
+const USAGE_KEY_TO_LIMIT_KEY = USAGE_KEY_TO_LIMIT_PATH;
 
 /** Human-readable label per usage key — used in error messages */
 const USAGE_KEY_LABELS: Record<UsageKey, string> = {
-  invoices: "invoice",
-  ai_messages: "AI message",
-  document_templates: "document template",
+  invoices:           "invoice",
+  ai_messages:        "AI message",
+  document_templates: "document",
+  reminders:          "reminder",
+  quotations:         "quotation",
 };
 
 export interface GuardResult<T = void> {
@@ -97,7 +108,7 @@ function isNotAvailable(limit: number): boolean {
 // HOOK
 // ─────────────────────────────────────────────────────────────────────────────
 export function useSubscriptionGuard() {
-  const { subscription, features } = useSubscription();
+  const { subscription, features, currentPlan } = useSubscription();
 
   const [enforcing, setEnforcing] = useState(false);
   const [incrementing, setIncrementing] = useState(false);
@@ -142,10 +153,10 @@ export function useSubscriptionGuard() {
         };
       }
 
-      // FIX: nested path resolution — features.document_templates doesn't exist flat
-      const rawLimit = resolveFeaturePath(features, USAGE_KEY_TO_LIMIT_PATH[usageKey]) as number | string | undefined;
-      const limit    = resolveLimit(rawLimit);
-      const label = USAGE_KEY_LABELS[usageKey];
+      // FIX 1: nested path resolver replaces flat bracket access
+      const rawLimit = resolveFeaturePath(features, USAGE_KEY_TO_LIMIT_PATH[usageKey]);
+      const limit    = resolveLimit(rawLimit as number | string | undefined);
+      const label    = USAGE_KEY_LABELS[usageKey];
 
       // ── Feature not available on this plan ────────────────────────────
       if (isNotAvailable(limit)) {
@@ -229,9 +240,9 @@ export function useSubscriptionGuard() {
     ): Promise<{ exceeded: boolean; used: number; limit: number }> => {
       if (!subscription?.uuid) return { exceeded: false, used: 0, limit: 0 };
 
-      // FIX: nested path resolution — features.document_templates doesn't exist flat
-      const rawLimit = resolveFeaturePath(features, USAGE_KEY_TO_LIMIT_PATH[usageKey]) as number | string | undefined;
-      const limit    = resolveLimit(rawLimit);
+      // FIX 1: nested path resolver
+      const rawLimit = resolveFeaturePath(features, USAGE_KEY_TO_LIMIT_PATH[usageKey]);
+      const limit    = resolveLimit(rawLimit as number | string | undefined);
 
       // Unlimited — can never exceed
       if (isUnlimited(limit)) return { exceeded: false, used: 0, limit: -1 };
@@ -324,10 +335,34 @@ export function useSubscriptionGuard() {
   // ──────────────────────────────────────────────────────────────────────────
   const getLimitValue = useCallback(
     (usageKey: UsageKey): number => {
-      const limitKey = USAGE_KEY_TO_LIMIT_KEY[usageKey];
-      return resolveLimit(features?.[limitKey] as number | string | undefined);
+      // FIX 1: nested path resolver
+      return resolveLimit(
+        resolveFeaturePath(features, USAGE_KEY_TO_LIMIT_PATH[usageKey]) as number | string | undefined
+      );
     },
     [features],
+  );
+
+  /**
+   * FIX 2: isPlanCapable — replace all isPro name-string checks.
+   *
+   * Usage:  isPlanCapable("documents")  // true if features.capabilities.documents.enabled
+   *
+   * This is stable across plan renames because it reads the capabilities object
+   * in the plan's features JSON, not the plan name string.
+   * Falls back to name-string if features not yet loaded.
+   */
+  const isPlanCapable = useCallback(
+    (capabilityKey: keyof NonNullable<typeof features>["capabilities"]): boolean => {
+      if (features?.capabilities) {
+        return !!(features.capabilities[capabilityKey as keyof typeof features.capabilities]?.enabled);
+      }
+      // Fallback: any paid plan name — covers bootstrap case before features load
+      const planName = (subscription as any)?.plan?.name ?? currentPlan?.name ?? "";
+      const paidNames = ["starter", "growth", "pro", "enterprise"];
+      return paidNames.some((n) => planName.toLowerCase().includes(n));
+    },
+    [features, subscription, currentPlan],
   );
 
   return {
@@ -349,6 +384,8 @@ export function useSubscriptionGuard() {
     // Loading states
     enforcing,
     incrementing,
+    // FIX 2: capability check by key
+    isPlanCapable,
     isLoading: enforcing || incrementing,
   };
 }

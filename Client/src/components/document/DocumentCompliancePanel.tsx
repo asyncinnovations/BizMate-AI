@@ -17,8 +17,11 @@ interface Props {
 }
 
 export default function DocumentCompliancePanel({
-  documentUuid, isPro, initialScore, initialNotes,
+  documentUuid, isPro: isProProp, initialScore, initialNotes,
 }: Props) {
+  // FIX 2: capability-based check — survives plan renames
+  const { isPlanCapable } = useSubscriptionGuard();
+  const isPro = isPlanCapable("documents") || isProProp === true;
   const { check, isChecking, result } = useDocumentCompliance();
 
   // If the document already has a compliance score, show it immediately.

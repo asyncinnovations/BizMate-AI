@@ -59,14 +59,12 @@ export default function DocumentGeneratorMain() {
   const router                        = useRouter();
   const { user, loading }             = useAuth();
   const { subscription, currentPlan } = useSubscription();
-  const { checkLimit, enforceAndIncrement } = useSubscriptionGuard();
+  const { checkLimit, enforceAndIncrement, isPlanCapable, incrementOnly } = useSubscriptionGuard();
   const userId = !loading ? (user?.user?.user_id as string) : "";
 
-  // FIX 3: check capabilities + common plan names (covers renamed plans)
-  const isPro = !!features?.capabilities?.documents?.enabled ||
-                currentPlan?.name === "Pro" ||
-                currentPlan?.name === "Growth" ||
-                currentPlan?.name === "Enterprise";
+  // FIX 2: capability-based check replaces brittle plan name string comparison.
+  // isPlanCapable reads features.capabilities.documents.enabled — stable across plan renames.
+  const isPro = isPlanCapable("documents");
 
   // ── Template state ─────────────────────────────────────────────────────────
   const [customTemplates,   setCustomTemplates]   = useState<DocumentTemplate[]>([]);
@@ -194,8 +192,7 @@ export default function DocumentGeneratorMain() {
     const result = await generateAiDoc(userId, aiPrompt);
     if (result?.ai_result) {
       try {
-        // FIX 2: Save AI doc to DB first so it has a UUID.
-        // Previously navigated with data in URL — doc was never persisted.
+        // FIX 3 + Fix from previous session: Save AI doc to DB before navigating.
         const saveRes = await axiosInstance.post("/documents/ai-save", {
           user_id:          userId,
           document_name:    result.ai_result.document_name ?? aiPrompt.slice(0, 80),
@@ -208,13 +205,19 @@ export default function DocumentGeneratorMain() {
           compliance_notes: result.ai_result.compliance_notes ?? [],
         });
         const savedUuid = saveRes.data?.data?.uuid ?? saveRes.data?.uuid;
+
+        // FIX 3: Increment usage counter after successful AI doc generation.
+        // Previously no increment was made — users on limited plans could
+        // generate unlimited AI documents without consuming their quota.
+        await incrementOnly("document_templates");
+
         toast.success("Document draft saved! Opening preview…");
         setShowAiModal(false);
         setAiPrompt("");
+
         if (savedUuid) {
           router.push(`/dashboard/documents/preview/${savedUuid}`);
         } else {
-          // Fallback: URL param if API returned no UUID (should not happen)
           router.push(
             `/dashboard/documents/preview/ai-generated?data=${encodeURIComponent(JSON.stringify({
               ...result.ai_result,
@@ -271,7 +274,7 @@ export default function DocumentGeneratorMain() {
   };
 
   const handleTemplateClick = (templateId: string) => {
-    router.push(`/dashboard/documents/new/${templateId}`); // FIX 1: was /invoicing/new — wrong module
+    router.push(`/dashboard/documents/new/${templateId}`); // FIX: was /invoicing/new
   };
 
   // ─────────────────────────────────────────────────────────────────────────
