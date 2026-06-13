@@ -27,8 +27,8 @@ import { useAuth }          from "@/context/AuthContext";
 import { formatDate }       from "@/utils/formatDate";
 import Button               from "@/components/ui/Button";
 import LoadingSpinner        from "@/components/loading-spinner/LoadingSpinner";
-import { useSubscription }  from "@/context/SubscriptionContext";
-import { useSubscriptionUsage } from "@/hooks/useSubscriptionUsage";
+import { useSubscription }      from "@/context/SubscriptionContext";
+import { useSubscriptionGuard } from "@/hooks/useSubscriptionGuard";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 type ReminderStatus = "pending" | "sent" | "completed" | "missed";
@@ -136,12 +136,14 @@ const EMPTY_FORM = (userId: any): FormData => ({
 // ── Page component ────────────────────────────────────────────────────────────
 const AIRemindersPage = () => {
   const router = useRouter();
-  const { currentPlan, checkUsageLimit } = useSubscription();
-  const { incrementUsage }               = useSubscriptionUsage();
+  const { currentPlan, features }                              = useSubscription();
+  const { isPlanCapable, incrementOnly, enforceAndIncrement } = useSubscriptionGuard();
   const { loading, user }                = useAuth();
 
   const userId = !loading ? user?.user.user_id : null;
-  const isPro  = currentPlan?.name === "Pro" || currentPlan?.name === "Enterprise";
+  // FIX 2: capability-based check — survives plan renames.
+  // Old: currentPlan?.name === "Pro" || "Enterprise" — "Enterprise" is always truthy in JS.
+  const isPro = isPlanCapable("reminders");
 
   // ── Data state ─────────────────────────────────────────────────────────────
   const [reminders,          setReminders]          = useState<Reminder[]>([]);
@@ -159,6 +161,13 @@ const AIRemindersPage = () => {
   const [filterStatus,      setFilterStatus]      = useState("all");
   const [editingReminder,   setEditingReminder]   = useState<Reminder | null>(null);
   const [formData,          setFormData]          = useState<FormData>(EMPTY_FORM(userId));
+
+  // ── Usage meter state ─────────────────────────────────────────────────────
+  // FIX: reads from features.quota.reminders.limit (nested) not flat field
+  const reminderLimit = (features as any)?.quota?.reminders?.limit ?? -1;
+
+  // ── Search state ──────────────────────────────────────────────────────────
+  const [searchQuery, setSearchQuery] = useState("");
 
   // ── AI prompt modal state ──────────────────────────────────────────────────
   const [aiPrompt,      setAiPrompt]      = useState("");
@@ -249,23 +258,24 @@ const AIRemindersPage = () => {
     if (!formData.title || !formData.reminder_date) {
       return toast.error("Title and reminder date are required.");
     }
-    const limit: any = currentPlan?.features?.reminders;
-    const used       = await checkUsageLimit("ai_reminder");
-    if (used >= limit) {
-      return toast.error("Reminder limit reached. Upgrade to Pro to create more.");
-    }
     setIsCreating(true);
     try {
-      const res = await axiosInstance.post("/ai_reminder/create", {
-        ...formData, user_id: userId,
-      });
-      if (res.status === 201) {
-        toast.success("Reminder created successfully!");
-        setReminders((prev) => [...prev, res.data.response]);
-        fetchRecurringReminders();
-        await incrementUsage({ usageKey: "ai_reminder" });
-        resetForm();
+      // FIX 3: enforceAndIncrement reads features.quota.reminders.limit via
+      // nested path resolver in useSubscriptionGuard. Old code read
+      // currentPlan?.features?.reminders (flat, always undefined → NaN → never blocked).
+      const { allowed, reason } = await enforceAndIncrement(
+        "reminders",
+        () => axiosInstance.post("/ai_reminder/create", { ...formData, user_id: userId }),
+      );
+      if (!allowed) {
+        return toast.error(reason ?? "Reminder limit reached. Upgrade to continue.");
       }
+      toast.success("Reminder created successfully!");
+      // enforceAndIncrement already incremented usage — no separate call needed
+      setReminders((prev) => [...prev, (allowed as any)?.data?.response ?? formData]);
+      fetchAllReminders();
+      fetchRecurringReminders();
+      resetForm();
     } catch (e) { console.error(e); }
     finally { setIsCreating(false); }
   };
@@ -413,7 +423,12 @@ const AIRemindersPage = () => {
   const filteredReminders = reminders.filter((r) => {
     const typeMatch   = filterType   === "all" || r.type   === filterType;
     const statusMatch = filterStatus === "all" || r.status === filterStatus;
-    return typeMatch && statusMatch;
+    // FIX 5: client-side search (title + description)
+    const q = searchQuery.toLowerCase().trim();
+    const searchMatch = !q ||
+      r.title.toLowerCase().includes(q) ||
+      (r.description ?? "").toLowerCase().includes(q);
+    return typeMatch && statusMatch && searchMatch;
   });
 
   // Shared input class
@@ -577,6 +592,31 @@ const AIRemindersPage = () => {
                     </div>
                     <span className="font-bold text-lg text-indigo-600">{aiCreatedCount}</span>
                   </div>
+                  {/* FIX 6: usage meter — only shown when there's a real limit */}
+                  {reminderLimit > 0 && (
+                    <div className="p-3 bg-bg-base rounded-lg border border-border">
+                      <div className="flex justify-between items-center mb-1.5">
+                        <span className="text-xs text-text-secondary font-medium">Reminders used</span>
+                        <span className="text-xs font-semibold text-text-heading">
+                          {reminders.length} / {reminderLimit}
+                        </span>
+                      </div>
+                      <div className="w-full bg-border rounded-full h-1.5">
+                        <div
+                          className="h-1.5 rounded-full transition-all"
+                          style={{
+                            width: `${Math.min(100, (reminders.length / reminderLimit) * 100)}%`,
+                            background: reminders.length >= reminderLimit ? "var(--status-error)" : "var(--accent)",
+                          }}
+                        />
+                      </div>
+                      {reminders.length >= reminderLimit && (
+                        <a href="/dashboard/pricing" className="block mt-2 text-xs text-secondary font-semibold hover:underline">
+                          Upgrade for unlimited →
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -652,8 +692,8 @@ const AIRemindersPage = () => {
           >
             <div className="p-6 space-y-4">
 
-              {/* AI prompt box — only shown when creating */}
-              {!editingReminder && (
+              {/* FIX 4: AI prompt box — only shown when creating AND on Growth/Enterprise */}
+              {!editingReminder && isPro && (
                 <>
                   <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
                     <div className="flex items-center gap-2 mb-2">
@@ -696,6 +736,21 @@ const AIRemindersPage = () => {
                     <div className="flex-1 h-px bg-border" />
                   </div>
                 </>
+              )}
+              {/* FIX 4: locked AI prompt for Free/Starter users */}
+              {!editingReminder && !isPro && (
+                <div className="flex items-start gap-3 p-3.5 bg-bg-base rounded-xl border border-border mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="w-4 h-4 text-indigo-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-text-heading">AI Reminder Creation</p>
+                    <p className="text-xs text-text-muted mt-0.5">Describe your reminder in plain English and AI fills the form. Available on Growth and Enterprise plans.</p>
+                    <a href="/dashboard/pricing" className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold text-secondary hover:underline">
+                      Upgrade to Growth →
+                    </a>
+                  </div>
+                </div>
               )}
 
               {/* Title */}
