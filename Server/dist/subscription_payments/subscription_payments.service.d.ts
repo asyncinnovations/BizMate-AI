@@ -5,8 +5,18 @@ export declare class SubscriptionPaymentsService {
     private readonly paymentRepo;
     private readonly subscriptionRepo;
     constructor(paymentRepo: Repository<SubscriptionPayment>, subscriptionRepo: Repository<UserSubscription>);
+    createPaymentWithRef(data: {
+        userSubscriptionId: string;
+        amount: number;
+        currency?: string;
+        paymentMethod: PaymentMethod;
+        gateway: string;
+        orderRef: string;
+    }): Promise<SubscriptionPayment>;
     createPayment(userSubscriptionId: string, amount: number, paymentMethod: PaymentMethod): Promise<SubscriptionPayment>;
-    updatePaymentStatus(paymentId: string, status: PaymentStatus, transactionId?: string, paidAt?: Date): Promise<SubscriptionPayment>;
+    updatePaymentStatus(paymentId: string, status: PaymentStatus, transactionId?: string, paidAt?: Date, gateway?: string): Promise<SubscriptionPayment>;
+    getPaymentByOrderRef(orderRef: string): Promise<SubscriptionPayment | null>;
     getPaymentsBySubscription(userSubscriptionId: string): Promise<SubscriptionPayment[]>;
+    getPaymentsByUser(userId: string): Promise<SubscriptionPayment[]>;
     getAllPayments(): Promise<SubscriptionPayment[]>;
 }

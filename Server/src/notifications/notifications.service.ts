@@ -102,8 +102,10 @@ export class NotificationsService {
       });
 
       // 4. Update record with send outcome
-      record.status  = result.success ? NotificationStatus.SENT : NotificationStatus.FAILED;
-      record.sent_at = result.success ? new Date() : null;
+      record.status = result.success ? NotificationStatus.SENT : NotificationStatus.FAILED;
+      if (result.success) {
+        record.sent_at = new Date();
+      }
       await this.notificationRepository.save(record);
     } else if (data.notification_type === NotificationType.DASHBOARD) {
       // Dashboard notifications are always "sent" — they just appear in the bell

@@ -8,5 +8,5 @@ export declare class PdfService {
         success: boolean;
         message: string;
     }>;
-    PDFToTextConverter(pdfPath: any): Promise<any>;
+    PDFToTextConverter(pdfPath: any): Promise<string>;
 }

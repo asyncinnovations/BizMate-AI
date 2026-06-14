@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ComplianceHistoryService = void 0;
 const typeorm_1 = require("@nestjs/typeorm");
@@ -81,6 +80,6 @@ let ComplianceHistoryService = class ComplianceHistoryService {
 exports.ComplianceHistoryService = ComplianceHistoryService;
 exports.ComplianceHistoryService = ComplianceHistoryService = __decorate([
     __param(0, (0, typeorm_1.InjectRepository)(compliance_history_entity_1.ComplianceHistory)),
-    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _a : Object])
+    __metadata("design:paramtypes", [typeorm_2.Repository])
 ], ComplianceHistoryService);
 //# sourceMappingURL=compliance_history.service.js.map

@@ -9,21 +9,21 @@ export declare class InvoicesService {
     constructor(invoicesRepo: Repository<InvoiceEntity>, openAIService: GPTService, promptservice: PromptService);
     private append_activity_log;
     private generate_invoice_number;
-    create_invoice_service(data: Partial<InvoiceEntity>): Promise<any>;
-    set_invoice_pdf_path_service(path: string, uuid: string): Promise<any>;
+    create_invoice_service(data: Partial<InvoiceEntity>): Promise<InvoiceEntity>;
+    set_invoice_pdf_path_service(path: string, uuid: string): Promise<import("typeorm").UpdateResult>;
     generate_ai_invoice_service(prompt: string): Promise<{
         message: string;
         response: {
             message: string;
-            data: any;
+            data: import("openai/resources/index.js").ChatCompletionMessage;
         };
     }>;
-    get_prebuild_invoice_template_service(): Promise<any>;
+    get_prebuild_invoice_template_service(): Promise<InvoiceEntity[]>;
     all_invoices_service(query?: {
         search?: string;
         status?: string;
         user_id?: string;
-    }): Promise<any>;
+    }): Promise<InvoiceEntity[]>;
     user_invoices_service(user_id: string): Promise<any>;
     single_invoice_service(idOrUuid: number | string): Promise<any>;
     update_invoice_service(idOrUuid: number | string, data: Partial<InvoiceEntity>): Promise<any>;
@@ -46,7 +46,7 @@ export declare class InvoicesService {
     }>;
     duplicate_invoice_service(invoice_uuid: string, requesting_user_id: string): Promise<{
         message: string;
-        invoice: any;
+        invoice: InvoiceEntity;
     }>;
     get_ai_insights_service(invoice_uuid: string): Promise<{
         message: string;

@@ -19,7 +19,7 @@ export declare class DocumentsService {
         field_values: Record<string, any>;
         content?: string;
         source?: DocumentSource;
-    }): Promise<any>;
+    }): Promise<GeneratedDocumentEntity>;
     ai_generate_document_service(user_id: string, prompt: string, document_type?: string): Promise<{
         message: string;
         ai_result: any;
@@ -40,15 +40,15 @@ export declare class DocumentsService {
             type: string;
             message: string;
         }[];
-    }): Promise<any>;
+    }): Promise<GeneratedDocumentEntity>;
     user_documents_service(user_id: string, filters?: {
         status?: string;
         category?: string;
         document_type?: string;
         search?: string;
-    }): Promise<any>;
-    single_document_service(uuid: string): Promise<any>;
-    update_document_service(uuid: string, data: Partial<GeneratedDocumentEntity>): Promise<any>;
+    }): Promise<GeneratedDocumentEntity[]>;
+    single_document_service(uuid: string): Promise<GeneratedDocumentEntity>;
+    update_document_service(uuid: string, data: Partial<GeneratedDocumentEntity>): Promise<GeneratedDocumentEntity>;
     update_document_status_service(uuid: string, new_status: string): Promise<{
         message: string;
         uuid: string;
@@ -63,7 +63,7 @@ export declare class DocumentsService {
     }>;
     duplicate_document_service(uuid: string, user_id: string): Promise<{
         message: string;
-        document: any;
+        document: GeneratedDocumentEntity;
     }>;
     run_compliance_check_service(uuid: string): Promise<{
         message: string;
@@ -81,7 +81,7 @@ export declare class DocumentsService {
     } | {
         message: string;
         suggestions: any[];
-        based_on: any;
+        based_on: number;
     }>;
     set_document_file_paths_service(uuid: string, paths: {
         pdf_path?: string;
@@ -92,5 +92,5 @@ export declare class DocumentsService {
         message: string;
         uuid: string;
     }>;
-    recent_documents_service(user_id: string, limit?: number): Promise<any>;
+    recent_documents_service(user_id: string, limit?: number): Promise<GeneratedDocumentEntity[]>;
 }

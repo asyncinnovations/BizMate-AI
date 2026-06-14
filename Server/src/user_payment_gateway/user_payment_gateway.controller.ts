@@ -170,24 +170,28 @@ export class UserPaymentGatewayController {
     let response: any;
     switch (gateway_name.toLowerCase()) {
       case "stripe":
-        response = await this.paymentService.generateStripeLink(
-          userGateway.credentials,
-          amount
-        );
+        response = await this.paymentService.generateStripeLink({
+          amount,
+          description: "Invoice Payment",
+          order_ref:   `INV-${Date.now()}`,
+        });
         break;
 
       case "paypal":
-        response = await this.paymentService.generatePayPalLink(
-          userGateway.credentials,
-          amount
-        );
+        response = await this.paymentService.generatePayPalLink({
+          amount,
+          currency:    "USD",
+          description: "Invoice Payment",
+          order_ref:   `INV-${Date.now()}`,
+        });
         break;
 
       case "telr":
-        response = await this.paymentService.generateTelrLink(
-          userGateway.credentials,
-          amount
-        );
+        response = await this.paymentService.generateTelrLink({
+          amount,
+          description: "Invoice Payment",
+          order_ref:   `INV-${Date.now()}`,
+        });
         break;
 
       default:

@@ -110,7 +110,7 @@ export class SubscriptionPlanService {
       end_date:   endDate,
       status:     SubscriptionStatus.ACTIVE, // set pending until webhook — using ACTIVE as placeholder
     } as any);
-    const savedSub = await this.userSubscriptionRepo.save(subscription);
+    const savedSub = await this.userSubscriptionRepo.save(subscription) as unknown as UserSubscription;
 
     // Generate unique order reference
     const orderRef = `BIZ-${Date.now()}-${data.userId.slice(0, 8).toUpperCase()}`;
@@ -190,7 +190,7 @@ export class SubscriptionPlanService {
       status:     SubscriptionStatus.ACTIVE,
     });
 
-    return this.userSubscriptionRepo.save(subscription);
+    return this.userSubscriptionRepo.save(subscription) as Promise<UserSubscription>;
   }
 
   // ── Legacy subscribe (kept for compat) ────────────────────────────────────

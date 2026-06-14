@@ -47,7 +47,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ComplianceDocumentsService = void 0;
 const common_1 = require("@nestjs/common");
@@ -146,7 +145,8 @@ exports.ComplianceDocumentsService = ComplianceDocumentsService;
 exports.ComplianceDocumentsService = ComplianceDocumentsService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_2.InjectRepository)(compliance_documents_entity_1.ComplianceDocument)),
-    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_1.Repository !== "undefined" && typeorm_1.Repository) === "function" ? _a : Object, PdfService_1.PdfService,
+    __metadata("design:paramtypes", [typeorm_1.Repository,
+        PdfService_1.PdfService,
         OpenAIService_1.OpenAIService])
 ], ComplianceDocumentsService);
 //# sourceMappingURL=compliance_documents.service.js.map

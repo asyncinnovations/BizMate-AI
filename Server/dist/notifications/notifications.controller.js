@@ -23,64 +23,82 @@ let NotificationsController = class NotificationsController {
     async create_notification(body) {
         try {
             const response = await this.notificationsService.create_notification_service(body);
-            return { message: "notification send success", response };
+            return { message: "notification created", response };
         }
-        catch (error) {
-            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
-        }
-    }
-    async send_notification(notification_id) {
-        try {
-            const response = await this.notificationsService.send_notification_service(notification_id);
-            return { message: "notification send success", response };
-        }
-        catch (error) {
-            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        catch (err) {
+            throw new common_1.HttpException(err.message ?? err, common_1.HttpStatus.BAD_REQUEST);
         }
     }
-    async user_notification(user_id, company_id) {
+    async send_notification(id) {
         try {
-            const response = await this.notificationsService.user_notification_service(user_id, company_id);
-            return { message: "user notification get success", response };
+            const response = await this.notificationsService.send_notification_service(id);
+            return { message: "notification sent", response };
         }
-        catch (error) {
-            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        catch (err) {
+            throw new common_1.HttpException(err.message ?? err, common_1.HttpStatus.BAD_REQUEST);
         }
     }
-    async single_notification(notification_id) {
+    async user_notification(user_id, limit) {
         try {
-            const response = await this.notificationsService.single_notification_service(notification_id);
-            return { message: "single notification get success", response };
+            const response = await this.notificationsService.user_notification_service(user_id, limit ? parseInt(limit, 10) : 50);
+            return { message: "user notifications retrieved", response };
         }
-        catch (error) {
-            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        catch (err) {
+            throw new common_1.HttpException(err.message ?? err, common_1.HttpStatus.BAD_REQUEST);
         }
     }
-    async mark_read_notification(notification_id) {
+    async unread_count(user_id) {
         try {
-            const response = await this.notificationsService.mark_read_notification_service(notification_id);
+            const count = await this.notificationsService.unread_count_service(user_id);
+            return { message: "unread count retrieved", count };
+        }
+        catch (err) {
+            throw new common_1.HttpException(err.message ?? err, common_1.HttpStatus.BAD_REQUEST);
+        }
+    }
+    async single_notification(id) {
+        try {
+            const response = await this.notificationsService.single_notification_service(id);
+            return { message: "notification retrieved", response };
+        }
+        catch (err) {
+            throw new common_1.HttpException(err.message ?? err, common_1.HttpStatus.BAD_REQUEST);
+        }
+    }
+    async mark_read_notification(id) {
+        try {
+            const response = await this.notificationsService.mark_read_notification_service(id);
             return { message: "notification marked as read", response };
         }
-        catch (error) {
-            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        catch (err) {
+            throw new common_1.HttpException(err.message ?? err, common_1.HttpStatus.BAD_REQUEST);
         }
     }
-    async send_bulk_notification(notifications) {
+    async mark_all_read(user_id) {
         try {
-            const response = await this.notificationsService.send_bulk_notification_service(notifications);
-            return { message: "bulk notification send success", response };
+            const response = await this.notificationsService.mark_all_read_service(user_id);
+            return { message: "all notifications marked as read", response };
         }
-        catch (error) {
-            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        catch (err) {
+            throw new common_1.HttpException(err.message ?? err, common_1.HttpStatus.BAD_REQUEST);
         }
     }
-    async delete_notification(notification_id) {
+    async send_bulk_notification(body) {
         try {
-            const response = await this.notificationsService.delete_notification(notification_id);
-            return { message: "notification delete success", response };
+            const response = await this.notificationsService.send_bulk_notification_service(body.notifications ?? body);
+            return { message: "bulk notifications sent", response };
         }
-        catch (error) {
-            throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
+        catch (err) {
+            throw new common_1.HttpException(err.message ?? err, common_1.HttpStatus.BAD_REQUEST);
+        }
+    }
+    async delete_notification(id) {
+        try {
+            const response = await this.notificationsService.delete_notification(id);
+            return { message: "notification deleted", response };
+        }
+        catch (err) {
+            throw new common_1.HttpException(err.message ?? err, common_1.HttpStatus.BAD_REQUEST);
         }
     }
 };
@@ -95,7 +113,7 @@ __decorate([
 ], NotificationsController.prototype, "create_notification", null);
 __decorate([
     (0, common_1.Put)("send/:notification_id"),
-    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("notification_id")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -105,11 +123,19 @@ __decorate([
     (0, common_1.Get)("user/:user_id"),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)("user_id")),
-    __param(1, (0, common_1.Query)("company_id")),
+    __param(1, (0, common_1.Query)("limit")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], NotificationsController.prototype, "user_notification", null);
+__decorate([
+    (0, common_1.Get)("unread-count/:user_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Param)("user_id")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], NotificationsController.prototype, "unread_count", null);
 __decorate([
     (0, common_1.Get)("single/:notification_id"),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
@@ -127,11 +153,19 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], NotificationsController.prototype, "mark_read_notification", null);
 __decorate([
+    (0, common_1.Put)("mark-all-read/:user_id"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Param)("user_id")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], NotificationsController.prototype, "mark_all_read", null);
+__decorate([
     (0, common_1.Post)("bulk-send"),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Array]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], NotificationsController.prototype, "send_bulk_notification", null);
 __decorate([

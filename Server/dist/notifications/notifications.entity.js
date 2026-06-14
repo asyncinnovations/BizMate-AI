@@ -9,12 +9,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Notification = exports.NotificationType = exports.NotificationStatus = void 0;
+exports.Notification = exports.NotificationEventType = exports.NotificationType = exports.NotificationStatus = void 0;
 const typeorm_1 = require("typeorm");
 var NotificationStatus;
 (function (NotificationStatus) {
     NotificationStatus["PENDING"] = "pending";
     NotificationStatus["SENT"] = "sent";
+    NotificationStatus["READ"] = "read";
     NotificationStatus["FAILED"] = "failed";
 })(NotificationStatus || (exports.NotificationStatus = NotificationStatus = {}));
 var NotificationType;
@@ -24,6 +25,19 @@ var NotificationType;
     NotificationType["PUSH"] = "push";
     NotificationType["DASHBOARD"] = "dashboard";
 })(NotificationType || (exports.NotificationType = NotificationType = {}));
+var NotificationEventType;
+(function (NotificationEventType) {
+    NotificationEventType["REMINDER"] = "reminder";
+    NotificationEventType["INVOICE_PAID"] = "invoice_paid";
+    NotificationEventType["INVOICE_SENT"] = "invoice_sent";
+    NotificationEventType["QUOTATION_ACCEPTED"] = "quotation_accepted";
+    NotificationEventType["QUOTATION_REJECTED"] = "quotation_rejected";
+    NotificationEventType["QUOTATION_SENT"] = "quotation_sent";
+    NotificationEventType["DOCUMENT_FINALISED"] = "document_finalised";
+    NotificationEventType["SUBSCRIPTION_EXPIRING"] = "subscription_expiring";
+    NotificationEventType["WELCOME"] = "welcome";
+    NotificationEventType["GENERAL"] = "general";
+})(NotificationEventType || (exports.NotificationEventType = NotificationEventType = {}));
 let Notification = class Notification {
     id;
     uuid;
@@ -31,10 +45,13 @@ let Notification = class Notification {
     company_id;
     reminder_id;
     document_id;
+    reference_id;
+    event_type;
     notification_type;
     title;
     message;
     status;
+    is_read;
     sent_at;
     created_at;
     updated_at;
@@ -69,6 +86,19 @@ __decorate([
     __metadata("design:type", String)
 ], Notification.prototype, "document_id", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: "uuid", nullable: true }),
+    __metadata("design:type", String)
+], Notification.prototype, "reference_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        type: "varchar",
+        length: 80,
+        nullable: true,
+        default: "general",
+    }),
+    __metadata("design:type", String)
+], Notification.prototype, "event_type", void 0);
+__decorate([
     (0, typeorm_1.Column)({ type: "enum", enum: NotificationType }),
     __metadata("design:type", String)
 ], Notification.prototype, "notification_type", void 0);
@@ -88,6 +118,10 @@ __decorate([
     }),
     __metadata("design:type", String)
 ], Notification.prototype, "status", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "boolean", default: false }),
+    __metadata("design:type", Boolean)
+], Notification.prototype, "is_read", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "timestamp", nullable: true }),
     __metadata("design:type", Date)

@@ -1,33 +1,46 @@
 import { NotificationsService } from "./notifications.service";
-import { Notification } from "./notifications.entity";
 export declare class NotificationsController {
     private readonly notificationsService;
     constructor(notificationsService: NotificationsService);
     create_notification(body: any): Promise<{
         message: string;
-        response: any;
+        response: import("./notifications.entity").Notification;
     }>;
-    send_notification(notification_id: string): Promise<{
+    send_notification(id: string): Promise<{
         message: string;
-        response: any;
+        response: import("./notifications.entity").Notification | {
+            message: string;
+        };
     }>;
-    user_notification(user_id: string, company_id?: string): Promise<{
+    user_notification(user_id: string, limit?: string): Promise<{
         message: string;
-        response: any;
+        response: import("./notifications.entity").Notification[];
     }>;
-    single_notification(notification_id: string): Promise<{
+    unread_count(user_id: string): Promise<{
         message: string;
-        response: any;
+        count: number;
     }>;
-    mark_read_notification(notification_id: string): Promise<{
+    single_notification(id: string): Promise<{
         message: string;
-        response: any;
+        response: import("./notifications.entity").Notification;
     }>;
-    send_bulk_notification(notifications: Notification[]): Promise<{
+    mark_read_notification(id: string): Promise<{
         message: string;
-        response: any;
+        response: import("./notifications.entity").Notification;
     }>;
-    delete_notification(notification_id: string): Promise<{
+    mark_all_read(user_id: string): Promise<{
+        message: string;
+        response: {
+            message: string;
+        };
+    }>;
+    send_bulk_notification(body: {
+        notifications: any[];
+    }): Promise<{
+        message: string;
+        response: any[];
+    }>;
+    delete_notification(id: string): Promise<{
         message: string;
         response: {
             message: string;

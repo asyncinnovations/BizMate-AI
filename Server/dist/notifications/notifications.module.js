@@ -8,20 +8,28 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationsModule = void 0;
 const common_1 = require("@nestjs/common");
+const typeorm_1 = require("@nestjs/typeorm");
 const notifications_service_1 = require("./notifications.service");
 const notifications_controller_1 = require("./notifications.controller");
-const typeorm_1 = require("@nestjs/typeorm");
 const notifications_entity_1 = require("./notifications.entity");
-const notification_preferences_service_1 = require("../notification_preferences/notification_preferences.service");
 const notification_preferences_entity_1 = require("../notification_preferences/notification_preferences.entity");
+const notification_preferences_service_1 = require("../notification_preferences/notification_preferences.service");
+const ResendService_1 = require("../services/ResendService");
 let NotificationsModule = class NotificationsModule {
 };
 exports.NotificationsModule = NotificationsModule;
 exports.NotificationsModule = NotificationsModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([notifications_entity_1.Notification, notification_preferences_entity_1.NotificationPreference])],
-        providers: [notifications_service_1.NotificationsService, notification_preferences_service_1.NotificationPreferencesService],
+        imports: [
+            typeorm_1.TypeOrmModule.forFeature([notifications_entity_1.Notification, notification_preferences_entity_1.NotificationPreference]),
+        ],
+        providers: [
+            notifications_service_1.NotificationsService,
+            notification_preferences_service_1.NotificationPreferencesService,
+            ResendService_1.ResendService,
+        ],
         controllers: [notifications_controller_1.NotificationsController],
+        exports: [notifications_service_1.NotificationsService, ResendService_1.ResendService],
     })
 ], NotificationsModule);
 //# sourceMappingURL=notifications.module.js.map

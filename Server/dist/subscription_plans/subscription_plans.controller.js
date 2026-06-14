@@ -38,6 +38,21 @@ let SubscriptionPlanController = class SubscriptionPlanController {
             throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
         }
     }
+    async create_checkout_session(userId, body) {
+        try {
+            const result = await this.subscriptionService.create_checkout_session_service({
+                userId,
+                planId: body.planId,
+                gateway: body.gateway ?? "stripe",
+                currency: body.currency ?? "AED",
+                action: body.action ?? "subscribe",
+            });
+            return { success: true, ...result };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error.message ?? error, common_1.HttpStatus.BAD_REQUEST);
+        }
+    }
     async subscribe_subscription_plan(userId, planId) {
         try {
             const subscription = await this.subscriptionService.subscribe_subscription_plan_service(userId, planId);
@@ -65,18 +80,18 @@ let SubscriptionPlanController = class SubscriptionPlanController {
             throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
         }
     }
-    async upgrade_subscription_plan(userId, newPlanId) {
+    async upgrade(userId, planId) {
         try {
-            const subscription = await this.subscriptionService.upgrade_subscription_plan_service(userId, newPlanId);
+            const subscription = await this.subscriptionService.upgrade_subscription_plan_service(userId, planId);
             return { success: true, subscription };
         }
         catch (error) {
             throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
         }
     }
-    async downgrade_subscription_plan(userId, newPlanId) {
+    async downgrade(userId, planId) {
         try {
-            const subscription = await this.subscriptionService.downgrade_subscription_plan_service(userId, newPlanId);
+            const subscription = await this.subscriptionService.downgrade_subscription_plan_service(userId, planId);
             return { success: true, subscription };
         }
         catch (error) {
@@ -100,6 +115,15 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], SubscriptionPlanController.prototype, "all_subscription_plan", null);
+__decorate([
+    (0, common_1.Post)("create-checkout-session/:userId"),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Param)("userId")),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], SubscriptionPlanController.prototype, "create_checkout_session", null);
 __decorate([
     (0, common_1.Post)("subscribe/:userId"),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
@@ -133,7 +157,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
-], SubscriptionPlanController.prototype, "upgrade_subscription_plan", null);
+], SubscriptionPlanController.prototype, "upgrade", null);
 __decorate([
     (0, common_1.Post)("downgrade/:userId"),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
@@ -142,7 +166,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
-], SubscriptionPlanController.prototype, "downgrade_subscription_plan", null);
+], SubscriptionPlanController.prototype, "downgrade", null);
 exports.SubscriptionPlanController = SubscriptionPlanController = __decorate([
     (0, common_1.Controller)("subscription_plan"),
     __metadata("design:paramtypes", [subscription_plans_service_1.SubscriptionPlanService])

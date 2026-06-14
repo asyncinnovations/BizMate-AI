@@ -5,32 +5,32 @@ export declare class ClientListsController {
     constructor(clientListService: ClientListsService);
     create_client(req: any, body: ClientList): Promise<{
         message: string;
-        response: any;
+        response: ClientList[];
     }>;
     get_all_clients(user_id: string): Promise<{
         message: string;
-        response: any;
+        response: ClientList[];
     }>;
     get_client(id: string): Promise<{
         message: string;
-        response: any;
+        response: ClientList;
     }>;
     search_clients(user_id: string, query: string): Promise<{
         message: string;
-        response: any;
+        response: ClientList[];
     }>;
     update_client(id: string, body: Partial<ClientList>): Promise<{
         message: string;
-        response: any;
+        response: ClientList;
     }>;
     bulk_import_clients(user_id: string, body: any[]): Promise<{
         message: string;
-        count: any;
+        count: number;
     }>;
     check_client_exists(user_id: string, body: any): Promise<{
         exists: boolean;
         message: string;
-        data: any;
+        data: ClientList | null;
     }>;
     delete_client(id: string): Promise<{
         success: boolean;
